@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>사국영웅전</title>
@@ -23,6 +26,12 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .topbar h1{font-size:1.5rem}
 .topbar .lv{color:var(--gold); font-size:.9rem}
 .topbar .sp{flex:1}
+.hudgain{font-size:.82rem; color:var(--good); white-space:nowrap}
+@keyframes hudGain{0%{opacity:0; transform:translateY(6px)}18%{opacity:1; transform:translateY(0)}72%{opacity:1}100%{opacity:0; transform:translateY(-5px)}}
+.hudgain.show{animation:hudGain 2.2s ease-out both}
+@keyframes hudBump{0%,100%{color:var(--gold)}30%{color:var(--good)}}
+.hudbump{animation:hudBump 1s ease-out}
+@media (prefers-reduced-motion: reduce){.hudgain.show,.hudbump{animation:none}}
 .hidden{display:none!important}
 /* 지도 */
 .chapter{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:14px}
@@ -37,12 +46,45 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 /* 유닛 배지 */
 .badge{width:44px; height:44px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#2a2e35; flex:none}
 .badge svg{width:100%; height:100%; display:block}
+/* 각성 초상 연출 — pface() 안에서 붙는 클래스. defs/id를 쓰지 않아야 문서 안 초상끼리 충돌하지 않는다 */
+@keyframes awkHalo{0%,100%{transform:scale(1); opacity:.30}50%{transform:scale(1.10); opacity:.60}}
+.awk-halo{animation:awkHalo 2.6s ease-in-out infinite; transform-box:fill-box; transform-origin:center}
+@keyframes awkSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.awk-rays{animation:awkSpin 14s linear infinite; transform-box:view-box; transform-origin:32px 32px}
+@keyframes awkMote{0%,100%{transform:translateY(0); opacity:.35}50%{transform:translateY(-3.5px); opacity:1}}
+.awk-mote{animation:awkMote 2.2s ease-in-out infinite; transform-box:fill-box}
+@keyframes awkSheen{0%,72%{opacity:0}80%{opacity:.55}100%{opacity:0}}
+.awk-sheen{animation:awkSheen 4.2s ease-in-out infinite}
+/* 각성 순간 연출 (모달) */
+.awkstage{position:relative; display:flex; align-items:center; justify-content:center; height:196px; margin:6px 0; overflow:hidden; border-radius:14px}
+.awkstage .badge{width:132px; height:132px; box-shadow:0 0 24px 6px rgba(208,171,85,.35); position:relative; z-index:2}
+@keyframes awkBurst{0%{transform:scale(.35); opacity:0}22%{opacity:.95}100%{transform:scale(2.6); opacity:0}}
+.awkburst{position:absolute; width:132px; height:132px; border-radius:50%; border:3px solid var(--gold); animation:awkBurst 1.5s cubic-bezier(.2,.7,.35,1) both}
+.awkburst:nth-of-type(2){animation-delay:.28s; border-color:var(--accent)}
+.awkburst:nth-of-type(3){animation-delay:.56s}
+@keyframes awkRayFan{0%{transform:scale(.4) rotate(0deg); opacity:0}30%{opacity:.75}100%{transform:scale(1.9) rotate(52deg); opacity:0}}
+.awkfan{position:absolute; width:190px; height:190px; animation:awkRayFan 1.8s ease-out both}
+@keyframes awkStepIn{0%{opacity:0; transform:translateY(10px) scale(.9)}100%{opacity:1; transform:none}}
+.awkline{animation:awkStepIn .5s ease-out both}
+.awkline:nth-of-type(2){animation-delay:.5s}
+.awkarrow{color:var(--gold); font-size:1.2rem; align-self:center}
+@media (prefers-reduced-motion: reduce){
+  .awk-halo,.awk-rays,.awk-mote,.awk-sheen,.awkburst,.awkfan,.awkline{animation:none!important}
+  .awkburst,.awkfan{display:none}
+}
 /* 편성 */
 .pickgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px; margin:14px 0}
 #forgegrid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .forgerow{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin-top:4px}
 .pick{display:flex; gap:10px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; cursor:pointer}
 .pick.sel{border-color:var(--accent); background:var(--panel2)}
+.pick.sup{border-color:var(--gold); background:var(--panel2); box-shadow:inset 3px 0 0 var(--gold)}
+.pick.dim{opacity:.5}
+.slotrow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:6px 0}
+.slotrow .badge{width:38px; height:38px}
+.slotchip{display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px 10px 3px 4px; font-size:.76rem}
+.slotchip.empty{color:var(--ink-soft); border-style:dashed; padding:6px 12px}
+.modeb.on{border-color:var(--accent); color:var(--ink)}
 .pick .info{min-width:0}
 .pick .nm{font-family:"Song Myung",serif}
 .pick .meta{font-size:.72rem; color:var(--ink-soft)}
@@ -185,9 +227,32 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .myth-hammer{animation:mythHammerSwing .9s ease-in-out infinite; transform-box:fill-box; transform-origin:15% 85%}
 @keyframes mythSparkPop{0%{opacity:0; transform:scale(.3) translate(0,0)}15%{opacity:1}100%{opacity:0; transform:scale(1) translate(18px,-22px)}}
 .myth-spark{animation:mythSparkPop .6s ease-out both}
+@keyframes mythDescend{0%{transform:translateY(-300px); opacity:0}40%{opacity:1}100%{transform:translateY(0); opacity:1}}
+.myth-descend{animation:mythDescend 2.4s cubic-bezier(.25,.7,.35,1) both; transform-box:fill-box}
+@keyframes mythBeam{0%{transform:scaleY(0); opacity:0}30%{opacity:.9}100%{transform:scaleY(1); opacity:.35}}
+.myth-beam{animation:mythBeam 2.2s ease-out both; transform-box:fill-box; transform-origin:center top}
+@keyframes mythFlood{0%{transform:translateX(-960px)}100%{transform:translateX(0)}}
+.myth-flood{animation:mythFlood 2.6s cubic-bezier(.4,.1,.6,1) 1s both; transform-box:fill-box}
+@keyframes mythMarch{0%{transform:translateX(420px); opacity:0}25%{opacity:1}100%{transform:translateX(0); opacity:1}}
+.myth-march{animation:mythMarch 3s ease-out both; transform-box:fill-box}
+@keyframes mythArrow{0%{transform:translateY(-240px); opacity:0}20%{opacity:1}100%{transform:translateY(0); opacity:1}}
+.myth-arrow{animation:mythArrow .9s ease-in both; transform-box:fill-box}
+@keyframes mythFlicker{0%,100%{opacity:.55; transform:scale(.92)}50%{opacity:1; transform:scale(1.08)}}
+.myth-flicker{animation:mythFlicker .7s ease-in-out infinite; transform-box:fill-box; transform-origin:center bottom}
+@keyframes mythSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.myth-sway{animation:mythSway 2.4s ease-in-out infinite; transform-box:fill-box; transform-origin:center bottom}
+@keyframes mythRise{0%{transform:translateY(80px); opacity:0}100%{transform:translateY(0); opacity:1}}
+.myth-rise{animation:mythRise 2.2s cubic-bezier(.2,.7,.3,1) both; transform-box:fill-box}
+@keyframes mythDrift{0%{transform:translateX(-140px)}100%{transform:translateX(780px)}}
+.myth-drift{animation:mythDrift 9s linear both; transform-box:fill-box}
+@keyframes mythVanish{0%,55%{opacity:1}100%{opacity:0}}
+.myth-vanish{animation:mythVanish 3s ease-in both}
+@keyframes mythPulse{0%,100%{transform:scale(1); opacity:.5}50%{transform:scale(1.16); opacity:.9}}
+.myth-pulse{animation:mythPulse 2.2s ease-in-out infinite; transform-box:fill-box; transform-origin:center}
 @media (prefers-reduced-motion: reduce){
   .story-bg{animation:none}
-  .myth-egg,.myth-shell-l,.myth-shell-r,.myth-glow-burst,.myth-fade,.myth-horse,.myth-figure,.myth-bob,.myth-gate,.myth-step,.myth-runner,.myth-grow,.myth-crumble,.myth-hammer,.myth-spark{animation:none!important}
+  .myth-egg,.myth-shell-l,.myth-shell-r,.myth-glow-burst,.myth-fade,.myth-horse,.myth-figure,.myth-bob,.myth-gate,.myth-step,.myth-runner,.myth-grow,.myth-crumble,.myth-hammer,.myth-spark,
+  .myth-descend,.myth-beam,.myth-flood,.myth-march,.myth-arrow,.myth-flicker,.myth-sway,.myth-rise,.myth-drift,.myth-vanish,.myth-pulse{animation:none!important}
 }
 @media(max-width:640px){.story-panel{padding:20px 18px 16px} .story-text{font-size:.92rem; min-height:150px}}
 /* 로그인/시작 화면 */
@@ -219,15 +284,18 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 @media (prefers-reduced-motion: reduce){.login-bg{animation:none}}
 @media(max-width:640px){.lane{gap:6px 10px} .midbar{flex-direction:column} .log{width:100%}}
 </style>
+</head>
+<body>
 <div class="wrap">
   <div class="topbar">
     <h1>사국영웅전</h1>
-    <span class="lv" id="hud-lv"></span><span class="sp"></span>
+    <span class="lv" id="hud-lv"></span><span class="hudgain" id="hud-gain"></span><span class="sp"></span>
     <button id="btn-help">전투 규칙</button>
     <button id="btn-mute"></button>
     <button id="btn-bgm">음악 꺼짐</button>
     <button id="btn-relogin">닉네임 변경</button>
     <button id="btn-modesel">모드 선택</button>
+    <button id="btn-saveio">세이브 코드</button>
     <button id="btn-reset">진행 초기화</button>
   </div>
 
@@ -335,7 +403,17 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
   </div>
 
   <div id="screen-party" class="hidden">
-    <h2 style="font-size:1.1rem">파티 편성 <span style="font-size:.8rem;color:var(--ink-soft)">— 4명 선택</span> <span style="font-size:.85rem;color:var(--gold)" id="party-merit"></span></h2>
+    <h2 style="font-size:1.1rem">편성 <span style="font-size:.85rem;color:var(--gold)" id="party-merit"></span></h2>
+    <div class="rosterbar" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="modeb on" id="mode-party">출전 4인</button>
+        <button class="modeb" id="mode-support">원군 3인</button>
+        <span class="help" id="mode-hint" style="flex:1;min-width:180px"></span>
+      </div>
+      <div class="slotrow" id="party-slots"></div>
+      <div class="slotrow" id="support-slots"></div>
+      <div class="help" id="support-eff"></div>
+    </div>
     <div class="pickgrid" id="pickgrid"></div>
     <button class="primary" id="btn-party-done">편성 완료</button>
     <button id="btn-party-cancel">취소</button>
@@ -499,13 +577,13 @@ const CHARS=[
 {id:"munmu", n:"문무왕", f:"신라", s:5, role:"딜러", king:1, st:[90,80,80,95,75], skill:{nm:"삼국통일", cd:3, d:"적 전체 190% 피해"}},
 {id:"wonhyo", n:"원효대사", f:"신라", s:4, role:"서포터", st:[25,100,60,100,100], skill:{nm:"해골물의 깨달음", cd:3, d:"아군 전체 회복 + 약화 해제"}},
 {id:"ijinasi", n:"이진아시왕", f:"가야", s:4, role:"탱커", king:1, st:[75,60,100,95,55], skill:{nm:"형제의 결의", cd:3, d:"도발(2턴) + 아군 전체 보호막"}},
-{id:"gyeonhwon", n:"견훤", f:"백제", s:5, role:"딜러", king:1, st:[98,72,68,92,82], skill:{nm:"일리천의 참회", cd:3, d:"단일 260% 피해, 방어 20% 무시"}},
-{id:"wanggeon", n:"왕건", f:"고구려", s:5, role:"서포터", king:1, st:[45,95,60,88,80], skill:{nm:"삼한일통", cd:3, d:"아군 전체 회복 + 공격·방어 15%↑(2턴)"}},
-{id:"sinsunggyeom", n:"신숭겸", f:"고구려", s:4, role:"탱커", st:[70,45,90,95,58], skill:{nm:"어기의 위장", cd:3, d:"도발(2턴) + 받는 피해 30%↓(2턴)"}},
-{id:"haji", n:"하지왕", f:"가야", s:4, role:"지략딜러", king:1, st:[55,92,60,85,88], skill:{nm:"보국장군의 위엄", cd:3, d:"적 전체 지략 180% + 자신 공격 15%↑(2턴)"}},
-{id:"yuhwa", n:"유화부인", f:"고구려", s:4, role:"힐러", st:[25,90,65,90,85], skill:{nm:"물의 어머니", cd:3, d:"아군 전체 회복 + 지속 회복(2턴)"}},
-{id:"geumwa", n:"금와왕", f:"고구려", s:4, role:"서포터", king:1, st:[40,85,70,90,70], skill:{nm:"동부여의 관용", cd:3, d:"아군 전체 방어 20%↑(2턴) + 회복"}},
-{id:"daemusin", n:"대무신왕", f:"고구려", s:5, role:"딜러", king:1, st:[92,68,72,90,88], skill:{nm:"동부여 정벌", cd:3, d:"단일 270% 피해, 방어 15% 무시"}},
+{id:"gyeonhwon", n:"견훤", f:"백제", s:5, role:"딜러", king:1, st:[98,74,72,92,84], skill:{nm:"일리천의 참회", cd:3, d:"단일 260% 피해, 방어 20% 무시"}},
+{id:"wanggeon", n:"왕건", f:"고구려", s:5, role:"서포터", king:1, st:[52,100,76,102,90], skill:{nm:"삼한일통", cd:3, d:"아군 전체 회복 + 공격·방어 15%↑(2턴)"}},
+{id:"sinsunggyeom", n:"신숭겸", f:"고구려", s:4, role:"탱커", st:[78,52,98,100,57], skill:{nm:"어기의 위장", cd:3, d:"도발(2턴) + 받는 피해 30%↓(2턴)"}},
+{id:"haji", n:"하지왕", f:"가야", s:4, role:"지략딜러", king:1, st:[55,92,63,86,89], skill:{nm:"보국장군의 위엄", cd:3, d:"적 전체 지략 180% + 자신 공격 15%↑(2턴)"}},
+{id:"yuhwa", n:"유화부인", f:"고구려", s:4, role:"힐러", st:[28,95,70,98,94], skill:{nm:"물의 어머니", cd:3, d:"아군 전체 회복 + 지속 회복(2턴)"}},
+{id:"geumwa", n:"금와왕", f:"고구려", s:4, role:"서포터", king:1, st:[46,92,80,97,70], skill:{nm:"동부여의 관용", cd:3, d:"아군 전체 방어 20%↑(2턴) + 회복"}},
+{id:"daemusin", n:"대무신왕", f:"고구려", s:5, role:"딜러", king:1, st:[94,70,74,92,90], skill:{nm:"동부여 정벌", cd:3, d:"단일 270% 피해, 방어 15% 무시"}},
 ];
 const byId=Object.fromEntries(CHARS.map(c=>[c.id,c]));
 /* 기본 스킬 2종 (쿨다운제) — 기존 skill 필드는 궁극기(기력 100 소모)로 승격.
@@ -669,10 +747,37 @@ const CHAPTERS=[
 ];
 const ALL_STAGES=CHAPTERS.flatMap(c=>c.stages);
 
+/* 국보(tier 4) 고유 효과 — 아이템 이름으로 붙인다 */
+const TREASURE_EFF={"칠지도":"chilji", "가야 판갑옷":"panga", "신라 금관":"geumgwan"};
+const SUPPORT_SLOTS=3;   // 전투에는 나오지 않고 파티를 후원하는 원군 자리
+
 /* ============ 저장 ============ */
-const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}};
+const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[]};
 let save=load();
-function load(){ try{const raw=localStorage.getItem("saguk-save"); if(raw){const s=JSON.parse(raw); if(s&&s.unlocked&&s.party&&s.cleared){ s.merit=s.merit||0; s.promo=s.promo||{}; s.scrolls=s.scrolls||0; s.iron=s.iron||0; s.equip=s.equip||{}; s.mute=!!s.mute; s.wins=s.wins||0; s.pulls=s.pulls||0; s.promoCnt=s.promoCnt||0; s.forgeCnt=s.forgeCnt||0; s.bestFloor=s.bestFloor||0; s.claimed=s.claimed||[]; s.firstTenDone=!!s.firstTenDone; if(!s.starterGift){ s.starterGift=true; s.scrolls+=10; } s.awaken=s.awaken||{}; s.auto=!!s.auto; s.dgDate=s.dgDate||""; s.dgRuns=s.dgRuns||{}; s.items=s.items||[]; s.wear=s.wear||{}; s.mineDate=s.mineDate||""; s.mineUses=s.mineUses||0; s.stageTier=s.stageTier||{}; s.fragments=s.fragments||{}; s.epilogues=s.epilogues||[]; s.nickname=s.nickname||""; s.defBestWave=s.defBestWave||0; s.materials=s.materials||{silk:0,pearl:0}; return s; }}}catch(e){} return JSON.parse(JSON.stringify(DEFAULT_SAVE)); }
+/* 세이브 보정 — 구버전 세이브에 새 필드 기본값을 채워 넣는다.
+   load()와 가져오기가 같은 함수를 쓰도록 분리해 두었다 (필드를 추가하면 여기만 고치면 된다) */
+function normalizeSave(s){
+  if(!s||!s.unlocked||!s.party||!s.cleared) return null;
+  const d=DEFAULT_SAVE;
+  ["merit","scrolls","iron","wins","pulls","promoCnt","forgeCnt","bestFloor","mineUses","defBestWave"].forEach(k=>{ s[k]=s[k]||0; });
+  ["promo","equip","dgRuns","wear","stageTier","fragments","awaken"].forEach(k=>{ s[k]=s[k]||{}; });
+  ["claimed","items","epilogues","support"].forEach(k=>{ s[k]=s[k]||[]; });
+  ["dgDate","mineDate","nickname"].forEach(k=>{ s[k]=s[k]||""; });
+  s.mute=!!s.mute; s.auto=!!s.auto; s.firstTenDone=!!s.firstTenDone;
+  s.materials=s.materials||{silk:0,pearl:0};
+  if(!s.starterGift){ s.starterGift=true; s.scrolls+=10; }
+  // 구버전 아이템 보정: 피안개의 검은 수치 보너스가 없고, 국보는 고유 효과를 갖는다
+  s.items.forEach(it=>{
+    if(it&&it.eff==="healrecv") it.noStat=true;
+    if(it&&it.tier>=4&&!it.eff&&TREASURE_EFF[it.n]) it.eff=TREASURE_EFF[it.n];
+  });
+  // 원군에 파티원이 섞여 있으면 제거 (구버전 세이브 방어)
+  s.support=s.support.filter(id=>byId[id]&&!s.party.includes(id)&&s.unlocked.includes(id)).slice(0,SUPPORT_SLOTS);
+  return s;
+}
+function load(){ try{const raw=localStorage.getItem("saguk-save"); if(raw){ const s=normalizeSave(JSON.parse(raw)); if(s) return s; }}catch(e){} return JSON.parse(JSON.stringify(DEFAULT_SAVE)); }
+/* 파티 레벨 상한 = 전체 스테이지 수 + 1 — 스테이지가 늘어나도 권장 Lv과 자동으로 보조를 맞춘다 */
+const MAX_PARTY_LV=ALL_STAGES.length+1;
 function eqOf(id){ return save.equip[id]||[0,0,0]; }
 function awkOf(id){ return (save.awaken&&save.awaken[id])||0; }
 const AWK_COST=[{m:400,i:250},{m:800,i:500}];
@@ -680,33 +785,45 @@ const AWK_COST=[{m:400,i:250},{m:800,i:500}];
 const ITEM_NAMES=[["무쇠 검","강철 환도","명장의 환두대도","칠지도"],["가죽 갑옷","철제 찰갑","명광개","가야 판갑옷"],["옥 노리개","은 장신구","금관 장식","신라 금관"]];
 const SLOT_NAMES=["무기","갑옷","장신구"];
 const W_ATK=[.08,.12,.18,.25], A_HP=[.08,.12,.18,.25], T_SPD=[5,8,12,16];
-const SPECIAL_WEAPON={n:"피안개의 검", slot:0, tier:2, eff:"healrecv"};
+const SPECIAL_WEAPON={n:"피안개의 검", slot:0, tier:2, eff:"healrecv", noStat:true};
 /* 외전 1(대륙)·외전 2(왜) 전투에서 얻는 특산물 — 교환상점에서 철로 바꿀 수 있다 */
 const MATERIALS={
  silk:{n:"비단", region:"대륙", rate:8},
  pearl:{n:"진주", region:"왜", rate:8},
 };
 function materialDropChance(stageId){ return stageId.startsWith("x1")?"silk":stageId.startsWith("x2")?"pearl":null; }
+const TREASURE_DESC={
+ chilji:"공격이 다른 적 1명에게 30% 여파",
+ panga:"받는 피해 8%↓",
+ geumgwan:"개전 기력 +30 · 라운드마다 +5",
+};
 function itemDesc(it){
   if(it.eff==="healrecv") return "공격 시 대상 치유 효과 50%↓(2턴)";
   const base=it.slot===0?"공격 +"+Math.round(W_ATK[it.tier-1]*100)+"%" : it.slot===1?"HP +"+Math.round(A_HP[it.tier-1]*100)+"%" : "속도 +"+T_SPD[it.tier-1];
-  return it.tier>=4?base+" (국보)":base;
+  if(it.tier>=4) return base+" · "+(TREASURE_DESC[it.eff]||"")+" (국보)";
+  return base;
+}
+/* 등급을 지정해 장비를 만들어 준다 (tier 4 = 국보) */
+function makeItem(tier, slot){
+  if(slot===undefined) slot=Math.floor(Math.random()*3);
+  const n=ITEM_NAMES[slot][tier-1];
+  const it={n, slot, tier};
+  if(TREASURE_EFF[n]) it.eff=TREASURE_EFF[n];   // 국보는 수치와 고유 효과를 함께 가진다
+  save.items.push(it);
+  return it;
 }
 function rollDrop(lv, chance){
   if(Math.random()>chance) return null;
   let tier=1; const r=Math.random();
   if(lv>=30&&r<0.08) tier=4; else if(lv>=19&&r<0.4) tier=3; else if(lv>=9&&r<0.65) tier=2;
-  const slot=Math.floor(Math.random()*3);
-  const it={n:ITEM_NAMES[slot][tier-1], slot, tier};
-  save.items.push(it);
-  return it;
+  return makeItem(tier);
 }
 function wearOf(id){ return save.wear[id]||[null,null,null]; }
 function wornBy(idx){ for(const id in save.wear){ if(save.wear[id]&&save.wear[id].includes(idx)) return id; } return null; }
 function wearBonus(id){
   const w=wearOf(id); const b={atkP:0,hpP:0,spd:0};
   w.forEach(ix=>{ if(ix===null||ix===undefined) return; const it=save.items[ix]; if(!it) return;
-    if(it.eff) return; // 특수 효과 무기는 수치 보너스가 아니라 wearEffects()로 별도 처리
+    if(it.noStat) return; // 피안개의 검처럼 수치 없이 효과만 있는 장비 (국보는 수치+효과 둘 다)
     if(it.slot===0) b.atkP+=W_ATK[it.tier-1];
     else if(it.slot===1) b.hpP+=A_HP[it.tier-1];
     else b.spd+=T_SPD[it.tier-1];
@@ -721,9 +838,58 @@ function wearEffects(id){
 function promoOf(id){ return save.promo[id]||0; }
 function starOf(id){ return byId[id].s+promoOf(id); }
 function promoCost(nextStar){ return nextStar===4?150 : nextStar===5?350 : 0; }
-function persist(){ try{localStorage.setItem("saguk-save",JSON.stringify(save));}catch(e){} }
-function partyLv(){ return Math.min(30, 1+save.cleared.length); }
+function num(n){ return (n||0).toLocaleString("ko-KR"); }
+function walletText(){ return "보유 공훈 "+num(save.merit)+" · 철 "+num(save.iron)+" · 소집령 "+num(save.scrolls); }
+let HUD_LAST=null;
+/* 재화 표시 갱신 + 늘어난 만큼 잠깐 띄우기. persist()가 부르므로 따로 챙길 필요가 없다 */
+function updHUD(){
+  const el=document.getElementById("hud-lv"); if(!el) return;
+  el.textContent=(save.nickname?save.nickname+"님 · ":"")+"파티 Lv "+partyLv()
+    +" · 영웅 "+save.unlocked.length+"/"+CHARS.length
+    +" · 공훈 "+num(save.merit)+" · 철 "+num(save.iron)+" · 소집령 "+num(save.scrolls);
+  const cur={merit:save.merit, iron:save.iron, scrolls:save.scrolls};
+  if(HUD_LAST){
+    const up=[];
+    if(cur.merit>HUD_LAST.merit) up.push("공훈 +"+num(cur.merit-HUD_LAST.merit));
+    if(cur.iron>HUD_LAST.iron) up.push("철 +"+num(cur.iron-HUD_LAST.iron));
+    if(cur.scrolls>HUD_LAST.scrolls) up.push("소집령 +"+num(cur.scrolls-HUD_LAST.scrolls));
+    const g=document.getElementById("hud-gain");
+    if(g&&up.length){
+      g.textContent="▲ "+up.join(" · ");
+      g.classList.remove("show"); void g.offsetWidth; g.classList.add("show");
+      el.classList.remove("hudbump"); void el.offsetWidth; el.classList.add("hudbump");
+      clearTimeout(updHUD._t);
+      updHUD._t=setTimeout(()=>{ g.textContent=""; g.classList.remove("show"); el.classList.remove("hudbump"); }, 2300);
+    }
+  }
+  HUD_LAST=cur;
+}
+function persist(){ try{localStorage.setItem("saguk-save",JSON.stringify(save));}catch(e){} updHUD(); }
+function partyLv(){ return Math.min(MAX_PARTY_LV, 1+save.cleared.length); }
 function scale(lv){ return 1+(lv-1)*0.06; }
+
+/* ============ 원군 (전투에 나오지 않고 파티를 후원하는 자리) ============ */
+/* 로스터가 44인인데 실제로 쓰는 건 4명뿐이라, 나머지 영웅에게도 자리를 준다.
+   전투 엔진은 건드리지 않고 개전 시 파티에 보너스만 얹는 방식 */
+const SUPPORT_ROLE={
+ "탱커":      {k:"dmgred", v:.03, d:"파티 받는 피해 −3%"},
+ "딜러":      {k:"atk",    v:.03, d:"파티 공격 +3%"},
+ "지략딜러":  {k:"atk",    v:.03, d:"파티 공격 +3%"},
+ "힐러":      {k:"heal",   v:.08, d:"파티 회복량 +8%"},
+ "서포터":    {k:"gauge",  v:8,   d:"개전 기력 +8"},
+};
+function supportOf(){ return (save.support||[]).filter(id=>byId[id]&&!save.party.includes(id)); }
+/* 같은 세력 파티원에게 주는 능력 보너스 — ★와 각성에 비례 */
+function supportFactionBonus(id){ return 0.02*starOf(id) + 0.02*awkOf(id); }
+function supportSummary(ids){
+  const lines=[];
+  ids.forEach(id=>{
+    const c=byId[id]; if(!c) return;
+    const r=SUPPORT_ROLE[c.role];
+    lines.push(c.n+" — "+c.f+" 아군 공격·방어 +"+Math.round(supportFactionBonus(id)*100)+"%"+(r?" · "+r.d:""));
+  });
+  return lines;
+}
 
 /* ============ 유닛 ============ */
 function mkUnit(c, side, lv, isMob){
@@ -737,6 +903,7 @@ function mkUnit(c, side, lv, isMob){
     wearEff:(side==="ally"&&!isMob)?wearEffects(c.id):[]};
   const cx=(side==="ally"&&!isMob)?codexMult():null;
   u.maxhp=Math.round((c.st[3]*32+800)*sc*(isMob?0.48:(side==="enemy"?0.68:1))*(cx?1+cx.hp:1)); u.hp=u.maxhp;
+  if(u.wearEff.includes("geumgwan")&&u.c.skill) u.ult=Math.min(100,u.ult+30);   // 신라 금관
   return u;
 }
 function addShield(u,amt){ if(u.side==="enemy") amt*=0.6; u.shield+=Math.round(amt); }
@@ -889,7 +1056,7 @@ function fxCutin(u){
   const d=document.createElement("div"); d.className="cutin";
   d.style.animationDuration=D(1050)+"ms";
   const quote=ULT_QUOTE[u.c.id];
-  d.innerHTML='<span class="badge" style="width:52px;height:52px">'+pface(u.c)+'</span><span class="ctxt"><b>'+u.c.skill.nm+'</b>'+(quote?'<i>"'+quote+'"</i>':"")+'</span>';
+  d.innerHTML='<span class="badge" style="width:52px;height:52px">'+pface(u.c, u.awk)+'</span><span class="ctxt"><b>'+u.c.skill.nm+'</b>'+(quote?'<i>"'+quote+'"</i>':"")+'</span>';
   f.appendChild(d); setTimeout(()=>d.remove(),D(1070));
 }
 let AC=null;
@@ -913,6 +1080,61 @@ function playEpilogueSting(faction){
       o2.start(t0); o2.stop(t0+1.9);
     });
   }catch(e){}
+}
+/* 각성 순간 — 세력 음계를 위로 훑어 올리고 금속성 반짝임을 얹는다 */
+function playAwakenSting(faction){
+  if(save.mute) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const now=AC.currentTime;
+    const base=(EPILOGUE_SCALE[faction]||EPILOGUE_SCALE["신라"]).slice().sort((a,b)=>a-b);
+    const run=base.concat(base.map(f=>f*2));
+    run.forEach((f,i)=>{
+      const t0=now+i*0.075;
+      const o=AC.createOscillator(), g=AC.createGain();
+      o.type="triangle"; o.frequency.value=f; o.connect(g); g.connect(AC.destination);
+      g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(0.05,t0+0.03); g.gain.exponentialRampToValueAtTime(0.0008,t0+0.5);
+      o.start(t0); o.stop(t0+0.55);
+    });
+    // 마지막에 남는 울림
+    const t1=now+run.length*0.075;
+    [base[0]*2, base[base.length-1]*2].forEach((f,i)=>{
+      const o=AC.createOscillator(), g=AC.createGain();
+      o.type="sine"; o.frequency.value=f; o.connect(g); g.connect(AC.destination);
+      g.gain.setValueAtTime(0,t1); g.gain.linearRampToValueAtTime(0.045,t1+0.12); g.gain.exponentialRampToValueAtTime(0.0006,t1+2.2);
+      o.start(t1); o.stop(t1+2.3);
+    });
+  }catch(e){}
+}
+/* 각성 모달 뒤에서 터지는 빛살 */
+function awkFanSVG(){
+  let s='<svg viewBox="0 0 200 200" style="width:100%;height:100%;display:block">';
+  for(let i=0;i<16;i++){
+    const a=i*Math.PI/8;
+    s+='<path d="M100 100 L'+(100+Math.cos(a-0.055)*98).toFixed(1)+' '+(100+Math.sin(a-0.055)*98).toFixed(1)
+      +' L'+(100+Math.cos(a+0.055)*98).toFixed(1)+' '+(100+Math.sin(a+0.055)*98).toFixed(1)
+      +' Z" fill="'+(i%2?"#d0ab55":"#d1706a")+'" opacity="'+(i%2?".6":".32")+'"/>';
+  }
+  return s+'</svg>';
+}
+function showAwakenFX(c, lvl){
+  const gain=lvl===1?"기본 능력 +12% · 전투 시작 기력 +25":"기본 능력 +24% · 전투 시작 기력 +50";
+  const cell=(a,label,hl)=>'<figure class="awkline" style="margin:0;text-align:center">'
+    +'<span class="badge" style="width:56px;height:56px">'+pface(c,a)+'</span>'
+    +'<figcaption style="font-size:.66rem;margin-top:3px;color:'+(hl?"var(--gold)":"var(--ink-soft)")+'">'+label+'</figcaption></figure>';
+  showModal(
+     '<h2 style="color:var(--gold);text-align:center;margin:0 0 2px">✦ 각성 '+lvl+'단계</h2>'
+    +'<p class="help" style="text-align:center;margin:0">'+c.n+' · '+c.f+'</p>'
+    +'<div class="awkstage"><div class="awkfan">'+awkFanSVG()+'</div>'
+    +'<div class="awkburst"></div><div class="awkburst"></div><div class="awkburst"></div>'
+    +'<span class="badge">'+pface(c,lvl)+'</span></div>'
+    +'<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px">'
+    +cell(lvl-1, lvl-1?"각성 "+(lvl-1)+"단계":"기본", false)
+    +'<span class="awkarrow">→</span>'
+    +cell(lvl, "각성 "+lvl+"단계", true)+'</div>'
+    +'<p style="text-align:center;margin:0 0 12px">'+gain+'</p>'
+    +'<button class="primary" id="m-ok" style="display:block;margin:0 auto">확인</button>', closeModal);
+  playAwakenSting(c.f);
 }
 function sfx(t){
   if(save.mute) return;
@@ -970,6 +1192,8 @@ function startBattle(stage){
   $("screen-map").classList.add("hidden"); $("screen-party").classList.add("hidden");
   $("screen-battle").classList.remove("hidden");
   pBoot(); // 화면이 보이는 상태에서 부팅해야 Phaser Scale.FIT이 실제 크기를 인식한다
+  // 렌더러가 없으면 대상을 클릭할 수 없으므로 자동 전투로 강제한다 (수동은 진행 불가)
+  if(!phaserReady()){ AUTO=true; $("btn-auto").textContent="자동 켜짐"; }
   $("battle-title").textContent=stage.n+" (권장 Lv "+st.lv+")"+(st!==stage?" · 도전 Lv "+stageTierOf(stage.id):"")+(eliteReplay?" · 정예 출현":"");
   $("log").innerHTML="";
   log("― 전투 개시 ―","sys");
@@ -994,11 +1218,23 @@ function applyStartEffects(){
   const kingF=new Set(A.filter(u=>u.c.king).map(u=>u.c.f));
   if(kingF.size>=4){ A.forEach(u=>u.buffs.push({k:"atk",v:.12,t:99},{k:"def",v:.12,t:99})); syn.push(["#d9b959","[사왕회맹] 파티 전체 공격·방어 +12%"]); }
   const healN=A.filter(u=>u.c.role==="힐러").length;
-  B.healAmp=healN>=2?1.15:1;
+  B.healAmp=healN>=2?1.15:1;   // 원군 힐러 보정은 뒤에서 곱해진다
   if(healN>=2) syn.push(["#7fbfa0","[회복진] 회복량 +15%"]);
   if(A.filter(u=>u.c.role==="탱커").length>=2){ A.forEach(u=>u.buffs.push({k:"def",v:.08,t:99})); syn.push(["#8fa1b3","[철벽 전선] 파티 방어 +8%"]); }
   if(A.filter(u=>u.c.role==="딜러"||u.c.role==="지략딜러").length>=3){ A.forEach(u=>u.buffs.push({k:"atk",v:.08,t:99})); syn.push(["#d1706a","[속전속결] 파티 공격 +8%"]); }
-  syn.forEach(m=>log("세력 결속 "+m[1],"sys"));
+  // 원군 — 편성 밖 영웅이 파티를 후원한다
+  supportOf().forEach(id=>{
+    const c=byId[id], fb=supportFactionBonus(id), r=SUPPORT_ROLE[c.role];
+    const kin=A.filter(u=>u.c.f===c.f);
+    if(kin.length){ kin.forEach(u=>{ u.buffs.push({k:"atk",v:fb,t:99},{k:"def",v:fb,t:99}); }); }
+    if(r){
+      if(r.k==="heal") B.healAmp=(B.healAmp||1)*(1+r.v);
+      else if(r.k==="gauge") A.forEach(u=>gainG(u,r.v));
+      else A.forEach(u=>u.buffs.push({k:r.k,v:r.v,t:99}));
+    }
+    syn.push(["#d0ab55","[원군] "+c.n+" — "+c.f+" 아군 +"+Math.round(fb*100)+"%"+(r?" · "+r.d:"")]);
+  });
+  syn.forEach(m=>log((m[1].indexOf("[원군]")===0?"":"세력 결속 ")+m[1],"sys"));
   fxSynergy(syn);
   // 장비 적용 (갑옷·장신구는 개전 시 확정, 무기는 공격 시 계산) — 대장간 강화 + 착용 아이템 합산
   A.forEach(u=>{ const [w,a,t]=u.eq;
@@ -1064,6 +1300,7 @@ function endRound(){
     if(u.taunt>0)u.taunt--;
     u.cds=u.cds.map(x=>x>0?x-1:0);
     for(const b of u.buffs) if(b.k==="regen"){ heal(u, b.v, "지속 회복"); }
+    if(u.wearEff&&u.wearEff.includes("geumgwan")) gainG(u,5);   // 신라 금관
   });
   const ur=B.allies.find(u=>u.alive&&u.c.id==="ureuk");
   if(ur){ B.allies.forEach(u=>{ if(u.addSok<15) u.addSok+=3; }); log("우륵 [악성] — 가야금 가락에 아군 속도 +3","note"); }
@@ -1102,12 +1339,12 @@ function dealDamage(src, tgt, raw, opts){
   if(crit) dmg*=1.5+(src.c.id==="yusin"?0.30:0);
   if(tgt.guard) dmg*=0.5;
   let red=1; for(const b of tgt.buffs) if(b.k==="dmgred") red*=(1-b.v); dmg*=red;
+  if(tgt.wearEff&&tgt.wearEff.includes("panga")) dmg*=0.92;   // 가야 판갑옷
   if(src.c.id==="gyebaek"&&src.hp/src.maxhp<0.5) dmg*=1.3;
   if(src.flags.doubleNext){ dmg*=2; src.flags.doubleNext=false; log("관창 [화랑의 투혼] — 혼신의 일격!","sys"); }
   if(src.c.id==="geun") dmg+=atkOf(src)*0.15;
   // 회피/빗나감
   if(tgt.c.id==="sadaham"&&B.round===1&&Math.random()<0.2){ log(nameOf(tgt)+"이(가) 공격을 회피했다!","note"); return 0; }
-  if(tgt.side==="ally"&&false){}
   if(src.side==="enemy"&&B.allies.some(a=>a.alive&&a.c.id==="seondeok")&&Math.random()<0.10){ log("[모란도] "+nameOf(src)+"의 공격이 빗나갔다!","note"); return 0; }
   dmg=Math.max(1,Math.round(dmg));
   // 보호막
@@ -1123,6 +1360,15 @@ function dealDamage(src, tgt, raw, opts){
   if(tgt.c.id==="muryeong"&&tgt.hp>0){ const r=Math.round(dmg*0.10); src.hp-=r; log("무령왕 [반사] — "+nameOf(src)+"에게 "+r+" 반사","note"); if(src.hp<=0) die(src,tgt); }
   if(tgt.c.id==="yang"&&tgt.hp>0&&!opts.noCounter&&Math.random()<0.3){ const c=Math.round(atkOf(tgt)*0.5*170/(170+defOf(src))); src.hp-=c; log("양만춘 [반격] — "+c+" 피해","note"); if(src.hp<=0) die(src,tgt); }
   if(tgt.hp<=0) die(tgt, src);
+  // 칠지도 — 일곱 갈래의 칼날이 곁의 적에게도 닿는다 (여파는 다시 여파를 부르지 않는다)
+  if(!opts.noSplash&&src.wearEff&&src.wearEff.includes("chilji")){
+    const others=livingEnemiesOf(src).filter(x=>x!==tgt);
+    if(others.length){
+      const o=others[Math.floor(Math.random()*others.length)];
+      log("[칠지도] 칼날이 "+nameOf(o)+"에게도 스친다","note");
+      dealDamage(src,o,raw*0.3,{noCounter:true, noSplash:true});
+    }
+  }
   // 을지문덕: 버프 해제
   if(src.c.id==="eulji"&&tgt.alive){ const i=tgt.buffs.findIndex(b=>b.v>0&&b.t<99); if(i>=0){ tgt.buffs.splice(i,1); log("을지문덕 [여수장우중문시] — 적의 강화 해제","note"); } }
   return dmg;
@@ -1228,7 +1474,7 @@ function ultExec(u, tgt){
     case "isabu": dealDamage(u,tgt,atkOf(u)*1.8); if(tgt.alive&&Math.random()<0.3){tgt.stun=1; log(nameOf(tgt)+"이(가) 목우사자에 겁먹었다!","note");} u.taunt=1; break;
     case "gwanchang": u.hp=Math.max(1,u.hp-Math.round(u.maxhp*0.2)); dealDamage(u,tgt,atkOf(u)*2.0); break;
     case "sadaham": dealDamage(u,tgt,atkOf(u)*1.5); break;
-    case "suro": E.forEach(x=>{}); u.taunt=2; addShield(u,intOf(u)*1.5); log("적의 이목이 구지가에 쏠린다 (도발 2턴)","note"); break;
+    case "suro": u.taunt=2; addShield(u,intOf(u)*1.5); log("적의 이목이 구지가에 쏠린다 (도발 2턴)","note"); break;
     case "heo": A.forEach(x=>{heal(x,intOf(u)*1.5); x.buffs=x.buffs.filter(b=>b.v>0||b.t>=99); x.stun=0;}); log("약화 효과 해제","note"); break;
     case "ureuk": A.forEach(x=>x.buffs.push({k:"atk",v:.2,t:2})); log("아군 공격·지략 +20% (2턴)","note"); break;
     case "wolgwang": E.forEach(x=>{dealDamage(u,x,intOf(u)*1.6,{noCounter:true}); if(x.alive)x.buffs.push({k:"atk",v:-.15,t:2});}); break;
@@ -1310,7 +1556,7 @@ function askTarget(u,hint){
     x.pu.targetHandler=handler;
     x.pu.container.on("pointerdown",handler); });
 }
-function clearTargets(){ [...B.allies,...B.enemies].forEach(x=>{ if(x.pu&&x.pu.targetable){ x.pu.ring.setStrokeStyle(2,0x15171b); x.pu.targetable=false; if(x.pu.targetHandler){ x.pu.container.off("pointerdown",x.pu.targetHandler); x.pu.targetHandler=null; } } }); }
+function clearTargets(){ [...B.allies,...B.enemies].forEach(x=>{ if(x.pu&&x.pu.targetable){ x.pu.ring.setStrokeStyle(x.awk?2.5:2, x.awk?0xd0ab55:0x15171b); x.pu.targetable=false; if(x.pu.targetHandler){ x.pu.container.off("pointerdown",x.pu.targetHandler); x.pu.targetHandler=null; } } }); }
 
 /* ============ 적 AI ============ */
 function aiAct(u){
@@ -1356,13 +1602,27 @@ function aiAct(u){
 /* ============ 승패 ============ */
 const FRAGMENT_GOAL=10;
 function fragmentChance(lv){ return Math.min(0.65, 0.35+(lv||1)*0.006); }
+/* 조각 n개를 파티원에게 나눠 준다. 새로 열린 후일담 주인공 id 배열을 돌려준다 */
+function grantFragments(n){
+  const opened=[];
+  for(let k=0;k<n;k++){
+    const pool=save.party.filter(id=>save.unlocked.includes(id)&&(save.fragments[id]||0)<FRAGMENT_GOAL);
+    if(!pool.length) break;
+    const id=pool[Math.floor(Math.random()*pool.length)];
+    save.fragments[id]=(save.fragments[id]||0)+1;
+    if(save.fragments[id]>=FRAGMENT_GOAL&&!save.epilogues.includes(id)){ save.epilogues.push(id); opened.push(id); }
+  }
+  return opened;
+}
 function gainFragments(lv){
-  const pool=save.party.filter(id=>save.unlocked.includes(id)&&(save.fragments[id]||0)<FRAGMENT_GOAL);
-  if(!pool.length||Math.random()>=fragmentChance(lv)) return null;
-  const id=pool[Math.floor(Math.random()*pool.length)];
-  save.fragments[id]=(save.fragments[id]||0)+1;
-  if(save.fragments[id]>=FRAGMENT_GOAL&&!save.epilogues.includes(id)){ save.epilogues.push(id); return id; }
-  return null;
+  if(Math.random()>=fragmentChance(lv)) return null;
+  return grantFragments(1)[0]||null;
+}
+/* 새로 열린 후일담을 알리는 문구 + 여운 사운드 */
+function epilogueNotice(ids){
+  if(!ids||!ids.length) return "";
+  playEpilogueSting(byId[ids[0]].f);
+  return ids.map(id=>"<p class='big' style='color:var(--gold)'>✦ "+byId[id].n+"의 이야기 조각을 모두 모았다 — 도감에서 뒷이야기를 확인할 수 있다.</p>").join("");
 }
 function win(){
   sfx("win");
@@ -1388,16 +1648,27 @@ function win(){
   if(matKey&&Math.random()<0.55){ save.materials[matKey]=(save.materials[matKey]||0)+1; rew+=" · <b style='color:var(--gold)'>"+MATERIALS[matKey].n+"</b> +1"; }
   persist();
   if(st.id==="s5") msg="<p class='big'>네 나라의 영웅이 한자리에 — 사국쟁패 완결!</p>";
-  if(newEpilogue){ msg+="<p class='big' style='color:var(--gold)'>✦ "+byId[newEpilogue].n+"의 이야기 조각을 모두 모았다 — 도감에서 뒷이야기를 확인할 수 있다.</p>"; playEpilogueSting(byId[newEpilogue].f); }
+  if(newEpilogue) msg+=epilogueNotice([newEpilogue]);
   const next=ALL_STAGES[ALL_STAGES.findIndex(s=>s.id===st.id)+1];
   const nextBtn=next?'<button class="primary" id="m-next">다음 스테이지로</button>':"";
   const retryBtn=(!st.dungeon&&!st.tower)?'<button id="m-retry">이 스테이지 다시</button>':"";
-  showModal("<h2>승리</h2>"+msg+"<p>"+rew+" · 파티 Lv "+partyLv()+"</p><p class='help'>공훈=승급 · 철=대장간 · 소집령=모집소</p>"+nextBtn+retryBtn+"<button id='m-ok'>지도로</button>", ()=>{ closeModal(); showMap(); });
+  showModal("<h2>승리</h2>"+msg+"<p>"+rew+" · 파티 Lv "+partyLv()+"</p>"
+    +"<p style='color:var(--gold)'>"+walletText()+"</p>"
+    +"<p class='help'>공훈=승급 · 철=대장간 · 소집령=모집소</p>"+nextBtn+retryBtn+"<button id='m-ok'>지도로</button>", ()=>{ closeModal(); showMap(); });
   if(next){ const nb=$("m-next"); if(nb) nb.onclick=()=>{ closeModal(); startBattle(next); }; }
   if(retryBtn){ const rb=$("m-retry"); if(rb) rb.onclick=()=>{ closeModal(); startBattle(st); }; }
 }
 function lose(){
-  if(B&&B.stage.tower){ persist(); showModal("<h2>탑 도전 종료</h2><p>"+B.stage.tower+"층에서 쓰러졌다. 최고 기록: "+save.bestFloor+"층</p><button class='primary' id='m-ok'>지도로</button>", ()=>{ closeModal(); showMap(); }); return; }
+  if(B&&B.stage.tower){
+    persist();
+    const cps=towerCheckpoints(), top=cps[cps.length-1];
+    showModal("<h2>탑 도전 종료</h2><p>"+B.stage.tower+"층에서 쓰러졌다. 최고 기록: "+save.bestFloor+"층</p>"
+      +(top>1?"<p class='help'>다음 도전은 "+top+"층부터 시작할 수 있다.</p>":"")
+      +"<button class='primary' id='m-ok'>지도로</button>"+(top>1?" <button id='m-cancel'>"+top+"층부터 재도전</button>":""),
+      ()=>{ closeModal(); showMap(); });
+    const c=$("m-cancel"); if(c) c.onclick=()=>{ closeModal(); startTower(top); };
+    return;
+  }
   showModal("<h2>패배…</h2><p>파티를 다시 짜거나 이전 스테이지로 레벨을 올려 보자.</p><button class='primary' id='m-ok'>지도로</button>", ()=>{ closeModal(); showMap(); });
 }
 function showModal(html,onOk){ $("modal-box").innerHTML=html; $("modal").classList.remove("hidden"); const b=$("m-ok"); if(b) b.onclick=onOk; }
@@ -1415,10 +1686,11 @@ const FHEX={"고구려":"#c76560","백제":"#c3a052","신라":"#57a28f","가야"
 /* ============ Phaser 전투 렌더러 (도형 조합 피규어) ============ */
 const PZ={game:null, scene:null};
 const P_OUTLINE=0x0d0f12, P_TRIM=0xd0ab55, P_STEEL=0xa8b0b8, P_SKIN=0xc7ab8a, P_SHADOW=0x22262c;
+/* 색 명암 조절 — PFACTION이 톱레벨에서 이 함수를 쓰므로 Phaser에 의존하지 않아야 한다
+   (의존하면 CDN 차단 시 스크립트 전체가 여기서 중단된다) */
 function pshade(hex,k){
-  const c=Phaser.Display.Color.IntegerToColor(hex);
   const f=v=>Math.max(0,Math.min(255,Math.round(v*k)));
-  return Phaser.Display.Color.GetColor(f(c.red),f(c.green),f(c.blue));
+  return (f((hex>>16)&255)<<16)|(f((hex>>8)&255)<<8)|f(hex&255);
 }
 const PFACTION={};
 Object.keys(FHEX).forEach(f=>{ const m=parseInt(FHEX[f].slice(1),16); PFACTION[f]={main:m, dark:pshade(m,.64), light:pshade(m,1.32)}; });
@@ -1534,22 +1806,36 @@ function drawFigure(scene,u,facing){
   }
   return g;
 }
-function pSpacing(n){ return n<=1?0 : n===2?190 : n===3?130 : 100; }
+function pSpacing(n){ return n<=1?0 : n===2?200 : n===3?130 : 100; }
 function pColumn(list,x,cy){
   const sp=pSpacing(list.length);
   return list.map((u,i)=>({u, x, y:cy+(i-(list.length-1)/2)*sp}));
 }
 function pFrontRole(u){ const r=equipRole(u); return r==="탱커"||r==="딜러"; }
+/* 역할대로만 나누면 전원이 근접인 적 편성(궁병 4기 등)이 한 열에 쌓여
+   피규어와 이름표가 서로를 덮는다. 열 인원 차가 2 이상이면 반대 열로 넘겨 균형을 맞춘다 */
+function pSplitSide(list){
+  const front=list.filter(pFrontRole), back=list.filter(u=>!pFrontRole(u));
+  while(front.length-back.length>=2) back.push(front.pop());
+  while(back.length-front.length>=2) front.push(back.shift());
+  return [front,back];
+}
 function pLayout(){
-  const AF=B.allies.filter(pFrontRole), AB=B.allies.filter(u=>!pFrontRole(u));
-  const EF=B.enemies.filter(pFrontRole), EB=B.enemies.filter(u=>!pFrontRole(u));
-  return [...pColumn(AF,290,260), ...pColumn(AB,130,260), ...pColumn(EF,610,260), ...pColumn(EB,750,260)];
+  const [AF,AB]=pSplitSide(B.allies), [EF,EB]=pSplitSide(B.enemies);
+  return [...pColumn(AF,300,252), ...pColumn(AB,140,252), ...pColumn(EF,600,252), ...pColumn(EB,760,252)];
 }
 function pEnsureUnit(u,x,y,side){
   if(u.pu) return u.pu;
   const scene=PZ.scene;
   const facing=side==="ally"?1:-1;
   const container=scene.add.container(x,y);
+  // 각성 유닛은 발밑에서 금빛이 천천히 맥동한다
+  let aura=null;
+  if(u.awk>0){
+    aura=scene.add.ellipse(0,40,74+u.awk*14,24+u.awk*4, 0xd0ab55, u.awk>=2?0.30:0.20);
+    scene.tweens.add({targets:aura, scaleX:1.16, scaleY:1.16, alpha:u.awk>=2?0.14:0.09,
+                      duration:1500, yoyo:true, repeat:-1, ease:"Sine.easeInOut"});
+  }
   const ring=scene.add.ellipse(0,40,62,20).setStrokeStyle(2,0x15171b);
   const figure=drawFigure(scene,u,facing);
   figure.y=36;
@@ -1559,10 +1845,11 @@ function pEnsureUnit(u,x,y,side){
   const hpNum=scene.add.text(0,78,"",{fontFamily:"sans-serif",fontSize:"10px",color:"#9aa3ad"}).setOrigin(0.5);
   const tag=scene.add.text(0,-96,"",{fontFamily:"sans-serif",fontSize:"11px",color:"#1b1214",backgroundColor:"#d0ab55",padding:{x:4,y:1}}).setOrigin(0.5).setVisible(false);
   const fxText=scene.add.text(0,90,"",{fontFamily:"sans-serif",fontSize:"10px",color:"#9aa3ad"}).setOrigin(0.5);
-  container.add([ring,figure,nameTag,hpBg,hpFill,hpNum,fxText,tag]);
+  container.add(aura?[aura,ring,figure,nameTag,hpBg,hpFill,hpNum,fxText,tag]
+                     :[ring,figure,nameTag,hpBg,hpFill,hpNum,fxText,tag]);
   container.setSize(80,180);
   container.setInteractive();
-  const pu={container,ring,figure,nameTag,hpBg,hpFill,hpNum,tag,fxText,baseX:x,baseY:y,facing,deathPlayed:false};
+  const pu={container,ring,aura,figure,nameTag,hpBg,hpFill,hpNum,tag,fxText,baseX:x,baseY:y,facing,deathPlayed:false};
   scene.tweens.add({targets:container, y:y-4, duration:1200+Math.random()*400, yoyo:true, repeat:-1, ease:"Sine.easeInOut"});
   u.pu=pu;
   return pu;
@@ -1588,7 +1875,7 @@ function pSync(activeU){
     if(u.guard) parts.push("방어");
     if(u.shield>0) parts.push("보호막"+u.shield);
     pu.fxText.setText(parts.join(" "));
-    pu.ring.setStrokeStyle(u===activeU?3:2, u===activeU?0xd1706a:0x15171b);
+    pu.ring.setStrokeStyle(u===activeU?3:(u.awk?2.5:2), u===activeU?0xd1706a:(u.awk?0xd0ab55:0x15171b));
     if(!u.alive && !pu.deathPlayed){
       pu.deathPlayed=true;
       const dir=u.side==="ally"?1:-1;
@@ -1596,25 +1883,41 @@ function pSync(activeU){
     }
   });
 }
-class PBattleScene extends Phaser.Scene{
-  constructor(){ super("PBattleScene"); }
-  create(){
-    const g=this.make.graphics({x:0,y:0},false);
-    g.fillStyle(0xffffff,1); g.fillCircle(6,6,6);
-    g.generateTexture("pSpark",12,12); g.destroy();
-    this.add.rectangle(450,455,900,2,0x343a43,.5);
-    this.add.rectangle(450,265,2,360,0x343a43,.35);
-    PZ.scene=this;
-  }
+/* Phaser.Scene 상속은 Phaser가 실제로 로드된 뒤에만 가능하므로 지연 정의한다.
+   (톱레벨에서 평가하면 CDN 차단·오프라인 환경에서 스크립트 전체가 중단된다) */
+let PBattleScene=null;
+function pSceneClass(){
+  if(PBattleScene) return PBattleScene;
+  PBattleScene=class extends Phaser.Scene{
+    constructor(){ super("PBattleScene"); }
+    create(){
+      const g=this.make.graphics({x:0,y:0},false);
+      g.fillStyle(0xffffff,1); g.fillCircle(6,6,6);
+      g.generateTexture("pSpark",12,12); g.destroy();
+      this.add.rectangle(450,455,900,2,0x343a43,.5);
+      this.add.rectangle(450,265,2,360,0x343a43,.35);
+      PZ.scene=this;
+    }
+  };
+  return PBattleScene;
 }
+function phaserReady(){ return typeof Phaser!=="undefined"; }
 function pBoot(){
-  if(PZ.game){ PZ.game.destroy(true); PZ.game=null; PZ.scene=null; }
-  PZ.game=new Phaser.Game({
-    type:Phaser.AUTO, width:900, height:480, parent:"battle-phaser",
-    transparent:true,
-    scale:{mode:Phaser.Scale.FIT, autoCenter:Phaser.Scale.CENTER_HORIZONTALLY},
-    scene:[PBattleScene],
-  });
+  if(PZ.game){ try{PZ.game.destroy(true);}catch(e){} PZ.game=null; PZ.scene=null; }
+  if(!phaserReady()){
+    // 전투 렌더러 없이도 게임이 끝까지 진행되도록 자동 전투로 대체한다
+    const host=$("battle-phaser");
+    if(host) host.innerHTML='<p class="help" style="padding:24px;text-align:center">전투 그래픽 라이브러리를 불러오지 못했습니다 (인터넷 연결을 확인해 주세요).<br>전투는 자동으로 진행됩니다.</p>';
+    return;
+  }
+  try{
+    PZ.game=new Phaser.Game({
+      type:Phaser.AUTO, width:900, height:480, parent:"battle-phaser",
+      transparent:true,
+      scale:{mode:Phaser.Scale.FIT, autoCenter:Phaser.Scale.CENTER_HORIZONTALLY},
+      scene:[pSceneClass()],
+    });
+  }catch(e){ PZ.game=null; PZ.scene=null; }
 }
 const PORT={
  gwang:{hg:"pungjeol",eye:"fierce",beard:"mu"}, eulji:{hg:"hat",eye:"calm",beard:"full",hc:"#8d8d95"},
@@ -1647,9 +1950,29 @@ function pface(c, awk){
  const cfg=PORT[c.id]||{hg:(c.role==="healer"?"princess":c.role==="brute"?"band":"helm"),eye:"calm",fem:c.role==="healer"?1:0,beard:c.role==="brute"?"full":null};
  const skin="#f3d3ae", hc=cfg.hc||"#332d33", gold="#d9b959", ink="#26202a";
  let s='<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">';
- s+='<circle cx="32" cy="32" r="31" fill="'+f+'" opacity="0.28"/>';
+ s+='<circle cx="32" cy="32" r="31" fill="'+f+'" opacity="'+(awk?0.42:0.28)+'"/>';
+ if(awk>=1){
+   // 1단계 — 테두리를 따라 도는 금빛 띠와 머리 뒤 옅은 발광 (세력색을 덮지 않는다)
+   s+='<circle class="awk-halo" cx="32" cy="32" r="27.5" fill="none" stroke="'+gold+'" stroke-width="5" opacity=".22"/>';
+   s+='<circle cx="32" cy="30" r="17" fill="'+gold+'" opacity=".11"/>';
+ }
+ if(awk>=2){
+   // 2단계 — 뒤에서 천천히 도는 방사광 (배지가 원형으로 잘리므로 r<=31 안에 둔다)
+   s+='<g class="awk-rays">';
+   for(let i=0;i<12;i++){
+     const a=i*Math.PI/6, c1=Math.cos(a), s1=Math.sin(a);
+     s+='<path d="M'+(32+c1*22).toFixed(1)+' '+(32+s1*22).toFixed(1)
+       +' L'+(32+c1*31-s1*2.1).toFixed(1)+' '+(32+s1*31+c1*2.1).toFixed(1)
+       +' L'+(32+c1*31+s1*2.1).toFixed(1)+' '+(32+s1*31-c1*2.1).toFixed(1)
+       +' Z" fill="'+(i%2?"#e8b95e":"#d9736a")+'" opacity="'+(i%2?".55":".38")+'"/>';
+   }
+   s+='</g>';
+   s+='<circle class="awk-halo" cx="32" cy="31" r="18" fill="#f2d894" opacity=".13"/>';
+ }
  s+='<path d="M14 64 Q14 47 32 47 Q50 47 50 64 Z" fill="'+f+'"/>';
- s+='<path d="M26 49 L32 56 L38 49" stroke="#f5efe2" stroke-width="2" fill="none"/>';
+ s+='<path d="M26 49 L32 56 L38 49" stroke="'+(awk?gold:"#f5efe2")+'" stroke-width="'+(awk?2.4:2)+'" fill="none"/>';
+ if(awk>=1) s+='<path d="M14.6 60 Q22 50.5 32 50.5 Q42 50.5 49.4 60" stroke="'+gold+'" stroke-width="1.6" fill="none" opacity=".75"/>';
+ if(awk>=2) s+='<path d="M16.4 64 Q23 54.5 32 54.5 Q41 54.5 47.6 64" stroke="#e8b95e" stroke-width="1.2" fill="none" opacity=".6"/>';
  s+='<circle cx="15.8" cy="33" r="2.8" fill="'+skin+'"/><circle cx="48.2" cy="33" r="2.8" fill="'+skin+'"/>';
  s+='<circle cx="32" cy="31" r="16" fill="'+skin+'"/>';
  s+='<path d="M16 30 A16 16 0 0 1 48 30 Z" fill="'+hc+'"/>';
@@ -1671,11 +1994,33 @@ function pface(c, awk){
  s+='<path d="M30 43 q2 1.9 4 0" stroke="#a95a4d" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
  if(cfg.beard==="mu") s+='<path d="M25.5 41.5 Q28.5 39.8 31 41 M33 41 Q35.5 39.8 38.5 41.5" stroke="'+hc+'" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
  if(cfg.beard==="full") s+='<path d="M20 37 Q21 51 32 51 Q43 51 44 37 Q42 47 32 47 Q22 47 20 37 Z" fill="'+hc+'"/><path d="M25.5 41.5 Q28.5 39.8 31 41 M33 41 Q35.5 39.8 38.5 41.5" stroke="'+hc+'" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
- if(awk>=1) s+='<circle cx="32" cy="32" r="30.5" fill="none" stroke="'+gold+'" stroke-width="1.6" opacity="'+(awk>=2?0.9:0.6)+'"/>';
- if(awk>=2) s+='<circle cx="32" cy="32" r="27" fill="none" stroke="'+gold+'" stroke-width="1" opacity=".85"/>';
+ if(awk>=2){
+   // 눈에 깃드는 빛
+   s+='<circle cx="25.6" cy="36" r="3.6" fill="#f2d894" opacity=".26"/><circle cx="38.4" cy="36" r="3.6" fill="#f2d894" opacity=".26"/>';
+ }
+ if(awk>=1){
+   s+='<circle cx="32" cy="32" r="30.6" fill="none" stroke="'+gold+'" stroke-width="'+(awk>=2?2.6:1.8)+'" opacity="'+(awk>=2?0.95:0.7)+'"/>';
+   // 지나가는 광택
+   s+='<path class="awk-sheen" d="M6 44 L26 2 L34 2 L14 44 Z" fill="#fff6d8" opacity=".4"/>';
+ }
+ if(awk>=2) s+='<circle cx="32" cy="32" r="27.4" fill="none" stroke="#e8b95e" stroke-width="1.1" opacity=".8" stroke-dasharray="3 4"/>';
+ // 각성 표식 ✦ — 단계 수만큼, 그리고 2단계는 금빛 티끌이 떠다닌다
+ if(awk>=1){
+   const marks=awk>=2?[[24,7.6],[40,7.6]]:[[32,7.4]];
+   marks.forEach(([mx,my])=>{
+     s+='<path class="awk-mote" d="M'+mx+' '+(my-4.4)+' L'+(mx+1.35)+' '+(my-1.35)+' L'+(mx+4.4)+' '+my
+       +' L'+(mx+1.35)+' '+(my+1.35)+' L'+mx+' '+(my+4.4)+' L'+(mx-1.35)+' '+(my+1.35)
+       +' L'+(mx-4.4)+' '+my+' L'+(mx-1.35)+' '+(my-1.35)+' Z" fill="'+gold+'"/>';
+   });
+ }
+ if(awk>=2){
+   [[10.5,24,0],[53.5,24,.7],[32,57,1.4]].forEach(([mx,my,dl])=>{
+     s+='<circle class="awk-mote" style="animation-delay:'+dl+'s" cx="'+mx+'" cy="'+my+'" r="1.7" fill="#f2d894"/>';
+   });
+ }
  return s+"</svg>";
 }
-function badge(c){ return '<span class="badge">'+pface(c)+'</span>'; }
+function badge(c){ return '<span class="badge">'+pface(c, awkOf(c.id))+'</span>'; }
 function renderField(activeU){
   pSync(activeU);
   if(!activeU) hideActions();
@@ -1905,11 +2250,591 @@ function mythGoguryeoFall(){
   s+='<circle class="myth-glow-burst" cx="450" cy="300" r="28" fill="#f2c97a" style="animation-delay:1.6s"/>';
   return s;
 }
+/* 서장 3장면 — 네 나라의 일어섬 / 700년의 다툼 / 산적 소굴의 만남 */
+function mythPrologueRise(){
+  let s='<rect width="900" height="620" fill="#13161c"/>';
+  s+='<g class="myth-fade"><circle cx="450" cy="140" r="80" fill="#e8c88a" opacity=".10"/><circle cx="450" cy="140" r="130" fill="#e8c88a" opacity=".05"/></g>';
+  s+='<ellipse cx="450" cy="352" rx="450" ry="54" fill="#1e222a"/>';
+  s+='<path d="M0 300 Q230 262 460 298 Q690 334 900 290 L900 400 L0 400 Z" fill="#232830"/>';
+  // 고구려 · 백제 · 신라 · 가야가 차례로 일어선다
+  [[150,"#c76560","고구려",0],[380,"#c3a052","백제",0.5],[610,"#57a28f","신라",1.0],[810,"#8598ab","가야",1.5]].forEach(([x,c,n,d])=>{
+    s+='<g transform="translate('+x+',330)"><g class="myth-rise" style="animation-delay:'+d+'s">'
+      +'<rect x="-4" y="-74" width="8" height="74" fill="#4a4038"/>'
+      +'<path d="M4 -72 L50 -60 L4 -46 Z" fill="'+c+'"/>'
+      +'<path d="M-26 0 L0 -22 L26 0 Z" fill="#2c3138"/></g></g>';
+  });
+  s+='<g class="myth-fade" style="animation-delay:1.9s"><path d="M150 330 L380 330 M380 330 L610 330 M610 330 L810 330" stroke="#d0ab55" stroke-width="1.5" stroke-dasharray="3 9" opacity=".5"/></g>';
+  return s;
+}
+function mythPrologueStrife(){
+  let s='<rect width="900" height="620" fill="#13161c"/>';
+  // 700년이 흐른다 — 해가 하늘을 가로지른다
+  s+='<g class="myth-drift"><circle cx="80" cy="90" r="26" fill="#e8c88a" opacity=".45"/><circle cx="80" cy="90" r="44" fill="#e8c88a" opacity=".12"/></g>';
+  s+='<ellipse cx="450" cy="350" rx="450" ry="52" fill="#1e222a"/>';
+  // 맞부딪는 두 창의 대열
+  [0,1,2,3,4].forEach(i=>{
+    const x=110+i*44;
+    s+='<g class="myth-march" style="animation-delay:'+(i*0.1)+'s"><path d="M'+x+' 330 L'+(x+9)+' 268" stroke="#8fa1b3" stroke-width="3" stroke-linecap="round"/></g>';
+  });
+  [0,1,2,3,4].forEach(i=>{
+    const x=790-i*44;
+    s+='<g class="myth-figure" style="animation-delay:'+(i*0.1)+'s"><path d="M'+x+' 330 L'+(x-9)+' 268" stroke="#a8938f" stroke-width="3" stroke-linecap="round"/></g>';
+  });
+  // 싸우고 또 손을 잡는다
+  s+='<g transform="translate(450,314)"><g class="myth-grow" style="animation-delay:1.8s">'
+    +'<path d="M-46 0 q22 -26 44 0" stroke="#d0ab55" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    +'<path d="M2 0 q22 -26 44 0" stroke="#d0ab55" stroke-width="4" fill="none" stroke-linecap="round"/></g></g>';
+  s+='<circle class="myth-glow-burst" style="animation-delay:1.8s" cx="450" cy="304" r="26" fill="#f2e2a8"/>';
+  return s;
+}
+function mythPrologueCampfire(){
+  let s='<rect width="900" height="620" fill="#101319"/>';
+  s+='<g class="myth-fade">'+[[140,50],[330,32],[560,58],[740,36],[860,72]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.7" fill="#e8e2cf" opacity=".6"/>').join("")+'</g>';
+  // 솔숲
+  [[50,300,68],[140,310,52],[746,304,62],[840,296,48]].forEach(([x,y,h])=>{
+    s+='<path d="M'+x+' '+y+' L'+(x+h*0.5)+' '+(y-h)+' L'+(x+h)+' '+y+' Z" fill="#1e2a1d"/><rect x="'+(x+h*0.45)+'" y="'+y+'" width="4" height="14" fill="#2a231d"/>';
+  });
+  s+='<ellipse cx="450" cy="352" rx="440" ry="50" fill="#1a1e22"/>';
+  // 모닥불
+  s+='<g transform="translate(450,336)">'
+    +'<path d="M-22 0 L22 -6 M-20 -6 L20 2" stroke="#4a3a2a" stroke-width="5" stroke-linecap="round"/>'
+    +'<circle cx="0" cy="-16" r="44" fill="#e0873f" opacity=".14"/>'
+    +'<g class="myth-flicker"><path d="M0 -44 q14 18 8 30 q-8 10 -20 2 q-10 -12 12 -32 Z" fill="#e0873f"/></g>'
+    +'<g class="myth-flicker" style="animation-delay:.35s"><path d="M0 -32 q8 12 4 20 q-6 6 -13 1 q-6 -8 9 -21 Z" fill="#f2c063"/></g></g>';
+  // 네 나라의 젊은 영웅들이 불가에 모인다
+  [[300,"#c76560",0.2],[372,"#c3a052",0.5],[530,"#57a28f",0.8],[602,"#8598ab",1.1]].forEach(([x,c,d])=>{
+    const flip=x>450?-1:1;
+    s+='<g transform="translate('+x+',344) scale('+flip+',1)"><g class="myth-figure" style="animation-delay:'+d+'s"><g class="myth-bob">'
+      +'<circle cx="0" cy="-32" r="10" fill="#e3c39e"/><rect x="-8" y="-22" width="16" height="22" rx="5" fill="'+c+'"/>'
+      +'<path d="M8 -44 L8 -6" stroke="#5c4a30" stroke-width="2.5"/></g></g></g>';
+  });
+  return s;
+}
+/* 최종장 3장면 — 시대의 간격 / 사국의 회맹 / 결전 */
+function mythFinalGap(){
+  let s='<rect width="900" height="620" fill="#12141a"/>';
+  // 250년의 시간 — 해와 달이 번갈아 지나간다
+  s+='<g class="myth-drift"><circle cx="60" cy="80" r="26" fill="#e8c88a" opacity=".5"/></g>';
+  s+='<g class="myth-drift" style="animation-delay:2.4s"><circle cx="60" cy="120" r="20" fill="#e8e2cf" opacity=".45"/><circle cx="52" cy="113" r="17" fill="#12141a"/></g>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#1d2028"/>';
+  // 세월에 파묻히는 옛 성곽
+  s+='<g class="myth-vanish"><g transform="translate(220,334)">'
+    +'<rect x="-70" y="-30" width="140" height="30" fill="#2b3038"/>'
+    +'<rect x="-58" y="-40" width="18" height="12" fill="#2b3038"/><rect x="-8" y="-40" width="18" height="12" fill="#2b3038"/><rect x="42" y="-40" width="18" height="12" fill="#2b3038"/></g></g>';
+  s+='<g class="myth-grow" style="animation-delay:2.2s"><g transform="translate(660,334)">'
+    +'<rect x="-64" y="-34" width="128" height="34" fill="#333a44"/>'
+    +'<path d="M-72 -34 L0 -66 L72 -34 Z" fill="#443a42"/></g></g>';
+  // 시간의 눈금
+  [0,1,2,3,4,5].forEach(i=>{
+    s+='<line class="myth-fade" style="animation-delay:'+(i*0.25)+'s" x1="'+(120+i*130)+'" y1="392" x2="'+(120+i*130)+'" y2="412" stroke="#d0ab55" stroke-width="2" opacity=".45"/>';
+  });
+  return s;
+}
+function mythFinalOath(){
+  let s='<rect width="900" height="620" fill="#12141a"/>';
+  s+='<g class="myth-fade"><circle cx="450" cy="180" r="110" fill="#d0ab55" opacity=".08"/><circle cx="450" cy="180" r="170" fill="#d0ab55" opacity=".04"/></g>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#1d2028"/>';
+  // 네 나라의 왕기가 한 자리로 모인다
+  [[150,"#c76560",0],[350,"#c3a052",0.35],[550,"#57a28f",0.7],[750,"#8598ab",1.05]].forEach(([x,c,d])=>{
+    s+='<g transform="translate('+x+',336)"><g class="myth-grow" style="animation-delay:'+d+'s">'
+      +'<rect x="-4" y="-96" width="8" height="96" fill="#5c4a30"/>'
+      +'<path d="M4 -94 L54 -80 L4 -64 Z" fill="'+c+'"/>'
+      +'<circle cx="0" cy="-100" r="5" fill="#d9b959"/></g></g>';
+  });
+  // 가운데 놓이는 맹세의 잔
+  s+='<g transform="translate(450,336)"><g class="myth-rise" style="animation-delay:1.5s">'
+    +'<path d="M-20 -34 L20 -34 L14 -12 L-14 -12 Z" fill="#c9a85a"/>'
+    +'<rect x="-4" y="-12" width="8" height="10" fill="#a68840"/><rect x="-16" y="-3" width="32" height="5" rx="2" fill="#c9a85a"/></g></g>';
+  s+='<circle class="myth-glow-burst" style="animation-delay:1.6s" cx="450" cy="316" r="32" fill="#f2e2a8"/>';
+  return s;
+}
+function mythFinalClash(){
+  let s='<rect width="900" height="620" fill="#12141a"/>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#1d2028"/>';
+  s+='<g class="myth-fade"><rect x="0" y="300" width="900" height="4" fill="#343a43" opacity=".4"/></g>';
+  // 마주 달려드는 두 진영
+  [[130,"#c76560",0],[210,"#c3a052",0.15]].forEach(([x,c,d])=>{
+    s+='<g transform="translate('+x+',336)"><g class="myth-figure" style="animation-delay:'+d+'s">'
+      +'<circle cx="0" cy="-28" r="10" fill="#e3c39e"/><rect x="-8" y="-19" width="16" height="19" rx="4" fill="'+c+'"/>'
+      +'<path d="M10 -48 L10 -6" stroke="#5c4a30" stroke-width="3"/><path d="M10 -50 L17 -36 L3 -36 Z" fill="#a8b0b8"/></g></g>';
+  });
+  [[770,"#57a28f",0],[690,"#8598ab",0.15]].forEach(([x,c,d])=>{
+    s+='<g transform="translate('+x+',336) scale(-1,1)"><g class="myth-figure" style="animation-delay:'+d+'s">'
+      +'<circle cx="0" cy="-28" r="10" fill="#e3c39e"/><rect x="-8" y="-19" width="16" height="19" rx="4" fill="'+c+'"/>'
+      +'<path d="M10 -48 L10 -6" stroke="#5c4a30" stroke-width="3"/><path d="M10 -50 L17 -36 L3 -36 Z" fill="#a8b0b8"/></g></g>';
+  });
+  // 부딪히는 두 칼
+  s+='<g transform="translate(450,300)"><g class="myth-grow" style="animation-delay:1.2s">'
+    +'<path d="M-62 44 L62 -44" stroke="#b9c2cb" stroke-width="6" stroke-linecap="round"/>'
+    +'<path d="M-62 -44 L62 44" stroke="#b9c2cb" stroke-width="6" stroke-linecap="round"/></g></g>';
+  s+='<circle class="myth-glow-burst" style="animation-delay:1.5s" cx="450" cy="300" r="30" fill="#fff2c9"/>';
+  [0,1,2,3,4].forEach(i=>{
+    s+='<circle class="myth-spark" style="animation-delay:'+(1.6+i*0.12)+'s" cx="450" cy="300" r="4" fill="#f2b463" transform="rotate('+(i*72)+' 450 300)"/>';
+  });
+  return s;
+}
+/* 외전 1 — 대륙의 침공 3장면 (대군의 진격 / 살수 / 안시성) */
+function mythInvasionMarch(){
+  let s='<rect width="900" height="620" fill="#191419"/>';
+  s+='<g class="myth-fade"><circle cx="740" cy="80" r="38" fill="#a83a32" opacity=".45"/><circle cx="740" cy="80" r="62" fill="#a83a32" opacity=".12"/></g>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#221c1e"/>';
+  // 지평선을 덮는 창검의 숲 — 오른쪽에서 밀려온다
+  [0,1,2].forEach(row=>{
+    const y=250+row*36, o=0.45+row*0.2;
+    let line='';
+    for(let x=10;x<900;x+=22) line+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+5)+'" y2="'+(y-28-row*4)+'" stroke="#5a4a48" stroke-width="2" opacity="'+o+'"/>';
+    s+='<g class="myth-march" style="animation-delay:'+(row*0.25)+'s">'+line+'</g>';
+  });
+  // 군기
+  [[120,0.2],[330,0.4],[540,0.6],[750,0.8]].forEach(([x,d])=>{
+    s+='<g class="myth-march" style="animation-delay:'+d+'s"><g transform="translate('+x+',330)">'
+      +'<rect x="-2.5" y="-84" width="5" height="84" fill="#4a3a38"/><path d="M2.5 -82 L44 -72 L2.5 -60 Z" fill="#8a2f2b"/></g></g>';
+  });
+  s+='<g class="myth-fade" style="animation-delay:1.6s"><rect x="0" y="330" width="900" height="70" fill="#1a1416" opacity=".7"/></g>';
+  return s;
+}
+function mythSalsu(){
+  let s='<rect width="900" height="620" fill="#141920"/>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#1e242a"/>';
+  // 살수 — 마른 강바닥을 건너는 수군
+  s+='<rect x="0" y="286" width="900" height="76" fill="#2a2f33"/>';
+  [[180,0],[280,0.1],[380,0.2],[480,0.3],[580,0.4]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',344)"><g class="myth-crumble" style="animation-delay:'+(1.6+d)+'s">'
+      +'<circle cx="0" cy="-26" r="9" fill="#e3c39e"/><rect x="-7" y="-17" width="14" height="17" rx="4" fill="#5a4a48"/>'
+      +'<path d="M9 -44 L9 -4" stroke="#4a3a38" stroke-width="2.5"/></g></g>';
+  });
+  // 둑이 터지고 물이 쏟아진다
+  s+='<g class="myth-flood">'
+    +'<path d="M-960 286 Q-720 262 -480 290 Q-240 318 0 288 L0 366 L-960 366 Z" fill="#2e4a66"/>'
+    +'<path d="M0 286 Q240 262 480 290 Q720 318 960 288 L960 366 L0 366 Z" fill="#2e4a66"/>'
+    +'<path d="M0 296 q40 -12 80 0 q40 12 80 0 q40 -12 80 0 q40 12 80 0 q40 -12 80 0 q40 12 80 0 q40 -12 80 0 q40 12 80 0 q40 -12 80 0" stroke="#5b7d99" stroke-width="3" fill="none" opacity=".55"/></g>';
+  // 강 위에 남은 것은 부서진 깃대뿐
+  s+='<g class="myth-fade" style="animation-delay:3.2s">'
+    +'<path d="M300 340 L338 322" stroke="#4a3a38" stroke-width="3" stroke-linecap="round"/>'
+    +'<path d="M596 334 L560 318" stroke="#4a3a38" stroke-width="3" stroke-linecap="round"/></g>';
+  // 강 위쪽 언덕의 고구려군 — 발밑에 기슭을 깔아 물 위에 떠 보이지 않게 한다
+  s+='<path d="M0 286 Q120 254 250 282 L250 292 L0 292 Z" fill="#2a3630"/>';
+  s+='<path d="M900 286 Q820 256 700 284 L700 292 L900 292 Z" fill="#2a3630"/>';
+  [[120,0],[196,0.15],[760,0.3]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',274)"><g class="myth-grow" style="animation-delay:'+d+'s">'
+      +'<circle cx="0" cy="-24" r="9" fill="#e3c39e"/><rect x="-7" y="-15" width="14" height="15" rx="4" fill="#8a4038"/>'
+      +'<path d="M9 -40 L9 -4" stroke="#5c4a30" stroke-width="2.5"/><path d="M9 -42 L15 -31 L3 -31 Z" fill="#c1554e"/></g></g>';
+  });
+  return s;
+}
+function mythAnsiseong(){
+  let s='<rect width="900" height="620" fill="#191419"/>';
+  s+='<g class="myth-fade"><circle cx="180" cy="82" r="34" fill="#a83a32" opacity=".38"/></g>';
+  s+='<ellipse cx="450" cy="360" rx="450" ry="50" fill="#221c1e"/>';
+  // 쏟아지는 화살비
+  for(let i=0;i<22;i++){
+    const x=40+i*38, delay=(i%7)*0.12;
+    s+='<g class="myth-arrow" style="animation-delay:'+delay+'s"><line x1="'+x+'" y1="150" x2="'+(x-14)+'" y2="190" stroke="#c9b98a" stroke-width="2" stroke-linecap="round"/></g>';
+  }
+  // 안시성의 성벽 — 버틴다
+  s+='<rect x="0" y="300" width="900" height="60" fill="#3c434c"/>';
+  for(let x=8;x<900;x+=48){ s+='<rect x="'+x+'" y="286" width="26" height="16" fill="#3c434c"/>'; }
+  s+='<rect x="404" y="240" width="92" height="66" fill="#464e58"/>';
+  s+='<path d="M392 242 Q450 218 508 242 L500 230 Q450 210 400 230 Z" fill="#5a3a34"/>';
+  // 무너지지 않는 성주의 깃발
+  s+='<g transform="translate(450,240)"><g class="myth-grow" style="animation-delay:1.4s">'
+    +'<rect x="-3" y="-70" width="6" height="70" fill="#5c4a30"/><path d="M3 -68 L48 -56 L3 -42 Z" fill="#c1554e"/></g>'
+    +'<g class="myth-sway" style="animation-delay:2s"><circle cx="0" cy="-76" r="5" fill="#d9b959"/></g></g>';
+  // 성벽에 튕겨나가는 화살들
+  [0,1,2,3].forEach(i=>{
+    s+='<circle class="myth-spark" style="animation-delay:'+(1.1+i*0.22)+'s" cx="'+(240+i*150)+'" cy="292" r="3.5" fill="#e8c88a"/>';
+  });
+  return s;
+}
+/* 외전 2 — 바다의 침공 3장면 (봉수 / 남정 / 대왕암) */
+function mythBeaconChain(){
+  let s='<rect width="900" height="620" fill="#101620"/>';
+  s+='<g class="myth-fade">'+[[180,44],[420,30],[640,56],[820,38]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.7" fill="#e8e2cf" opacity=".6"/>').join("")+'</g>';
+  // 밤바다와 다가오는 왜선
+  s+='<rect x="0" y="300" width="900" height="110" fill="#1c2c40"/>';
+  s+='<path d="M0 304 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0" stroke="#33587e" stroke-width="2.5" fill="none" opacity=".55"/>';
+  [[300,352],[520,364],[712,346]].forEach(([x,y],i)=>{
+    s+='<g class="myth-march" style="animation-delay:'+(i*0.2)+'s">'
+      +'<path d="M'+(x-30)+' '+y+' L'+(x+30)+' '+y+' L'+(x+20)+' '+(y-12)+' L'+(x-20)+' '+(y-12)+' Z" fill="#2e2822"/>'
+      +'<rect x="'+(x-2)+'" y="'+(y-44)+'" width="4" height="32" fill="#2e2822"/>'
+      +'<rect x="'+(x+2)+'" y="'+(y-42)+'" width="18" height="24" fill="#4e463c"/></g>';
+  });
+  // 해안 절벽의 봉수대들이 차례로 불을 올린다
+  [[70,266],[300,242],[540,252],[790,236]].forEach(([x,y],i)=>{
+    s+='<path d="M'+(x-34)+' 300 L'+(x-34)+' '+(y+20)+' Q'+x+' '+(y+6)+' '+(x+34)+' '+(y+24)+' L'+(x+34)+' 300 Z" fill="#1e252b"/>';
+    s+='<rect x="'+(x-16)+'" y="'+(y-30)+'" width="32" height="42" rx="3" fill="#443b33"/><rect x="'+(x-20)+'" y="'+(y-38)+'" width="40" height="10" rx="2" fill="#352e28"/>';
+    s+='<g class="myth-grow" style="animation-delay:'+(i*0.55)+'s">'
+      +'<circle cx="'+x+'" cy="'+(y-52)+'" r="22" fill="#e0873f" opacity=".22"/>'
+      +'<g class="myth-flicker" style="animation-delay:'+(i*0.2)+'s"><circle cx="'+x+'" cy="'+(y-52)+'" r="9" fill="#e0873f"/></g></g>';
+  });
+  // 봉수를 잇는 신호선
+  s+='<g class="myth-fade" style="animation-delay:2.2s"><path d="M70 214 L300 190 L540 200 L790 184" stroke="#e0873f" stroke-width="1.5" stroke-dasharray="4 10" fill="none" opacity=".5"/></g>';
+  return s;
+}
+function mythSouthernCampaign(){
+  let s='<rect width="900" height="620" fill="#141a20"/>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#1e2422"/>';
+  s+='<path d="M0 300 Q220 264 450 300 Q680 336 900 292 L900 400 L0 400 Z" fill="#232a28"/>';
+  // 광개토대왕의 5만 — 보병과 기병이 남으로 내려간다
+  [[-40,0],[-150,0.25],[-260,0.5]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',332)"><g class="myth-runner" style="animation-delay:'+d+'s">'
+      +'<ellipse cx="10" cy="0" rx="28" ry="12" fill="#3a332b"/>'
+      +'<circle cx="0" cy="-26" r="10" fill="#e3c39e"/><rect x="-7" y="-17" width="14" height="17" rx="4" fill="#c1554e"/>'
+      +'<path d="M10 -46 L10 -4" stroke="#5c4a30" stroke-width="2.5"/><path d="M10 -48 L34 -41 L10 -33 Z" fill="#c1554e"/></g></g>';
+  });
+  // 물러나는 왜군
+  [[700,0],[790,0.2],[860,0.4]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',338)"><g class="myth-crumble" style="animation-delay:'+(1.8+d)+'s">'
+      +'<circle cx="0" cy="-24" r="9" fill="#e3c39e"/><rect x="-7" y="-15" width="14" height="15" rx="4" fill="#4e463c"/></g></g>';
+  });
+  // 되찾은 서라벌의 능선
+  s+='<g class="myth-fade" style="animation-delay:2.4s">'
+    +'<ellipse cx="240" cy="316" rx="110" ry="42" fill="#25332f"/><ellipse cx="410" cy="322" rx="90" ry="36" fill="#22302c"/></g>';
+  // 능비에 새겨지는 기록
+  s+='<g transform="translate(760,300)"><g class="myth-grow" style="animation-delay:2.8s">'
+    +'<rect x="-20" y="-62" width="40" height="62" rx="3" fill="#565650"/><rect x="-26" y="-70" width="52" height="11" rx="3" fill="#64645d"/>';
+  for(let i=0;i<4;i++) s+='<line x1="-10" y1="'+(-50+i*13)+'" x2="10" y2="'+(-50+i*13)+'" stroke="#2b2b28" stroke-width="1.6"/>';
+  s+='</g></g>';
+  return s;
+}
+function mythDaewangam(){
+  let s='<rect width="900" height="620" fill="#101620"/>';
+  s+='<g class="myth-fade"><circle cx="700" cy="80" r="28" fill="#e8e2cf" opacity=".78"/><circle cx="690" cy="72" r="25" fill="#101620"/></g>';
+  s+='<rect x="0" y="286" width="900" height="130" fill="#1c2c40"/>';
+  s+='<path d="M0 292 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0 q34 -9 68 0 q34 9 68 0" stroke="#33587e" stroke-width="2.5" fill="none" opacity=".5"/>';
+  // 달빛 길
+  s+='<g class="myth-fade" style="animation-delay:.4s"><path d="M676 292 L724 292 L790 410 L610 410 Z" fill="#e8e2cf" opacity=".10"/></g>';
+  // 대왕암 — 바다 무덤
+  s+='<g class="myth-rise"><path d="M370 300 L406 250 L440 288 L474 244 L512 300 Z" fill="#39424a"/>'
+    +'<path d="M398 300 L430 268 L462 300 Z" fill="#2c343b"/></g>';
+  // 동해의 호국룡이 솟는다
+  s+='<g transform="translate(450,286)"><g class="myth-rise" style="animation-delay:1.2s">';
+  [[0,-30],[-38,-64],[10,-100],[-30,-134],[6,-166]].forEach(([dx,dy],i)=>{
+    s+='<g class="myth-sway" style="animation-delay:'+(i*0.2)+'s"><ellipse cx="'+dx+'" cy="'+dy+'" rx="26" ry="15" fill="#4d8f86" opacity="'+(0.9-i*0.08)+'"/></g>';
+  });
+  s+='<g class="myth-sway" style="animation-delay:1s"><circle cx="6" cy="-192" r="15" fill="#5cae9a"/>'
+    +'<path d="M-8 -204 L-2 -218 L6 -206 L14 -220 L20 -204 Z" fill="#5cae9a"/>'
+    +'<circle cx="1" cy="-195" r="2.5" fill="#12161d"/></g>';
+  s+='</g></g>';
+  s+='<circle class="myth-pulse" cx="456" cy="180" r="52" fill="#5cae9a" opacity=".12"/>';
+  return s;
+}
+/* 외전 3 — 유산과 깨달음 3장면 (진대법 / 지적비 / 해골물) */
+function mythJindaebeop(){
+  let s='<rect width="900" height="620" fill="#14171d"/>';
+  s+='<g class="myth-fade"><circle cx="180" cy="86" r="34" fill="#e8c88a" opacity=".22"/></g>';
+  s+='<ellipse cx="450" cy="356" rx="450" ry="52" fill="#1e2320"/>';
+  s+='<path d="M0 306 Q230 274 460 306 Q690 338 900 296 L900 400 L0 400 Z" fill="#232a26"/>';
+  // 나라의 창고 문이 열린다
+  s+='<g class="myth-grow"><g transform="translate(180,330)">'
+    +'<rect x="-70" y="-64" width="140" height="64" fill="#333a44"/>'
+    +'<path d="M-80 -64 L0 -96 L80 -64 Z" fill="#443a42"/></g></g>';
+  s+='<g class="myth-shell-l" style="animation-delay:.6s"><rect x="150" y="290" width="28" height="40" fill="#1b1f26"/></g>';
+  s+='<g class="myth-shell-r" style="animation-delay:.6s"><rect x="182" y="290" width="28" height="40" fill="#1b1f26"/></g>';
+  // 봄에 빌려주는 곡식 — 낟가리가 백성에게로
+  [[330,1.2],[452,1.5],[574,1.8]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',336)"><g class="myth-grow" style="animation-delay:'+d+'s">'
+      +'<path d="M-24 0 L0 -44 L24 0 Z" fill="#6a5c34"/><path d="M-24 0 L24 0" stroke="#4e4426" stroke-width="3"/></g></g>';
+  });
+  // 곡식을 받는 백성들
+  [[700,1.6],[772,1.85],[840,2.1]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',340)"><g class="myth-figure" style="animation-delay:'+d+'s"><g class="myth-bob">'
+      +'<circle cx="0" cy="-28" r="9" fill="#e3c39e"/><rect x="-7" y="-19" width="14" height="19" rx="4" fill="#6b6152"/>'
+      +'<path d="M-7 -22 L-18 -30" stroke="#e3c39e" stroke-width="4" stroke-linecap="round"/></g></g></g>';
+  });
+  // 가을에 되돌아오는 곡식 — 한 바퀴 도는 순환
+  s+='<g class="myth-fade" style="animation-delay:2.6s"><path d="M700 288 Q520 240 340 288" stroke="#d0ab55" stroke-width="2" fill="none" stroke-dasharray="5 9" opacity=".55"/>'
+    +'<path d="M340 288 l12 -9 l-1 16 Z" fill="#d0ab55" opacity=".7"/></g>';
+  return s;
+}
+function mythStele(){
+  let s='<rect width="900" height="620" fill="#12141a"/>';
+  s+='<g class="myth-fade"><circle cx="740" cy="72" r="24" fill="#e8e2cf" opacity=".75"/><circle cx="731" cy="65" r="21" fill="#12141a"/></g>';
+  s+='<ellipse cx="450" cy="358" rx="450" ry="50" fill="#1d2026"/>';
+  // 사택지적비
+  s+='<g transform="translate(450,340)"><g class="myth-rise">'
+    +'<rect x="-56" y="-172" width="112" height="172" rx="5" fill="#565650"/>'
+    +'<rect x="-68" y="-186" width="136" height="20" rx="5" fill="#64645d"/>'
+    +'<rect x="-76" y="-4" width="152" height="14" rx="4" fill="#4a4a46"/></g></g>';
+  // 한 자 한 자 새겨지는 글
+  for(let c=0;c<3;c++) for(let r=0;r<6;r++){
+    s+='<rect class="myth-grow" style="animation-delay:'+(1.2+(c*6+r)*0.09)+'s" x="'+(414+c*32)+'" y="'+(190+r*24)+'" width="16" height="16" rx="2" fill="#2b2b28"/>';
+  }
+  // 늙어가는 삶을 슬퍼하며 — 떨어지는 나뭇잎
+  [[220,140],[300,180],[640,150],[720,196]].forEach(([x,y],i)=>{
+    s+='<g class="myth-descend" style="animation-delay:'+(1.6+i*0.35)+'s"><ellipse cx="'+x+'" cy="'+y+'" rx="9" ry="5" fill="#8a6a3a" opacity=".7" transform="rotate('+(i*40)+' '+x+' '+y+')"/></g>';
+  });
+  // 등불
+  [[250,300],[650,300]].forEach(([x,y],i)=>{
+    s+='<g transform="translate('+x+','+y+')"><line x1="0" y1="-30" x2="0" y2="0" stroke="#3a332b" stroke-width="2"/>'
+      +'<circle cx="0" cy="10" r="18" fill="#d8a24a" opacity=".14"/>'
+      +'<g class="myth-flicker" style="animation-delay:'+(i*0.3)+'s"><circle cx="0" cy="10" r="8" fill="#d8a24a"/></g></g>';
+  });
+  return s;
+}
+function mythSkullWater(){
+  let s='<rect width="900" height="620" fill="#0f1116"/>';
+  s+='<g class="myth-fade">'+[[160,52],[380,34],[600,60],[810,40]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.7" fill="#e8e2cf" opacity=".55"/>').join("")+'</g>';
+  s+='<g class="myth-fade"><circle cx="150" cy="90" r="26" fill="#e8e2cf" opacity=".7"/><circle cx="141" cy="83" r="23" fill="#0f1116"/></g>';
+  // 무덤가의 굴
+  s+='<path d="M0 340 Q160 250 340 340 Z" fill="#242a30"/>';
+  s+='<path d="M120 340 Q170 268 224 340 Z" fill="#101318"/>';
+  s+='<ellipse cx="450" cy="360" rx="450" ry="50" fill="#1a1d22"/>';
+  // 해골에 고인 물
+  s+='<g transform="translate(500,330)"><g class="myth-rise">'
+    +'<path d="M-40 -14 Q-40 -58 0 -58 Q40 -58 40 -14 Q40 6 0 6 Q-40 6 -40 -14 Z" fill="#d9d3c2"/>'
+    +'<circle cx="-15" cy="-26" r="8" fill="#2b2b28"/><circle cx="15" cy="-26" r="8" fill="#2b2b28"/>'
+    +'<path d="M-6 -12 L0 -20 L6 -12 Z" fill="#2b2b28"/>'
+    +'<path d="M-32 -18 Q0 -8 32 -18 Q30 -2 0 -2 Q-30 -2 -32 -18 Z" fill="#3f6b86" opacity=".85"/>'
+    +'<ellipse cx="-8" cy="-13" rx="8" ry="3" fill="#e8e2cf" opacity=".35"/></g></g>';
+  // 물을 마신 손
+  s+='<g transform="translate(430,326)"><g class="myth-figure" style="animation-delay:.8s"><g class="myth-bob">'
+    +'<circle cx="0" cy="-58" r="12" fill="#e3c39e"/>'
+    +'<path d="M-14 -46 Q0 -50 14 -46 L18 0 L-18 0 Z" fill="#8a6a3a"/>'
+    +'<path d="M14 -40 L40 -30" stroke="#e3c39e" stroke-width="5" stroke-linecap="round"/></g></g></g>';
+  // 깨달음 — 마음이 일면 온갖 법이 일어난다
+  s+='<circle class="myth-glow-burst" style="animation-delay:2.2s" cx="430" cy="270" r="42" fill="#f2e2a8"/>';
+  s+='<g transform="translate(430,268)"><g class="myth-grow" style="animation-delay:2.4s">'
+    +'<circle cx="0" cy="0" r="46" fill="none" stroke="#d0ab55" stroke-width="2" opacity=".7"/>'
+    +'<circle cx="0" cy="0" r="66" fill="none" stroke="#d0ab55" stroke-width="1.2" opacity=".4"/></g></g>';
+  s+='<circle class="myth-pulse" cx="430" cy="268" r="30" fill="#f2e2a8" opacity=".18"/>';
+  return s;
+}
+/* 외전 4 — 후삼국 5장면 (분열 / 공산 / 고창 / 금산사 / 일리천과 통일) */
+function mythLaterSplit(){
+  let s='<rect width="900" height="620" fill="#14161d"/>';
+  s+='<ellipse cx="450" cy="352" rx="440" ry="50" fill="#20242c"/>';
+  // 기울어가는 신라의 도성
+  s+='<g class="myth-vanish"><g transform="translate(450,330)">'
+    +'<rect x="-70" y="-52" width="140" height="52" fill="#2c3336"/>'
+    +'<path d="M-80 -52 L0 -84 L80 -52 Z" fill="#39433f"/>'
+    +'<rect x="-12" y="-26" width="24" height="26" fill="#171a1e"/></g></g>';
+  // 하나였던 깃발이 셋으로 갈라진다
+  s+='<g transform="translate(450,300)">'
+    +'<g class="myth-shell-l"><rect x="-4" y="-58" width="8" height="58" fill="#5c4a30"/><path d="M-4 -56 L-46 -45 L-4 -33 Z" fill="#a8443c"/></g>'
+    +'<g class="myth-shell-r"><rect x="-4" y="-58" width="8" height="58" fill="#5c4a30"/><path d="M4 -56 L46 -45 L4 -33 Z" fill="#4d8f86"/></g></g>';
+  // 후백제 · 신라 · 고려
+  [[170,"#a8443c",1.8,"후백제"],[450,"#c9a44e",2.1,"신라"],[730,"#4d8f86",2.4,"고려"]].forEach(([x,c,d])=>{
+    s+='<g transform="translate('+x+',330)"><g class="myth-grow" style="animation-delay:'+d+'s">'
+      +'<rect x="-3.5" y="-66" width="7" height="66" fill="#4a4038"/>'
+      +'<path d="M3.5 -64 L44 -53 L3.5 -41 Z" fill="'+c+'"/></g></g>';
+  });
+  // 갈라진 땅의 경계
+  s+='<g class="myth-fade" style="animation-delay:2.6s">'
+    +'<path d="M300 330 L288 430 L322 430 L312 330 Z" fill="#2e4a66" opacity=".65"/>'
+    +'<path d="M600 330 L588 430 L622 430 L612 330 Z" fill="#2e4a66" opacity=".65"/></g>';
+  return s;
+}
+function mythLaterGongsan(){
+  let s='<rect width="900" height="620" fill="#14161d"/>';
+  // 공산의 산세
+  s+='<path d="M0 300 L180 176 L330 300 Z" fill="#232a2e"/><path d="M260 300 L470 150 L680 300 Z" fill="#1e2428"/><path d="M600 300 L780 186 L900 300 Z" fill="#232a2e"/>';
+  s+='<ellipse cx="450" cy="348" rx="440" ry="48" fill="#1d2126"/>';
+  // 매복 — 산에서 쏟아지는 후백제의 창끝
+  [[120,206],[212,232],[706,214],[792,236]].forEach(([x,y],i)=>{
+    s+='<g class="myth-rise" style="animation-delay:'+(i*0.14)+'s"><path d="M'+x+' '+y+' L'+(x+7)+' '+(y-26)+'" stroke="#8fa1b3" stroke-width="3" stroke-linecap="round"/><path d="M'+(x+7)+' '+(y-26)+' l-5 8 l10 0 Z" fill="#a8b0b8"/></g>';
+  });
+  // 신숭겸 — 어기를 걸치고 임금을 대신해 선다
+  s+='<g transform="translate(400,330)">'
+    +'<g class="myth-grow" style="animation-delay:.6s">'
+    +'<rect x="-3" y="-74" width="6" height="74" fill="#4a4038"/><path d="M3 -72 L46 -60 L3 -47 Z" fill="#4d8f86"/></g>'
+    +'<g class="myth-crumble" style="animation-delay:2.2s">'
+    +'<circle cx="0" cy="-30" r="11" fill="#e3c39e"/><rect x="-9" y="-20" width="18" height="20" rx="5" fill="#4d8f86"/></g></g>';
+  // 빠져나가는 왕건
+  s+='<g transform="translate(560,336)"><g class="myth-runner" style="animation-delay:2.4s">'
+    +'<circle cx="0" cy="-26" r="10" fill="#e3c39e"/><rect x="-7" y="-17" width="14" height="17" rx="4" fill="#3f6d66"/>'
+    +'<path d="M-7 -14 L-20 -4" stroke="#e3c39e" stroke-width="4" stroke-linecap="round"/></g></g>';
+  s+='<g class="myth-fade" style="animation-delay:2.6s"><path d="M0 0 L900 0 L900 130 Q450 190 0 130 Z" fill="#1a1418" opacity=".8"/></g>';
+  return s;
+}
+function mythLaterGochang(){
+  let s='<rect width="900" height="620" fill="#14161d"/>';
+  s+='<ellipse cx="450" cy="348" rx="440" ry="48" fill="#20242c"/>';
+  s+='<path d="M0 300 Q220 258 450 296 Q680 334 900 288 L900 400 L0 400 Z" fill="#232a2e"/>';
+  // 물러나는 후백제 진영
+  [[240,0],[172,0.2],[104,0.4]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',328)"><g class="myth-crumble" style="animation-delay:'+(0.6+d)+'s">'
+      +'<rect x="-3" y="-52" width="6" height="52" fill="#4a4038"/><path d="M3 -50 L36 -41 L3 -30 Z" fill="#a8443c"/></g></g>';
+  });
+  // 고창의 호족이 고려에 붙는다 — 올라서는 세 깃발
+  [[520,1.4],[634,1.7],[748,2.0]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',328)"><g class="myth-grow" style="animation-delay:'+d+'s">'
+      +'<rect x="-3.5" y="-62" width="7" height="62" fill="#4a4038"/><path d="M3.5 -60 L44 -49 L3.5 -37 Z" fill="#4d8f86"/></g></g>';
+  });
+  s+='<circle class="myth-glow-burst" style="animation-delay:2.0s" cx="634" cy="300" r="30" fill="#a8ded0"/>';
+  // 전세가 뒤집히는 새벽빛
+  s+='<g class="myth-fade" style="animation-delay:1.2s"><circle cx="700" cy="96" r="46" fill="#e8c88a" opacity=".22"/><circle cx="700" cy="96" r="76" fill="#e8c88a" opacity=".08"/></g>';
+  return s;
+}
+function mythLaterGeumsansa(){
+  let s='<rect width="900" height="620" fill="#12141a"/>';
+  s+='<g class="myth-fade"><circle cx="744" cy="72" r="24" fill="#e8e2cf" opacity=".72"/><circle cx="735" cy="65" r="21" fill="#12141a"/></g>';
+  s+='<ellipse cx="450" cy="356" rx="440" ry="46" fill="#1d2126"/>';
+  // 금산사 — 잠긴 절집
+  s+='<g class="myth-fade"><rect x="330" y="240" width="240" height="96" fill="#2e343d"/>'
+    +'<path d="M312 242 L450 186 L588 242 Z" fill="#40363c"/>'
+    +'<path d="M322 240 L578 240 L570 250 L330 250 Z" fill="#56463e"/></g>';
+  // 빗장이 걸린 문
+  s+='<rect x="418" y="280" width="64" height="56" fill="#161a1f"/>';
+  s+='<g class="myth-grow" style="animation-delay:1.4s"><rect x="406" y="300" width="88" height="9" rx="4" fill="#6a5c34"/></g>';
+  // 유폐된 견훤
+  s+='<g transform="translate(450,332)"><g class="myth-fade" style="animation-delay:.8s">'
+    +'<circle cx="0" cy="-30" r="10" fill="#e3c39e" opacity=".85"/><rect x="-8" y="-21" width="16" height="21" rx="5" fill="#7a4038" opacity=".85"/>'
+    +'<path d="M-9 -24 Q0 -12 9 -24" stroke="#8d8d95" stroke-width="2" fill="none"/></g></g>';
+  // 창을 든 아들 신검의 그림자
+  s+='<g transform="translate(660,344)"><g class="myth-march" style="animation-delay:1.8s">'
+    +'<circle cx="0" cy="-32" r="11" fill="#1b1f24"/><rect x="-9" y="-22" width="18" height="22" rx="5" fill="#1b1f24"/>'
+    +'<path d="M12 -54 L12 -2" stroke="#1b1f24" stroke-width="3"/></g></g>';
+  // 석 달 뒤, 담을 넘는 등불 하나
+  s+='<g transform="translate(214,336)"><g class="myth-rise" style="animation-delay:2.8s">'
+    +'<circle cx="0" cy="-30" r="16" fill="#e0a24a" opacity=".16"/>'
+    +'<g class="myth-flicker"><circle cx="0" cy="-30" r="7" fill="#e0a24a"/></g></g></g>';
+  return s;
+}
+function mythLaterUnify(){
+  let s='<rect width="900" height="620" fill="#14161d"/>';
+  s+='<ellipse cx="450" cy="350" rx="440" ry="48" fill="#20242c"/>';
+  s+='<path d="M0 306 Q230 272 460 306 Q690 340 900 300 L900 400 L0 400 Z" fill="#232a2e"/>';
+  // 일리천 — 아버지가 아들의 나라를 향해 선다
+  s+='<g transform="translate(300,326)"><g class="myth-figure">'
+    +'<circle cx="0" cy="-34" r="11" fill="#e3c39e"/><rect x="-9" y="-24" width="18" height="24" rx="5" fill="#7a4038"/>'
+    +'<path d="M12 -56 L12 -4" stroke="#5c4a30" stroke-width="3"/><path d="M12 -58 L19 -44 L5 -44 Z" fill="#a8b0b8"/></g></g>';
+  // 무너지는 후백제의 깃발들
+  [[560,0],[644,0.2],[724,0.4]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',326)"><g class="myth-crumble" style="animation-delay:'+(1.2+d)+'s">'
+      +'<rect x="-3" y="-54" width="6" height="54" fill="#4a4038"/><path d="M3 -52 L36 -43 L3 -32 Z" fill="#a8443c"/></g></g>';
+  });
+  // 세 이름이 하나로 — 고려의 기치
+  s+='<g transform="translate(450,320)"><g class="myth-grow" style="animation-delay:2.4s">'
+    +'<rect x="-5" y="-84" width="10" height="84" fill="#5c4a30"/><path d="M5 -82 L58 -68 L5 -52 Z" fill="#4d8f86"/></g></g>';
+  s+='<circle class="myth-glow-burst" style="animation-delay:2.4s" cx="450" cy="290" r="34" fill="#a8ded0"/>';
+  s+='<g class="myth-fade" style="animation-delay:3s"><ellipse cx="450" cy="320" rx="330" ry="80" fill="#4d8f86" opacity=".10"/></g>';
+  return s;
+}
+/* 외전 5 — 부여 4장면 (해모수의 강림 / 유화와 알 / 대소의 추격 / 대무신왕의 정벌) */
+function mythBuyeoHaemosu(){
+  let s='<rect width="900" height="620" fill="#12161d"/>';
+  s+='<g class="myth-fade">'+[[110,40],[260,72],[430,32],[600,64],[770,44],[856,86]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.7" fill="#e8e2cf" opacity=".6"/>').join("")+'</g>';
+  // 북방 벌판과 설산 능선
+  s+='<path d="M0 250 L140 196 L250 244 L380 190 L510 248 L650 198 L790 246 L900 206 L900 400 L0 400 Z" fill="#232932"/>';
+  s+='<ellipse cx="450" cy="352" rx="440" ry="52" fill="#1e2320"/>';
+  // 하늘에서 내려오는 빛기둥
+  s+='<g class="myth-beam"><path d="M392 0 L508 0 L556 330 L344 330 Z" fill="#f2e2a8" opacity=".45"/></g>';
+  s+='<g class="myth-beam" style="animation-delay:.3s"><path d="M424 0 L476 0 L502 330 L398 330 Z" fill="#fff6d8" opacity=".6"/></g>';
+  // 오룡거 — 다섯 용이 끄는 수레를 탄 해모수
+  s+='<g transform="translate(450,300)"><g class="myth-descend">';
+  [[-96,-30],[-52,-46],[0,-54],[52,-46],[96,-30]].forEach(([dx,dy],i)=>{
+    s+='<g class="myth-sway" style="animation-delay:'+(i*0.18)+'s"><path d="M'+dx+' '+dy+' q-20 -14 -42 -4 q16 -20 42 -11 q23 6 27 19 Z" fill="#c9a85a" opacity=".92"/><circle cx="'+(dx-40)+'" cy="'+(dy-9)+'" r="3" fill="#f2e2a8"/></g>';
+  });
+  s+='<rect x="-34" y="-24" width="68" height="20" rx="4" fill="#4a4038"/><rect x="-38" y="-31" width="76" height="8" rx="3" fill="#5c4a30"/>';
+  s+='<circle cx="0" cy="-53" r="12" fill="#e3c39e"/><rect x="-11" y="-41" width="22" height="18" rx="5" fill="#c9a85a"/>';
+  s+='<path d="M-13 -61 L0 -76 L13 -61 Z" fill="#d9b959"/>';
+  s+='</g></g>';
+  s+='<circle class="myth-glow-burst" style="animation-delay:1.9s" cx="450" cy="290" r="34" fill="#fff6d8"/>';
+  // 부여의 천막들 — 빛을 올려다본다
+  [[150,352],[286,362],[700,356],[812,364]].forEach(([x,y],i)=>{
+    s+='<g class="myth-fade" style="animation-delay:'+(0.6+i*0.2)+'s"><path d="M'+(x-26)+' '+y+' L'+x+' '+(y-32)+' L'+(x+26)+' '+y+' Z" fill="#3f382f"/><path d="M'+(x-6)+' '+y+' L'+x+' '+(y-14)+' L'+(x+6)+' '+y+' Z" fill="#1d1a16"/></g>';
+  });
+  return s;
+}
+function mythBuyeoYuhwa(){
+  let s='<rect width="900" height="620" fill="#12161d"/>';
+  s+='<g class="myth-fade"><circle cx="726" cy="70" r="26" fill="#e8e2cf" opacity=".78"/><circle cx="716" cy="62" r="23" fill="#12161d"/></g>';
+  // 우발수 — 물가
+  s+='<path d="M0 300 Q230 274 460 304 Q690 334 900 300 L900 430 L0 430 Z" fill="#2b4763" opacity=".9"/>';
+  s+='<path d="M0 320 q30 -8 60 0 q30 8 60 0 q30 -8 60 0 q30 8 60 0 q30 -8 60 0 q30 8 60 0 q30 -8 60 0 q30 8 60 0 q30 -8 60 0 q30 8 60 0" stroke="#4b6a86" stroke-width="2.5" fill="none" opacity=".5"/>';
+  s+='<ellipse cx="450" cy="296" rx="430" ry="26" fill="#1f2a24"/>';
+  // 갈대
+  [40,86,132,772,820,864].forEach(x=>{ s+='<g class="myth-sway" style="animation-delay:'+((x%7)*0.2)+'s"><path d="M'+x+' 300 q4 -34 -3 -58" stroke="#4a5540" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="'+(x-3)+'" cy="240" rx="3.5" ry="9" fill="#6a6a45"/></g>'; });
+  // 유화부인 — 물의 신 하백의 딸
+  s+='<g transform="translate(330,292)"><g class="myth-figure"><g class="myth-bob">'
+    +'<circle cx="0" cy="-46" r="12" fill="#e3c39e"/><path d="M-12 -50 A12 12 0 0 1 12 -50 Z" fill="#332d33"/>'
+    +'<path d="M-14 -34 Q0 -38 14 -34 L18 0 L-18 0 Z" fill="#7c93a8"/>'
+    +'<rect x="-19" y="-40" width="5" height="20" rx="2.5" fill="#332d33"/><rect x="14" y="-40" width="5" height="20" rx="2.5" fill="#332d33"/>'
+    +'</g></g></g>';
+  // 빛나는 알
+  s+='<g transform="translate(470,266)"><circle class="myth-pulse" cx="0" cy="0" r="46" fill="#fff2c9" opacity=".18"/>'
+    +'<g class="myth-egg" style="animation-delay:1s">'
+    +'<ellipse cx="0" cy="0" rx="26" ry="34" fill="#f5e7bd" stroke="#c9a85a" stroke-width="2"/>'
+    +'<ellipse cx="-8" cy="-10" rx="6" ry="10" fill="#fff8e0" opacity=".8"/></g></g>';
+  // 금와왕 — 알을 거두러 다가온다
+  s+='<g transform="translate(618,292)"><g class="myth-figure" style="animation-delay:1.4s"><g class="myth-bob" style="animation-delay:.2s">'
+    +'<circle cx="0" cy="-42" r="11" fill="#e3c39e"/><rect x="-14" y="-53" width="28" height="5" rx="2" fill="#d9b959"/>'
+    +'<path d="M-8 -51 L0 -62 L8 -51 Z" fill="#d9b959"/>'
+    +'<rect x="-11" y="-31" width="22" height="31" rx="6" fill="#5c4a30"/>'
+    +'<path d="M-11 -26 L-26 -14" stroke="#e3c39e" stroke-width="5" stroke-linecap="round"/>'
+    +'</g></g></g>';
+  return s;
+}
+function mythBuyeoPursuit(){
+  let s='<rect width="900" height="620" fill="#141820"/>';
+  s+='<g class="myth-fade"><path d="M0 96 Q240 56 480 104 Q700 146 900 98" stroke="#5b7d99" stroke-width="10" fill="none" opacity=".12"/></g>';
+  s+='<ellipse cx="450" cy="336" rx="440" ry="46" fill="#1e2320"/>';
+  // 엄사수 — 앞을 가로막은 강
+  s+='<path d="M0 268 Q220 250 450 276 Q680 302 900 272 L900 340 Q680 370 450 344 Q220 318 0 336 Z" fill="#2b4763"/>';
+  s+='<path d="M0 292 q34 -8 68 0 q34 8 68 0 q34 -8 68 0 q34 8 68 0 q34 -8 68 0 q34 8 68 0 q34 -8 68 0" stroke="#4b6a86" stroke-width="2.5" fill="none" opacity=".5"/>';
+  // 물고기와 자라가 떠올라 다리를 이룬다
+  [130,214,298,382,466,550,634].forEach((x,i)=>{
+    const y=302+((i%2)?4:0);
+    s+='<g class="myth-step" style="animation-delay:'+(0.7+i*0.16)+'s">'
+      +'<ellipse cx="'+x+'" cy="'+y+'" rx="30" ry="13" fill="#4f6455"/>'
+      +'<path d="M'+(x-30)+' '+y+' l-14 -8 l0 16 Z" fill="#3f5245"/>'
+      +'<circle cx="'+(x+16)+'" cy="'+(y-4)+'" r="2" fill="#cbd6c4"/></g>';
+  });
+  // 도망치는 주몽 — 다리를 건너 남쪽으로
+  s+='<g transform="translate(80,288)"><g class="myth-runner" style="animation-delay:1.9s">'
+    +'<ellipse cx="8" cy="0" rx="26" ry="11" fill="#3a332b"/>'
+    +'<circle cx="0" cy="-24" r="10" fill="#e3c39e"/><rect x="-7" y="-15" width="14" height="16" rx="4" fill="#7a5a3a"/>'
+    +'<path d="M6 -21 q17 7 15 23" stroke="#c9a85a" stroke-width="2.5" fill="none"/></g></g>';
+  // 뒤쫓는 대소와 부여 기병 — 강 앞에서 멈춘다
+  [[36,2.6],[100,2.78],[164,2.96]].forEach(([x,d])=>{
+    s+='<g transform="translate('+x+',294)"><g class="myth-figure" style="animation-delay:'+d+'s">'
+      +'<ellipse cx="8" cy="0" rx="26" ry="11" fill="#3a2f2b"/>'
+      +'<circle cx="0" cy="-24" r="10" fill="#e3c39e"/><rect x="-7" y="-15" width="14" height="16" rx="4" fill="#8a4a42"/>'
+      +'<path d="M4 -35 L4 -6" stroke="#5c4a30" stroke-width="2.5"/><path d="M4 -35 L21 -29 L4 -23 Z" fill="#a8443c"/></g></g>';
+  });
+  // 다리가 흩어진다 — 추격은 끊긴다
+  s+='<g class="myth-vanish" style="animation-delay:3.2s"><path d="M120 302 L660 308" stroke="#4f6455" stroke-width="3" opacity=".5" stroke-dasharray="10 14"/></g>';
+  return s;
+}
+function mythBuyeoFall(){
+  let s='<rect width="900" height="620" fill="#141820"/>';
+  s+='<ellipse cx="450" cy="344" rx="440" ry="48" fill="#1e2320"/>';
+  // 고구려 — 손자 대무신왕의 진군
+  s+='<g class="myth-figure"><g transform="translate(150,320)">'
+    +'<rect x="-2.5" y="-64" width="5" height="64" fill="#5c4a30"/><path d="M2.5 -62 L44 -52 L2.5 -40 Z" fill="#c1554e"/></g></g>';
+  [[92,0.15],[212,0.3],[270,0.45]].forEach(([x,d])=>{
+    s+='<g class="myth-figure" style="animation-delay:'+d+'s"><g transform="translate('+x+',322)">'
+      +'<circle cx="0" cy="-26" r="9" fill="#e3c39e"/><rect x="-6" y="-17" width="12" height="17" rx="4" fill="#8a4038"/>'
+      +'<path d="M8 -45 L8 -4" stroke="#5c4a30" stroke-width="2.5"/><path d="M8 -47 L14 -35 L2 -35 Z" fill="#a8b0b8"/></g></g>';
+  });
+  // 무너지는 동부여의 깃발
+  s+='<g transform="translate(600,318)"><g class="myth-crumble" style="animation-delay:1.4s">'
+    +'<rect x="-4" y="-62" width="8" height="62" fill="#5c4a30"/><path d="M4 -60 L46 -48 L4 -36 Z" fill="#7c93a8"/></g></g>';
+  s+='<g transform="translate(716,320)"><g class="myth-crumble" style="animation-delay:1.7s">'
+    +'<rect x="-3" y="-48" width="6" height="48" fill="#5c4a30"/><path d="M3 -46 L36 -37 L3 -28 Z" fill="#7c93a8"/></g></g>';
+  // 쓰러진 대소
+  s+='<g transform="translate(660,338)"><g class="myth-fade" style="animation-delay:2.2s">'
+    +'<circle cx="0" cy="-10" r="9" fill="#8fa1b3" opacity=".75"/><rect x="-26" y="-2" width="52" height="4" rx="2" fill="#8fa1b3" opacity=".55"/></g></g>';
+  // 부여의 남은 빛 — 494년까지 명맥을 잇는 작은 등불
+  s+='<g transform="translate(834,328)"><g class="myth-rise" style="animation-delay:2.6s">'
+    +'<rect x="-2" y="-34" width="4" height="34" fill="#3a332b"/>'
+    +'<circle cx="0" cy="-40" r="18" fill="#e0a24a" opacity=".16"/>'
+    +'<g class="myth-flicker"><circle cx="0" cy="-40" r="8" fill="#e0a24a"/></g></g></g>';
+  return s;
+}
 const MYTH_SCENE_MAP={
+  0:[mythPrologueRise, mythPrologueStrife, mythPrologueCampfire],
   1:[mythGaya, mythGayaProsper, mythGayaCrisis, mythGayaFall],
   2:[mythSilla, mythSillaGrowth, mythSillaUnify, mythSillaFall],
   3:[mythBaekje, mythBaekjeProsper, mythBaekjeCrisis, mythBaekjeFall],
   4:[mythGoguryeo, mythGoguryeoProsper, mythGoguryeoCrisis, mythGoguryeoFall],
+  5:[mythFinalGap, mythFinalOath, mythFinalClash],
+  6:[mythInvasionMarch, mythSalsu, mythAnsiseong],
+  7:[mythBeaconChain, mythSouthernCampaign, mythDaewangam],
+  8:[mythJindaebeop, mythStele, mythSkullWater],
+  9:[mythLaterSplit, mythLaterGongsan, mythLaterGochang, mythLaterGeumsansa, mythLaterUnify],
+  10:[mythBuyeoHaemosu, mythBuyeoYuhwa, mythBuyeoPursuit, mythBuyeoFall],
 };
 function mythSVG(ci, slideIdx){
   let s='<svg viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">';
@@ -2067,6 +2992,63 @@ function scenerySea(){
   s+='<circle cx="47" cy="150" r="8" fill="#e0873f"/><circle cx="47" cy="150" r="15" fill="#e0873f" opacity=".25"/>';
   return s;
 }
+function sceneryLegacy(){
+  let s='';
+  // 외전 3 — 달빛 아래의 사찰·비석·낟가리 (글과 제도와 깨달음)
+  s+='<circle cx="762" cy="58" r="22" fill="#e8e2cf" opacity=".8"/><circle cx="753" cy="52" r="19" fill="#191e25"/>';
+  [[120,44],[300,36],[520,62],[660,30],[860,50]].forEach(([x,y])=>{ s+='<circle cx="'+x+'" cy="'+y+'" r="1.6" fill="#e8e2cf" opacity=".55"/>'; });
+  s+='<path d="M0 168 Q160 122 340 160 Q520 198 700 150 Q810 124 900 152 L900 280 L0 280 Z" fill="#2c333d"/>';
+  s+='<path d="M0 210 Q220 188 460 214 Q700 240 900 208 L900 280 L0 280 Z" fill="#242a32"/>';
+  // 사찰 (원효)
+  s+='<rect x="566" y="152" width="92" height="50" fill="#333a44"/>';
+  s+='<path d="M554 154 L612 124 L670 154 Z" fill="#443a42"/><path d="M560 152 L664 152 L660 158 L564 158 Z" fill="#56463e"/>';
+  s+='<rect x="604" y="178" width="16" height="24" fill="#1b1f26"/>';
+  // 비석 (사택지적비)
+  s+='<rect x="288" y="148" width="32" height="56" rx="3" fill="#565650"/><rect x="282" y="142" width="44" height="10" rx="3" fill="#64645d"/>';
+  for(let i=0;i<4;i++) s+='<line x1="296" y1="'+(162+i*11)+'" x2="312" y2="'+(162+i*11)+'" stroke="#2b2b28" stroke-width="1.5"/>';
+  // 곡식 낟가리 (진대법) — 노드 라벨과 겹치지 않도록 낮은 지대에 배치
+  [[36,258],[84,264],[792,260]].forEach(([x,y])=>{ s+='<path d="M'+x+' '+y+' L'+(x+15)+' '+(y-30)+' L'+(x+30)+' '+y+' Z" fill="#6a5c34"/>'; });
+  // 등불
+  [[424,134],[498,126]].forEach(([x,y])=>{ s+='<line x1="'+x+'" y1="'+(y-18)+'" x2="'+x+'" y2="'+y+'" stroke="#3a332b" stroke-width="1.5"/><circle cx="'+x+'" cy="'+(y+6)+'" r="7" fill="#d8a24a" opacity=".85"/><circle cx="'+x+'" cy="'+(y+6)+'" r="14" fill="#d8a24a" opacity=".16"/>'; });
+  return s;
+}
+function sceneryLater3(){
+  let s='';
+  // 외전 4 — 셋으로 갈라진 땅과 세 군기 (후백제·신라·고려)
+  s+='<circle cx="128" cy="58" r="26" fill="#c2703a" opacity=".32"/><circle cx="128" cy="58" r="44" fill="#c2703a" opacity=".10"/>';
+  s+='<path d="M0 202 Q140 142 300 198 L300 340 L0 340 Z" fill="#2a2430"/>';
+  s+='<path d="M300 198 Q450 130 600 192 L600 340 L300 340 Z" fill="#252c30"/>';
+  s+='<path d="M600 192 Q750 134 900 188 L900 340 L600 340 Z" fill="#232a2c"/>';
+  // 경계를 이루는 두 강
+  s+='<path d="M292 198 L282 340 L316 340 L308 198 Z" fill="#2e4a66" opacity=".7"/>';
+  s+='<path d="M592 192 L582 340 L616 340 L608 192 Z" fill="#2e4a66" opacity=".7"/>';
+  // 세 나라의 군기
+  [[150,152,"#a8443c"],[450,142,"#c9a44e"],[752,148,"#4d8f86"]].forEach(([x,y,c])=>{
+    s+='<rect x="'+(x-1.5)+'" y="'+(y-46)+'" width="3" height="54" fill="#3a332b"/>';
+    s+='<path d="M'+(x+1.5)+' '+(y-44)+' L'+(x+34)+' '+(y-35)+' L'+(x+1.5)+' '+(y-25)+' Z" fill="'+c+'"/>';
+  });
+  // 성벽 실루엣
+  for(let x=0;x<900;x+=62){ s+='<rect x="'+x+'" y="302" width="34" height="14" fill="#1c2027" opacity=".8"/>'; }
+  return s;
+}
+function sceneryBuyeo(){
+  let s='';
+  // 외전 5 — 북방의 벌판, 설산과 강, 부여의 천막
+  s+='<path d="M0 62 Q220 22 460 68 Q700 112 900 56" stroke="#4a7f86" stroke-width="16" fill="none" opacity=".15"/>';
+  s+='<path d="M0 94 Q240 46 500 98 Q720 138 900 88" stroke="#6a8fb0" stroke-width="9" fill="none" opacity=".11"/>';
+  [[90,40],[250,66],[430,30],[610,58],[780,38],[858,72]].forEach(([x,y])=>{ s+='<circle cx="'+x+'" cy="'+y+'" r="1.6" fill="#e8e2cf" opacity=".6"/>'; });
+  // 설산 능선
+  s+='<path d="M0 178 L120 124 L200 168 L300 114 L420 172 L540 128 L660 174 L780 132 L900 176 L900 214 L0 214 Z" fill="#2b3138"/>';
+  [[300,114],[120,124],[780,132]].forEach(([x,y])=>{ s+='<path d="M'+x+' '+y+' L'+(x+22)+' '+(y+20)+' L'+(x-22)+' '+(y+20)+' Z" fill="#525e68"/>'; });
+  // 송화강
+  s+='<path d="M0 238 Q220 218 450 244 Q680 270 900 242 L900 278 Q680 304 450 280 Q220 256 0 274 Z" fill="#2e4a66" opacity=".85"/>';
+  // 벌판과 풀
+  s+='<rect x="0" y="276" width="900" height="64" fill="#252a26"/>';
+  for(let x=10;x<900;x+=17){ const h=6+((x*7)%9); s+='<line x1="'+x+'" y1="'+(302+(x%5))+'" x2="'+(x+3)+'" y2="'+(302+(x%5)-h)+'" stroke="#3c4436" stroke-width="1.5"/>'; }
+  // 부여의 천막
+  [[150,302],[292,310],[706,306]].forEach(([x,y])=>{ s+='<path d="M'+(x-24)+' '+y+' L'+x+' '+(y-30)+' L'+(x+24)+' '+y+' Z" fill="#4a4038"/><path d="M'+(x-6)+' '+y+' L'+x+' '+(y-13)+' L'+(x+6)+' '+y+' Z" fill="#221d19"/>'; });
+  return s;
+}
 function sceneryGeneric(){
   let s='';
   s+='<ellipse cx="450" cy="230" rx="480" ry="90" fill="#20242a"/>';
@@ -2098,6 +3080,9 @@ const CH_MAPS={
  5:{h:240, bg:sceneryFinal, pos:{s5:{x:450,y:128}}},
  6:{h:300, bg:sceneryChina, pos:{x1a:{x:110,y:150},x1b:{x:360,y:200},x1c:{x:610,y:145},x1d:{x:830,y:205}}},
  7:{h:280, bg:scenerySea, pos:{x2a:{x:180,y:145},x2b:{x:460,y:190},x2c:{x:740,y:135}}},
+ 8:{h:280, bg:sceneryLegacy, pos:{x3a:{x:180,y:140},x3b:{x:460,y:186},x3c:{x:740,y:132}}},
+ 9:{h:340, bg:sceneryLater3, pos:{x4a:{x:75,y:112},x4b:{x:200,y:205},x4c:{x:325,y:112},x4d:{x:450,y:205},x4e:{x:575,y:112},x4f:{x:700,y:205},x4g:{x:825,y:245}}},
+ 10:{h:340, bg:sceneryBuyeo, pos:{x5a:{x:75,y:112},x5b:{x:200,y:205},x5c:{x:325,y:112},x5d:{x:450,y:205},x5e:{x:575,y:112},x5f:{x:700,y:205},x5g:{x:825,y:245}}},
 };
 function chapterMapSVG(ci, stStates){
   const cm=CH_MAPS[ci];
@@ -2140,7 +3125,7 @@ function showMap(){
   $("btn-tower").textContent="시련의 탑"+(save.bestFloor?" · "+save.bestFloor+"층":"");
   if(mineUnlocked()){ mineReset(); $("btn-mine").disabled=false; $("btn-mine").textContent="광산 ("+Math.max(0,MINE_LIMIT-save.mineUses)+"/"+MINE_LIMIT+")"; }
   else { $("btn-mine").disabled=true; $("btn-mine").textContent="광산 (스테이지 2개 클리어 시 개방)"; }
-  $("hud-lv").textContent=(save.nickname?save.nickname+"님 · ":"")+"파티 Lv "+partyLv()+" · 영웅 "+save.unlocked.length+"/"+CHARS.length+" · 공훈 "+save.merit+" · 철 "+save.iron+" · 소집령 "+save.scrolls;
+  updHUD();
   $("party-badges").innerHTML=save.party.map(id=>badge(byId[id])).join("");
   const box=$("chapters"); box.innerHTML="";
   // 진행 상태 선계산 (순차 개방)
@@ -2219,19 +3204,52 @@ function dungeonWin(){
   const drop=rollDrop(B.stage.lv, dg.id==="dg_iron"?0.7:0.3);
   persist();
   const left=DG_LIMIT-(save.dgRuns[dg.id]||0);
-  showModal("<h2>던전 클리어!</h2><p>"+rewText(dg.rew)+" 획득"+(drop?" · <b style='color:var(--gold)'>"+drop.n+"</b> 드랍!":"")+"</p><p class='help'>오늘 남은 입장: "+left+"회</p><button class='primary' id='m-ok'>지도로</button>", ()=>{ closeModal(); showMap(); });
+  showModal("<h2>던전 클리어!</h2><p>"+rewText(dg.rew)+" 획득"+(drop?" · <b style='color:var(--gold)'>"+drop.n+"</b> 드랍!":"")+"</p>"
+    +"<p style='color:var(--gold)'>"+walletText()+"</p>"
+    +"<p class='help'>오늘 남은 입장: "+left+"회</p><button class='primary' id='m-ok'>지도로</button>", ()=>{ closeModal(); showMap(); });
 }
 function showParty(){
   $("screen-map").classList.add("hidden");
   $("screen-party").classList.remove("hidden");
   const g=$("pickgrid"); g.innerHTML="";
   let sel=[...save.party];
+  let sup=supportOf().slice(0,SUPPORT_SLOTS);
+  let mode="party";
   const order=CHARS.filter(c=>save.unlocked.includes(c.id));
   $("party-merit").textContent="보유 공훈 "+save.merit;
+  const cards={};
+  const paint=id=>{ const d=cards[id]; if(!d) return;
+    d.classList.toggle("sel",sel.includes(id));
+    d.classList.toggle("sup",sup.includes(id));
+    d.classList.toggle("dim",mode==="support"&&sel.includes(id));
+  };
+  const chip=(id,which)=>{
+    if(!id) return '<span class="slotchip empty">'+(which==="party"?"빈 자리":"원군 없음")+'</span>';
+    const c=byId[id];
+    return '<span class="slotchip"><span class="badge">'+pface(c,awkOf(id))+'</span>'+c.n+'</span>';
+  };
+  const renderSlots=()=>{
+    $("party-slots").innerHTML='<span class="help" style="width:52px">출전</span>'
+      +[0,1,2,3].map(i=>chip(sel[i],"party")).join("");
+    $("support-slots").innerHTML='<span class="help" style="width:52px">원군</span>'
+      +Array.from({length:SUPPORT_SLOTS},(_,i)=>chip(sup[i],"support")).join("");
+    const lines=supportSummary(sup);
+    $("support-eff").innerHTML=lines.length
+      ? "원군 효과 — "+lines.join(" / ")
+      : "원군은 전투에 나오지 않지만 같은 세력 아군을 강화하고 역할에 따라 파티 전체를 돕는다. 출전하지 않는 영웅을 앉혀 두자.";
+    $("mode-hint").textContent = mode==="party"
+      ? "카드를 눌러 출전 4인을 고른다 ("+sel.length+"/4)"
+      : "카드를 눌러 원군을 고른다 ("+sup.length+"/"+SUPPORT_SLOTS+") — 출전 중인 영웅은 고를 수 없다";
+    $("mode-party").classList.toggle("on",mode==="party");
+    $("mode-support").classList.toggle("on",mode==="support");
+  };
+  $("mode-party").onclick=()=>{ mode="party"; order.forEach(c=>paint(c.id)); renderSlots(); };
+  $("mode-support").onclick=()=>{ mode="support"; order.forEach(c=>paint(c.id)); renderSlots(); };
   order.forEach(c=>{
     const d=document.createElement("div");
-    d.className="pick"+(sel.includes(c.id)?" sel":"");
+    d.className="pick";
     d.tabIndex=0;
+    cards[c.id]=d;
     const es=starOf(c.id);
     const awk=awkOf(c.id);
     let promoBtn="";
@@ -2245,31 +3263,51 @@ function showParty(){
     const bs=BASICS[c.id]||[];
     const wcnt=wearOf(c.id).filter(x=>x!==null&&x!==undefined).length;
     d.innerHTML='<span class="badge">'+pface(c,awk)+'</span><div class="info"><div class="nm">'+c.n+(c.king?" 👑":"")+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(es)+'</span>'+(awk?'<span style="color:var(--accent);font-size:.7rem">'+"✦".repeat(awk)+'</span>':"")+'</div><div class="meta">'+c.f+" · "+c.role+'</div><div class="st">무'+c.st[0]+" 지"+c.st[1]+" 방"+c.st[2]+" 체"+c.st[3]+" 속"+c.st[4]+'</div><div class="meta">스킬: '+bs.map(s=>s.nm).join(" · ")+'</div><div class="meta">[궁극기 '+c.skill.nm+"] "+c.skill.d+'</div>'+promoBtn+' <button class="gearb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px">장비 '+wcnt+'/3</button></div>';
-    const toggle=()=>{ if(sel.includes(c.id)) sel=sel.filter(x=>x!==c.id); else if(sel.length<4) sel.push(c.id); d.classList.toggle("sel",sel.includes(c.id)); };
+    const toggle=()=>{
+      if(mode==="party"){
+        if(sel.includes(c.id)) sel=sel.filter(x=>x!==c.id);
+        else if(sel.length<4){ sel.push(c.id); sup=sup.filter(x=>x!==c.id); }   // 출전과 원군은 겸할 수 없다
+      } else {
+        if(sup.includes(c.id)) sup=sup.filter(x=>x!==c.id);
+        else if(sel.includes(c.id)) return;                                      // 출전 중인 영웅은 원군 불가
+        else if(sup.length<SUPPORT_SLOTS) sup.push(c.id);
+      }
+      order.forEach(x=>paint(x.id));
+      renderSlots();
+    };
     d.onclick=toggle; d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}};
     const pb=d.querySelector(".promo");
     if(pb) pb.onclick=(e)=>{ e.stopPropagation();
       const es2=starOf(c.id), cost=promoCost(es2+1);
       if(es2>=5||save.merit<cost) return;
-      save.merit-=cost; save.promo[c.id]=promoOf(c.id)+1; save.promoCnt++; persist();
-      save.party=sel; showParty();
+      save.merit-=cost; save.promo[c.id]=promoOf(c.id)+1; save.promoCnt++;
+      if(sel.length===4) save.party=sel;
+      save.support=sup; persist(); showParty();
       alertMsg(c.n+" 승급! ★"+starOf(c.id)+" — 기본 능력 +8%");
     };
     const gb=d.querySelector(".gearb");
-    if(gb) gb.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; showEquip(c.id); };
+    if(gb) gb.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; save.support=sup; showEquip(c.id); };
     const bd=d.querySelector(".badge");
-    if(bd){ bd.style.cursor="pointer"; bd.title="장비창 열기"; bd.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; showEquip(c.id); }; }
+    if(bd){ bd.style.cursor="pointer"; bd.title="장비창 열기"; bd.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; save.support=sup; showEquip(c.id); }; }
     const ab=d.querySelector(".awakenb");
     if(ab) ab.onclick=(e)=>{ e.stopPropagation();
       const a2=awkOf(c.id); if(a2>=2||starOf(c.id)<5) return;
       const co=AWK_COST[a2]; if(save.merit<co.m||save.iron<co.i) return;
-      save.merit-=co.m; save.iron-=co.i; save.awaken[c.id]=a2+1; persist(); sfx("gacha");
-      save.party=sel; showParty();
-      alertMsg(c.n+" 각성 "+(a2+1)+"단계! ✦ 기본 능력 +12%, 전투 시작 기력 +25");
+      save.merit-=co.m; save.iron-=co.i; save.awaken[c.id]=a2+1;
+      if(sel.length===4) save.party=sel;
+      save.support=sup; persist(); showParty();
+      showAwakenFX(c, a2+1);
     };
     g.appendChild(d);
   });
-  $("btn-party-done").onclick=()=>{ if(sel.length!==4){ alertMsg("4명을 선택해 주세요."); return; } save.party=sel; persist(); showMap(); };
+  order.forEach(c=>paint(c.id));
+  renderSlots();
+  $("btn-party-done").onclick=()=>{
+    if(sel.length!==4){ alertMsg("출전 4명을 선택해 주세요."); return; }
+    save.party=sel;
+    save.support=sup.filter(id=>!sel.includes(id));
+    persist(); showMap();
+  };
   $("btn-party-cancel").onclick=showMap;
 }
 function alertMsg(t){ showModal("<h2>알림</h2><p>"+t+"</p><button class='primary' id='m-ok'>확인</button>", closeModal); }
@@ -2342,7 +3380,7 @@ $("btn-help").onclick=()=>{
    +"<p><b>턴 순서</b> — 라운드마다 살아있는 전원이 <b>속도</b> 순으로 1회씩 행동. 버프·쿨다운은 라운드 끝에 1턴씩 감소.</p>"
    +"<p><b>행동</b> — 공격 / 기본 스킬 2종(쿨다운제) / 궁극기 / 방어(그 라운드 받는 피해 50%↓). 도발 중인 적이 있으면 일반 공격 대상이 강제된다.</p>"
    +"<p><b>궁극기</b> — 영웅의 상징 기술. <b>기력 100</b>을 모아 사용한다(아군 개전 시 50 시작·적 영웅 25, 행동 시 +30, 방어 +20, 피격 시 +10). 기본 스킬 계수는 등급 밸런스가 적용된다(★5 100% / ★4 95% / ★3 90%).</p>"
-   +"<p><b>각성</b> — ★5에 도달한 영웅은 공훈+철로 2단계까지 각성(✦). 단계당 기본 능력 +12%, 전투 시작 기력 +25. 도감에서 영웅 카드를 열면 단계별 각성 미리보기를 볼 수 있다.</p>"
+   +"<p><b>각성</b> — ★5에 도달한 영웅은 공훈+철로 2단계까지 각성(✦). 단계당 기본 능력 +12%, 전투 시작 기력 +25. 각성하면 초상에 금빛 광배와 ✦ 표식이 붙고, 2단계에서는 뒤로 방사광이 돌며 금빛 티끌이 떠다닌다. 도감에서 영웅 카드를 열면 단계별 각성 미리보기를 볼 수 있다.</p>"
    +"<p><b>수치</b> — 공격력 = 무력×2.2+60 · HP = 체력×32+800 · 피해 = 공격력×계수×170/(170+방어), ±10% 편차, 치명타 10%. 적 몹 HP 52%·적 영웅 HP 85% 보정.</p>"
    +"<p><b>세력 결속</b> — 같은 나라 3인 이상이면 발동(가야는 1인). 김춘추가 있으면 조건이 2인으로 완화. 힐러 2인(회복진)·탱커 2인(철벽 전선)·딜러 3인(속전속결) 편성으로도 시너지가 발동하며, 네 나라의 왕을 한 명씩 편성하면 <b>사왕회맹</b>(공격·방어 +12%)이 발동한다.</p>"
    +"<p><b>진행</b> — 보스를 꺾으면 그 영웅이 동료로 합류. 스테이지를 깰수록 파티 레벨 상승(+1/클리어). 일부 결전 스테이지는 <b>2웨이브</b>: 1진을 섬멸하면 증원이 등장한다(아군 버프·쿨다운은 유지).</p>"
@@ -2351,14 +3389,68 @@ $("btn-help").onclick=()=>{
    +"<p><b>모집소</b> — 첫 클리어마다 얻는 <b>소집령</b>으로 영웅을 뽑는다(★5 5%/★4 25%/★3 70%, 10연 시 ★4+ 보장). 중복은 공훈으로 환급. 공훈 100으로 소집령 구매 가능.</p>"
    +"<p><b>대장간</b> — 클리어 보상 <b>철</b>로 영웅별 무기/갑옷/장신구를 "+FORGE_MAX+"단계까지 강화. 파티에 가야 영웅이 있으면 전투 중 장비 효과 1.3배.</p>"
    +"<p><b>편의</b> — 전투 화면에서 배속(×2)과 자동 전투를, 상단에서 효과음·배경음을 켜고 끌 수 있다. 자동 전투는 전투마다 꺼진 상태로 시작해 버튼을 눌러야 켜진다.</p>"
-   +"<p><b>드랍 장비</b> — 스테이지(45%, 보스 60%)·시련의 탑(35%)·폐광(70%)에서 아이템이 랜덤 드랍된다. 편성소에서 영웅 초상이나 장비 버튼을 눌러 무기/갑옷/장신구를 착용(다른 영웅 착용분은 자동 이전). 대장간 강화와 합산되며, 가야 시너지(장비 효과 1.3배)의 적용도 받는다. 도전 Lv "+REPLAY_HERO_TIER+" 이상 승리 시 낮은 확률로 <b>"+SPECIAL_WEAPON.n+"</b>이 드랍되는데, 공격 시 대상의 치유 효과를 50%(2턴) 낮춰 적 힐러를 상대하기 좋다.</p>"
+   +"<p><b>드랍 장비</b> — 스테이지(45%, 보스 60%)·시련의 탑(45%, 영웅층은 국보 확정)·폐광(70%)에서 아이템이 랜덤 드랍된다. 편성소에서 영웅 초상이나 장비 버튼을 눌러 무기/갑옷/장신구를 착용(다른 영웅 착용분은 자동 이전). 대장간 강화와 합산되며, 가야 시너지(장비 효과 1.3배)의 적용도 받는다. 도전 Lv "+REPLAY_HERO_TIER+" 이상 승리 시 낮은 확률로 <b>"+SPECIAL_WEAPON.n+"</b>이 드랍되는데, 공격 시 대상의 치유 효과를 50%(2턴) 낮춰 적 힐러를 상대하기 좋다.</p>"
+   +"<p><b>원군</b> — 출전 4인 외에 <b>원군 3인</b>을 앉힐 수 있다. 원군은 전투에 나오지 않지만 <b>같은 세력 아군의 공격·방어</b>를 등급·각성에 비례해 올리고(★4 +8%), 역할에 따라 파티 전체를 돕는다(탱커 받는 피해 −3% · 딜러 공격 +3% · 힐러 회복량 +8% · 서포터 개전 기력 +8). 편성 화면에서 「원군 3인」을 눌러 고른다.</p>"
+   +"<p><b>국보</b> — 최고 등급(tier 4) 장비 세 가지는 수치에 더해 고유 효과를 갖는다. <b>칠지도</b>는 공격이 다른 적 1명에게 30% 여파를 남기고, <b>가야 판갑옷</b>은 받는 피해를 8% 줄이며, <b>신라 금관</b>은 개전 기력 +30과 라운드마다 기력 +5를 준다. 시련의 탑 영웅층에서 확정으로 얻을 수 있다.</p>"
    +"<p><b>도감·업적</b> — 도감은 수집한 영웅의 일대기와 능력을 모아 본다. 업적은 달성 시 직접 보상을 수령해야 한다.</p>"
    +"<p><b>이야기 조각·후일담</b> — 전투에서 승리하면 파티원 중 한 명에게 확률로 <b>이야기 조각</b>이 쌓인다. 확률은 스테이지 권장 Lv이 높을수록 올라간다(Lv1 약 35% → 고레벨 스테이지 최대 65%). 한 영웅의 조각을 "+FRAGMENT_GOAL+"개 모으면 도감에서 그 영웅의 <b>후일담</b>과 세력별 여운 음향이 함께 열린다.</p>"
-   +"<p><b>시련의 탑</b> — 층수 무한 연속 전투. 층마다 적이 강해지고 매 층 공훈·철, 5층마다 소집령을 준다. 패배 시 도전 종료, 최고 기록이 남는다.</p>"
+   +"<p><b>시련의 탑</b> — 층수 무한 연속 전투. 층마다 적이 강해지고 매 층 공훈·철, 5층마다 소집령을 준다. 패배 시 도전 종료, 최고 기록이 남는다. <b style='color:var(--accent)'>"+TOWER_HERO_EVERY+"층마다 영웅층</b>이 열려 로스터 영웅 넷이 한꺼번에 나오는 대신, 돌파하면 공훈·철 3배와 <b style='color:var(--gold)'>국보 장비</b>·이야기 조각 여러 개·소집령 여러 장을 한꺼번에 준다(층이 깊을수록 증가).</p>"
    +"<p><b>광산</b> — 전투 없이 영웅을 보내 철을 캐 온다(스테이지 2개 클리어 시 개방, 하루 "+MINE_LIMIT+"회). 최대 4명까지 함께 보낼 수 있으며, 영웅의 등급(★)·각성 단계와 현재 파티 레벨이 높을수록 채굴량이 늘어난다.</p>"
    +"<p><b>일일 던전</b> — 요일제 재료 파밍: 연무장(월·목, 공훈=승급 재료) · 폐광(화·금, 철=장비 재료) · 기원의 사당(수·토, 소집령=모집 재료). 일요일은 전부 개방, 던전당 하루 2회, 난이도 하/중/상.</p>"
    +"</div><button class='primary' id='m-ok'>닫기</button>", closeModal);
 };
+/* 세이브 코드 — 진행이 브라우저 localStorage에만 있어서, 사이트 데이터를 지우면 통째로 사라진다.
+   UTF-8을 그대로 base64에 넣으면 깨지므로 바이트 단위로 변환한다 */
+function saveToCode(){
+  const json=JSON.stringify(save);
+  const bytes=new TextEncoder().encode(json);
+  let bin=""; bytes.forEach(b=>{ bin+=String.fromCharCode(b); });
+  return "SAGUK1:"+btoa(bin);
+}
+function codeToSave(code){
+  const t=String(code).trim().replace(/\s+/g,"");
+  if(!t.startsWith("SAGUK1:")) throw new Error("사국영웅전 세이브 코드가 아닙니다.");
+  const bin=atob(t.slice(7));
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  const s=normalizeSave(JSON.parse(new TextDecoder().decode(bytes)));
+  if(!s) throw new Error("세이브 내용이 올바르지 않습니다.");
+  return s;
+}
+function showSaveIO(){
+  const code=saveToCode();
+  showModal("<h2>세이브 코드</h2>"
+    +"<p class='help'>아래 코드를 복사해 두면 브라우저 데이터가 지워져도 진행을 되살릴 수 있다. 다른 기기·다른 브라우저로 옮길 때도 쓴다.</p>"
+    +"<textarea id='save-code' readonly style='width:100%;height:92px;margin:8px 0;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.72rem;font-family:monospace;resize:vertical'>"+code+"</textarea>"
+    +"<div style='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px'><button id='save-copy'>📋 복사</button><span id='save-msg' class='help'></span></div>"
+    +"<div style='border-top:1px solid var(--line);padding-top:10px'>"
+    +"<p class='help'>백업해 둔 코드를 붙여넣으면 그 시점으로 되돌아간다. <b>지금 진행 상황은 덮어쓰인다.</b></p>"
+    +"<textarea id='load-code' placeholder='SAGUK1:...' style='width:100%;height:64px;margin:6px 0;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.72rem;font-family:monospace;resize:vertical'></textarea>"
+    +"<button id='save-load'>불러오기</button></div>"
+    +"<button class='primary' id='m-ok' style='margin-top:12px'>닫기</button>", closeModal);
+  const box=$("modal-box"), msg=box.querySelector("#save-msg");
+  box.querySelector("#save-copy").onclick=()=>{
+    const ta=box.querySelector("#save-code");
+    ta.select(); ta.setSelectionRange(0,999999);
+    const done=()=>{ msg.textContent="복사했습니다."; msg.style.color="var(--good)"; };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done,()=>{ try{document.execCommand("copy"); done();}catch(e){ msg.textContent="복사에 실패했습니다 — 직접 선택해 복사해 주세요."; } });
+    else { try{document.execCommand("copy"); done();}catch(e){ msg.textContent="복사에 실패했습니다 — 직접 선택해 복사해 주세요."; } }
+  };
+  box.querySelector("#save-load").onclick=()=>{
+    const raw=box.querySelector("#load-code").value;
+    if(!raw.trim()){ msg.textContent="불러올 코드를 붙여넣어 주세요."; msg.style.color="var(--bad)"; return; }
+    let next;
+    try{ next=codeToSave(raw); }
+    catch(e){ msg.textContent="불러오기 실패: "+e.message; msg.style.color="var(--bad)"; return; }
+    showModal("<h2>세이브 불러오기</h2><p>코드의 진행 상황으로 덮어씁니다.</p>"
+      +"<p class='help'>불러올 내용 — 영웅 "+next.unlocked.length+"명 · 클리어 "+next.cleared.length+"스테이지 · 탑 최고 "+next.bestFloor+"층"+(next.nickname?" · "+escapeHtml(next.nickname):"")+"</p>"
+      +"<p class='help'>지금 진행 상황(영웅 "+save.unlocked.length+"명 · 클리어 "+save.cleared.length+"스테이지)은 사라집니다.</p>"
+      +"<button class='primary' id='m-ok'>덮어쓰기</button> <button id='m-cancel'>취소</button>",
+      ()=>{ save=next; persist(); closeModal(); updMute(); showMap(); alertMsg("세이브를 불러왔습니다."); });
+    const c=$("m-cancel"); if(c) c.onclick=()=>{ closeModal(); showSaveIO(); };
+  };
+}
+$("btn-saveio").onclick=showSaveIO;
 $("btn-reset").onclick=()=>{
   showModal("<h2>진행 초기화</h2><p>영입·클리어 기록을 모두 지웁니다.</p><button class='primary' id='m-ok'>초기화</button> <button id='m-cancel'>취소</button>", ()=>{ save=JSON.parse(JSON.stringify(DEFAULT_SAVE)); persist(); closeModal(); showMap(); });
   const c=$("m-cancel"); if(c) c.onclick=closeModal;
@@ -2713,6 +3805,7 @@ function v3BuildHero(scene){
 let V3D=null;
 function open3DHero(id){
   const c=byId[id];
+  if(typeof THREE==="undefined"){ alertMsg("3D 감상에 필요한 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요."); return; }
   $("viewer3d-title").textContent=c.n+" · 3D 감상";
   $("viewer3d-quote").style.opacity=0;
   $("viewer3d").classList.remove("hidden");
@@ -2994,8 +4087,34 @@ $("btn-ach").onclick=showAch;
 $("btn-ach-back").onclick=showMap;
 
 /* ============ 시련의 탑 ============ */
+const TOWER_HERO_EVERY=10;                 // 10층마다 영웅층
+function towerHeroFloor(fl){ return fl>0 && fl%TOWER_HERO_EVERY===0; }
+/* 24층까지는 층당 +2, 그 뒤로는 +1로 완만하게 — 다만 상한을 두지 않는다.
+   상한이 있으면 어느 지점부터 난이도가 평평해져 무한 파밍이 되고, 최고 기록도 의미를 잃는다 */
+function towerLv(fl){
+  const base = fl<=24 ? 3+fl*2 : 51+(fl-24);
+  return base + (towerHeroFloor(fl)?4:0);
+}
+/* 영웅층 보상: 국보 장비 + 이야기 조각 다발 + 소집령 */
+function towerHeroReward(fl){
+  const tp=Math.floor(fl/TOWER_HERO_EVERY);           // 10층=1, 20층=2 ...
+  return { treasures:Math.min(3,1+Math.floor(tp/2)), fragments:2+tp, scrolls:2+tp };
+}
+/* 지금까지 돌파한 영웅층 다음 층들 = 선택 가능한 시작 지점 (1층은 항상 가능) */
+function towerCheckpoints(){
+  const list=[1];
+  for(let f=TOWER_HERO_EVERY; f<=save.bestFloor; f+=TOWER_HERO_EVERY) list.push(f+1);
+  return list;
+}
 function towerWave(fl){
   const mobKeys=["soldier","archer","spear","shaman","bandit","banditboss"];
+  if(towerHeroFloor(fl)){
+    // 영웅층 — 전원이 로스터 영웅. 편성 중인 영웅은 빼서 거울전투가 되지 않게 한다
+    const pool=heroEnemyPool().slice();
+    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    const n=Math.min(4, pool.length);
+    return pool.slice(0,n).map(c=>({boss:c.id}));
+  }
   const n=fl<4?3:4;
   const arr=[];
   for(let i=0;i<n;i++){
@@ -3006,26 +4125,63 @@ function towerWave(fl){
   return arr;
 }
 function startTower(fl){
-  const lv=Math.min(45, 3+fl*2);
-  startBattle({id:"tower", n:"시련의 탑 "+fl+"층", lv, e:towerWave(fl), tower:fl});
+  const hero=towerHeroFloor(fl);
+  startBattle({id:"tower", n:"시련의 탑 "+fl+"층"+(hero?" · 영웅층":""), lv:towerLv(fl),
+               e:towerWave(fl), hpMul:hero?1.15:undefined, tower:fl});
 }
 function towerWin(){
-  const fl=B.stage.tower;
-  const merit=5+fl*2, iron=10+fl*2;
+  const fl=B.stage.tower, hero=towerHeroFloor(fl), lv=towerLv(fl);
+  let merit=15+fl*6, iron=25+fl*6;
+  if(hero){ merit*=3; iron*=3; }
   save.merit+=merit; save.iron+=iron;
-  let rew="공훈 +"+merit+" · 철 +"+iron;
-  if(fl%5===0){ save.scrolls++; rew+=" · 소집령 +1"; }
-  const drop=rollDrop(Math.min(45,3+fl*2), 0.35);
-  if(drop) rew+=" · <b style='color:var(--gold)'>"+drop.n+"</b> 드랍!";
+  const parts=["공훈 +"+merit, "철 +"+iron];
+  let opened=[];
+  if(hero){
+    const R=towerHeroReward(fl);
+    save.scrolls+=R.scrolls; parts.push("소집령 +"+R.scrolls);
+    const got=[];
+    for(let i=0;i<R.treasures;i++) got.push(makeItem(4).n);
+    parts.push("<b style='color:var(--gold)'>국보 "+got.join(" · ")+"</b>");
+    opened=grantFragments(R.fragments);
+    parts.push("이야기 조각 +"+R.fragments);
+    const extra=rollDrop(lv, 0.6);
+    if(extra) parts.push("<b style='color:var(--gold)'>"+extra.n+"</b>");
+  } else {
+    if(fl%5===0){ save.scrolls++; parts.push("소집령 +1"); }
+    const drop=rollDrop(lv, 0.45);
+    if(drop) parts.push("<b style='color:var(--gold)'>"+drop.n+"</b> 드랍!");
+    const one=gainFragments(lv);
+    if(one) opened=[one];
+  }
   if(fl>save.bestFloor) save.bestFloor=fl;
   persist();
-  showModal("<h2>"+fl+"층 돌파!</h2><p>"+rew+"</p><p class='help'>층마다 적이 강해진다. 최고 기록: "+save.bestFloor+"층</p><button class='primary' id='m-ok'>다음 층</button> <button id='m-cancel'>그만두기</button>",
-    ()=>{ closeModal(); startTower(fl+1); });
+  const next=fl+1, toHero=(TOWER_HERO_EVERY-(fl%TOWER_HERO_EVERY))%TOWER_HERO_EVERY;
+  const hint=towerHeroFloor(next)
+    ? "<b style='color:var(--accent)'>다음은 "+next+"층 — 영웅층!</b> 로스터 영웅 넷이 기다린다."
+    : "다음 영웅층까지 "+(toHero||TOWER_HERO_EVERY)+"층. 최고 기록: "+save.bestFloor+"층";
+  showModal("<h2>"+(hero?"⚔ 영웅층 돌파!":fl+"층 돌파!")+"</h2>"
+    +(hero?"<p class='big' style='color:var(--gold)'>"+fl+"층의 영웅들을 모두 꺾었다.</p>":"")
+    +"<p>"+parts.join(" · ")+"</p>"+epilogueNotice(opened)
+    +"<p style='color:var(--gold)'>"+walletText()+"</p>"
+    +"<p class='help'>"+hint+"</p>"
+    +"<button class='primary' id='m-ok'>다음 층</button> <button id='m-cancel'>그만두기</button>",
+    ()=>{ closeModal(); startTower(next); });
   const c=$("m-cancel"); if(c) c.onclick=()=>{ closeModal(); showMap(); };
 }
 $("btn-tower").onclick=()=>{
-  showModal("<h2>시련의 탑</h2><p>층수 제한 없는 연속 전투. 층마다 적이 강해지고, 매 층 공훈·철을, 5층마다 소집령을 얻는다. 패배하면 도전이 끝난다.</p><p class='help'>최고 기록: "+save.bestFloor+"층</p><button class='primary' id='m-ok'>1층부터 도전</button> <button id='m-cancel'>취소</button>",
-    ()=>{ closeModal(); startTower(1); });
+  const R=towerHeroReward(TOWER_HERO_EVERY);
+  const cps=towerCheckpoints();
+  const shown=cps.slice(-5);          // 너무 깊이 올라가면 목록이 길어지므로 최근 것만
+  const btns=shown.map(f=>'<button class="cpb'+(f===shown[shown.length-1]?' primary':'')+'" data-fl="'+f+'">'+f+'층부터</button>').join(" ");
+  showModal("<h2>시련의 탑</h2><p>층수 제한 없는 연속 전투. 층마다 적이 강해지고 매 층 공훈·철을, 5층마다 소집령을 얻는다. 패배하면 도전이 끝난다.</p>"
+    +"<p><b style='color:var(--accent)'>"+TOWER_HERO_EVERY+"층마다 영웅층</b> — 로스터 영웅 넷이 한꺼번에 나타난다. 대신 돌파하면 공훈·철 <b>3배</b>에 <b style='color:var(--gold)'>국보 장비</b>와 <b>이야기 조각 "+R.fragments+"개</b>, 소집령 "+R.scrolls+"장을 준다. 층이 깊어질수록 보상도 함께 늘어난다.</p>"
+    +(cps.length>1
+       ? "<p class='help'>영웅층을 돌파하면 그 <b>다음 층</b>이 시작 지점으로 열린다 — 매번 1층부터 다시 오르지 않아도 된다. 건너뛴 층의 보상은 받지 않는다.</p>"
+       : "<p class='help'>"+TOWER_HERO_EVERY+"층(영웅층)을 돌파하면 다음부터 "+(TOWER_HERO_EVERY+1)+"층에서 시작할 수 있다.</p>")
+    +"<div style='display:flex;gap:6px;flex-wrap:wrap;margin:10px 0'>"+btns+"</div>"
+    +"<p class='help'>최고 기록: "+save.bestFloor+"층</p><button id='m-cancel'>취소</button>", null);
+  const box=$("modal-box");
+  box.querySelectorAll(".cpb").forEach(b=>{ b.onclick=()=>{ closeModal(); startTower(+b.dataset.fl); }; });
   const c=$("m-cancel"); if(c) c.onclick=closeModal;
 };
 
@@ -3367,3 +4523,5 @@ $("btn-def-exit").onclick=()=>{ defStop(); showModeSelect(); };
 
 showLogin();
 </script>
+</body>
+</html>
