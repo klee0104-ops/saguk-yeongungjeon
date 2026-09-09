@@ -196,6 +196,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .story-bg{position:absolute; inset:-8%; animation:storyPan 11s linear infinite alternate}
 .story-bg svg{width:100%; height:100%; display:block}
 @keyframes storyPan{from{transform:scale(1.06) translate(1.5%,1%)}to{transform:scale(1.22) translate(-2%,-1.5%)}}
+#epi .story-shade{background:linear-gradient(180deg,rgba(10,11,14,.12) 0%,rgba(10,11,14,.40) 50%,rgba(8,9,11,.90) 100%)}
 .story-shade{position:absolute; inset:0; background:linear-gradient(180deg,rgba(10,11,14,.35) 0%,rgba(10,11,14,.55) 55%,rgba(8,9,11,.92) 100%)}
 .story-panel{position:absolute; left:0; right:0; bottom:0; padding:28px 36px 22px; max-width:760px; margin:0 auto}
 .story-panel h2{font-family:"Song Myung",serif; font-size:1.35rem; color:var(--gold); margin:0 0 12px; text-shadow:0 2px 8px rgba(0,0,0,.6)}
@@ -204,7 +205,11 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .story-nav{display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap}
 .story-progress{font-size:.78rem; color:var(--ink-soft)}
 .story-progressbar{height:3px; background:rgba(255,255,255,.15); border-radius:2px; overflow:hidden; margin-top:16px}
-#story-progress-bar{height:100%; width:0%; background:var(--gold)}
+#story-progress-bar,#epi-bar{height:100%; width:0%; background:var(--gold)}
+@keyframes mythTide{0%{transform:translateX(-13px)}50%{transform:translateX(13px)}100%{transform:translateX(-13px)}}
+.myth-tide{animation:mythTide 5.5s ease-in-out infinite; transform-box:fill-box}
+@keyframes mythPetal{0%{transform:translate(0,0) rotate(0deg); opacity:0}12%{opacity:.85}100%{transform:translate(-46px,300px) rotate(220deg); opacity:0}}
+.myth-petal{animation:mythPetal 8s linear infinite; transform-box:fill-box}
 /* 건국신화 연출 — 배경 SVG 안에서 재생되는 1회성 씬 */
 @keyframes mythEggDrop{0%{transform:translateY(-140px); opacity:0}55%{opacity:1}75%{transform:translateY(6px)}100%{transform:translateY(0); opacity:1}}
 .myth-egg{animation:mythEggDrop .9s cubic-bezier(.3,.6,.3,1) both}
@@ -261,7 +266,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 @media (prefers-reduced-motion: reduce){
   .story-bg{animation:none}
   .myth-egg,.myth-shell-l,.myth-shell-r,.myth-glow-burst,.myth-fade,.myth-horse,.myth-figure,.myth-bob,.myth-gate,.myth-step,.myth-runner,.myth-grow,.myth-crumble,.myth-hammer,.myth-spark,
-  .myth-descend,.myth-beam,.myth-flood,.myth-march,.myth-arrow,.myth-flicker,.myth-sway,.myth-rise,.myth-drift,.myth-vanish,.myth-pulse{animation:none!important}
+  .myth-descend,.myth-beam,.myth-flood,.myth-march,.myth-arrow,.myth-flicker,.myth-sway,.myth-rise,.myth-drift,.myth-vanish,.myth-pulse,.myth-tide,.myth-petal{animation:none!important}
 }
 @media(max-width:640px){.story-panel{padding:20px 18px 16px} .story-text{font-size:.92rem; min-height:150px}}
 /* 로그인/시작 화면 */
@@ -292,6 +297,29 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .mode-card-best{font-size:.75rem; color:var(--accent); margin-top:6px}
 @media (prefers-reduced-motion: reduce){.login-bg{animation:none}}
 @media(max-width:640px){.lane{gap:6px 10px} .midbar{flex-direction:column} .log{width:100%}}
+/* ===== 역사지도 ===== */
+.histwrap{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:14px}
+.eratabs{display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px}
+.eratab{flex:0 0 auto; font-size:.75rem; padding:5px 11px; border-radius:999px; background:var(--panel2); border:1px solid var(--line); color:var(--ink-soft); white-space:nowrap}
+.eratab.done{color:var(--good)}
+.eratab.on{background:var(--gold); border-color:var(--gold); color:#1b1712; font-weight:700}
+.mapbox{overflow-x:auto; border-radius:8px; background:#10151c; border:1px solid var(--line)}
+.mapbox svg{display:block; width:100%; min-width:520px; height:auto}
+@media(max-width:640px){.mapbox svg{min-width:470px} .eratab{font-size:.7rem; padding:5px 9px}}
+.hm-node text{pointer-events:none}
+.mapfoot{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin-top:10px}
+.stinfo{flex:1 1 240px; min-width:220px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px}
+.stinfo h3{font-size:1rem; color:var(--gold); margin:0 0 2px}
+.maplegend{display:flex; gap:9px; flex-wrap:wrap; font-size:.72rem; color:var(--ink-soft)}
+.maplegend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px}
+/* ===== 후일담 상영 ===== */
+.epi-speaker{font-family:"Song Myung",serif; color:var(--gold); font-size:.92rem; margin-bottom:6px; display:flex; align-items:center; gap:8px}
+.epi-speaker .badge{width:38px; height:38px}
+.epi-caption{min-height:118px; font-size:1.02rem; line-height:1.95; color:var(--ink); text-shadow:0 1px 6px rgba(0,0,0,.75)}
+.epi-caption .cursor{opacity:.55}
+.epi-quote{font-style:italic; color:#f0e4c4}
+.epi-ttsoff{color:var(--ink-soft)}
+@media(max-width:640px){.epi-caption{font-size:.94rem; min-height:150px}}
 </style>
 </head>
 <body>
@@ -495,6 +523,25 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
       <button id="story-playpause">⏸ 자동재생</button>
       <span class="sp" style="flex:1"></span>
       <button id="story-close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="story hidden" id="epi">
+  <div class="story-bg" id="epi-bg"></div>
+  <div class="story-shade"></div>
+  <div class="story-panel">
+    <div class="epi-speaker" id="epi-speaker"></div>
+    <div class="epi-caption" id="epi-caption"></div>
+    <div class="story-progressbar"><div id="epi-bar"></div></div>
+    <div class="story-nav">
+      <button id="epi-prev">◀ 이전</button>
+      <span class="story-progress" id="epi-progress"></span>
+      <button id="epi-next">다음 ▶</button>
+      <button id="epi-auto">⏸ 자동재생</button>
+      <button id="epi-tts">🔊 음성 해설</button>
+      <span class="sp" style="flex:1"></span>
+      <button id="epi-close">닫기</button>
     </div>
   </div>
 </div>
@@ -799,7 +846,7 @@ const TREASURE_EFF={"칠지도":"chilji", "가야 판갑옷":"panga", "신라 �
 const SUPPORT_SLOTS=3;   // 전투에는 나오지 않고 파티를 후원하는 원군 자리
 
 /* ============ 저장 ============ */
-const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[], sweepDate:"", sweepUses:0, daily:{date:"",prog:{},claimed:[]}, att:{last:"",streak:0,total:0}, shop:{date:"",bought:{}}, chronicle:[]};
+const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[], sweepDate:"", sweepUses:0, daily:{date:"",prog:{},claimed:[]}, att:{last:"",streak:0,total:0}, shop:{date:"",bought:{}}, chronicle:[], ttsOff:false};
 let save=load();
 /* 세이브 보정 — 구버전 세이브에 새 필드 기본값을 채워 넣는다.
    load()와 가져오기가 같은 함수를 쓰도록 분리해 두었다 (필드를 추가하면 여기만 고치면 된다) */
@@ -1682,7 +1729,8 @@ function gainFragments(lv){
 function epilogueNotice(ids){
   if(!ids||!ids.length) return "";
   playEpilogueSting(byId[ids[0]].f);
-  return ids.map(id=>"<p class='big' style='color:var(--gold)'>✦ "+byId[id].n+"의 이야기 조각을 모두 모았다 — 도감에서 뒷이야기를 확인할 수 있다.</p>").join("");
+  return ids.map(id=>"<p class='big' style='color:var(--gold)'>✦ "+byId[id].n+"의 이야기 조각을 모두 모았다.</p>"
+    +"<p><button class='primary' data-epi='"+id+"'>▶ 후일담 감상</button> <span class='help'>도감에서도 다시 볼 수 있다.</span></p>").join("");
 }
 function win(){
   sfx("win");
@@ -3175,7 +3223,509 @@ function chapterMapSVG(ci, stStates){
   });
   return s+"</svg>";
 }
+/* ================= 역사지도 — 실제 경위도 위에 스테이지를 놓는다 =================
+   좌표계: 경도 116.0E를 x=0, 위도 47.5N을 y=0으로 두고 1도당 sx/sy 픽셀.
+   sy는 위도 1도(약 111km), sx는 sy×cos(38.5°)를 써서 북위 38도 부근의 실제 비율에 맞췄다.
+   지형·강역은 통설을 바탕으로 단순화한 것이며 정밀한 경계 고증이 아니다.        */
+const HM={lon0:116.0, lat0:47.5, sx:44.6, sy:56.9, w:760, h:830};
+function gx(lon){ return +((lon-HM.lon0)*HM.sx).toFixed(1); }
+function gy(lat){ return +((HM.lat0-lat)*HM.sy).toFixed(1); }
+/* 경위도 점열 → 부드러운 곡선 경로 (Catmull-Rom을 3차 베지어로) */
+function geoPath(pts, closed){
+  const n=pts.length, P=pts.map(p=>[gx(p[0]),gy(p[1])]);
+  if(n<3) return "M"+P.map(p=>p[0]+" "+p[1]).join(" L");
+  const at=i=>closed?P[((i%n)+n)%n]:P[Math.max(0,Math.min(n-1,i))];
+  const dir=(a,b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1; return [dx/L,dy/L]; };
+  let d="M"+at(0)[0]+" "+at(0)[1];
+  const last=closed?n:n-1;
+  for(let i=0;i<last;i++){
+    const p0=at(i-1),p1=at(i),p2=at(i+1),p3=at(i+2);
+    /* 제어점을 구간 길이에 비례해 묶는다 — 긴 직선 구간이 부풀거나 좁은 반도가 말리는 것을 막는다 */
+    const k=Math.hypot(p2[0]-p1[0],p2[1]-p1[1])*0.28, t1=dir(p0,p2), t2=dir(p1,p3);
+    d+=" C"+(p1[0]+t1[0]*k).toFixed(1)+" "+(p1[1]+t1[1]*k).toFixed(1)
+      +","+(p2[0]-t2[0]*k).toFixed(1)+" "+(p2[1]-t2[1]*k).toFixed(1)
+      +","+p2[0]+" "+p2[1];
+  }
+  return d+(closed?" Z":"");
+}
+/* --- 육지 윤곽 --- */
+/* 본토: 한반도 + 요동 + 만주 (지도 위·왼쪽 경계는 화면 밖으로 넘겨 잘리게 둔다) */
+const LAND_MAIN=[
+ [115.5,40.30],[117.4,40.10],[119.20,40.30],[120.20,40.55],[121.15,40.95],[121.90,40.85],[122.25,40.66],
+ [121.95,40.20],[121.55,39.80],[121.35,39.35],[121.62,38.90],[121.95,38.86],       // 요동반도 서안·남단
+ [122.30,39.20],[122.70,39.45],[123.30,39.70],[123.80,39.90],[124.36,39.83],      // 요동반도 동안·압록강 하구
+ [124.70,39.55],[125.10,39.20],[125.05,38.85],[124.90,38.50],[124.87,38.06],      // 서한만·장산곶
+ [125.30,37.85],[126.00,37.75],[126.40,37.62],[126.60,37.45],[126.70,37.00],
+ [126.15,36.75],[126.45,36.50],[126.50,36.10],[126.40,35.70],[126.30,35.30],      // 태안·금강 하구
+ [126.20,34.90],[126.30,34.55],[126.60,34.35],[127.20,34.50],[127.70,34.75],      // 해남·여수
+ [128.40,34.85],[128.90,35.05],[129.10,35.10],                                    // 남해안·부산
+ [129.45,35.55],[129.45,36.05],[129.40,36.60],[129.30,37.20],[128.90,37.80],      // 동해안
+ [128.60,38.30],[127.90,38.90],[127.55,39.40],[127.90,39.90],[128.70,40.40],
+ [129.60,40.80],[129.60,41.30],[129.85,41.80],[130.65,42.28],                     // 두만강 하구
+ [131.30,43.00],[132.00,43.70],[132.60,44.30],[133.20,45.20],
+ [133.20,48.20],[115.50,48.20]
+];
+/* 산동반도 — 중원 방향의 기준점 */
+const LAND_SHANDONG=[
+ [115.50,38.30],[117.60,38.15],[119.00,37.75],[120.00,37.55],[120.75,37.83],[121.60,37.60],
+ [122.55,37.50],[122.70,37.40],[122.10,36.95],[121.00,36.65],[120.35,36.05],[119.55,35.42],
+ [119.10,34.70],[115.50,34.40]
+];
+/* 왜 — 규슈 북단 (외전 2에서만 쓰임) */
+const LAND_KYUSHU=[[129.35,32.40],[129.80,33.55],[130.40,33.78],[131.10,33.68],[131.80,33.60],[132.60,33.30],[132.60,32.40]];
+const ISLES=[
+ {n:"제주",   p:[[126.16,33.36],[126.40,33.56],[126.80,33.55],[126.96,33.40],[126.70,33.20],[126.30,33.22]]},
+ {n:"울릉",   p:[[130.80,37.44],[130.94,37.50],[130.90,37.56],[130.79,37.53]]},
+ {n:"대마",   p:[[129.17,34.24],[129.30,34.42],[129.30,34.60],[129.45,34.70],[129.40,34.30]]}
+];
+/* --- 큰 강 --- */
+const RIVERS=[
+ {n:"압록강", p:[[128.00,41.60],[126.90,41.20],[126.10,40.90],[125.00,40.20],[124.36,39.83]]},
+ {n:"두만강", p:[[128.30,42.10],[129.40,42.35],[130.20,42.30],[130.65,42.28]]},
+ {n:"대동강", p:[[126.70,39.30],[126.10,39.10],[125.74,39.02],[125.30,38.75],[125.05,38.85]]},
+ {n:"청천강", p:[[126.40,40.05],[125.90,39.80],[125.66,39.62],[125.30,39.45],[125.08,39.35]]},
+ {n:"한강",   p:[[128.30,37.72],[127.70,37.55],[127.15,37.53],[126.75,37.60],[126.55,37.63]]},
+ {n:"금강",   p:[[127.85,36.45],[127.40,36.45],[127.10,36.30],[126.90,36.20],[126.70,36.00]]},
+ {n:"영산강", p:[[126.95,35.15],[126.60,35.00],[126.38,34.85]]},
+ {n:"낙동강", p:[[128.60,36.95],[128.35,36.30],[128.40,35.70],[128.65,35.40],[128.90,35.15]]},
+ {n:"요하",   p:[[123.60,43.20],[123.20,42.30],[122.75,41.50],[122.30,40.90],[122.20,40.66]]}
+];
+/* --- 시대별 강역 (통설 기반 단순화) --- */
+const TERR={
+ T0:[ /* 2~3세기 원삼국 */
+  {f:"고구려", n:"고구려", lp:[125.6,41.4], p:[[123.4,41.0],[124.0,42.6],[126.6,43.0],[128.4,42.2],[128.2,40.6],[126.5,39.5],[124.8,39.8]]},
+  {f:"부여",   n:"부여",   lp:[126.3,44.6], p:[[123.4,45.0],[124.2,46.4],[128.6,46.2],[129.2,43.4],[127.4,42.8],[124.4,43.1]]},
+  {f:"낙랑",   n:"낙랑군", lp:[125.4,38.9], p:[[124.3,39.1],[125.0,39.8],[126.6,39.6],[127.3,38.9],[126.4,38.1],[124.8,38.3]]},
+  {f:"백제",   n:"마한",   lp:[126.7,35.9], p:[[125.6,36.6],[126.1,37.3],[127.3,37.0],[127.6,36.0],[127.2,34.9],[126.5,34.2],[125.7,34.8]]},
+  {f:"신라",   n:"진한",   lp:[129.0,36.2], p:[[128.2,36.6],[129.0,37.1],[129.9,36.5],[129.7,35.5],[129.0,35.1],[128.4,35.7]]},
+  {f:"가야",   n:"변한",   lp:[128.1,35.2], p:[[127.4,34.8],[127.4,35.7],[128.4,35.7],[129.0,35.1],[128.4,34.6]]}
+ ],
+ TBUYEO:[ /* 기원 전후 — 부여·동부여·졸본 */
+  {f:"부여",   n:"북부여",   lp:[125.9,45.0], p:[[122.8,44.6],[123.6,46.6],[129.0,46.4],[129.6,43.5],[127.4,42.8],[124.3,43.3]]},
+  {f:"부여",   n:"동부여",   lp:[130.4,42.9], p:[[128.9,42.7],[129.2,43.8],[131.6,43.5],[132.0,42.2],[130.0,41.9]]},
+  {f:"고구려", n:"졸본부여", lp:[125.4,41.4], p:[[124.2,40.9],[124.4,41.9],[126.6,42.2],[127.4,41.3],[126.1,40.4]]},
+  {f:"옥저",   n:"옥저",     lp:[129.4,41.2], p:[[128.4,40.6],[128.6,42.2],[130.4,42.1],[130.0,40.2]]},
+  {f:"낙랑",   n:"낙랑군",   lp:[125.4,38.9], p:[[124.3,39.1],[125.0,39.8],[126.6,39.6],[127.3,38.9],[126.4,38.1],[124.8,38.3]]}
+ ],
+ T4:[ /* 4세기 후반 — 근초고왕의 백제 */
+  {f:"고구려", n:"고구려", lp:[124.4,42.8], p:[[126.6,49.0],[133.4,49.0],[133.4,42.2],[130.4,41.6],[129.4,40.2],[128.8,39.0],[128.6,38.5],[127.3,38.6],[126.0,38.7],[124.4,38.6],[123.0,39.5],[121.3,39.4],[122.3,40.5],[121.8,41.7],[122.7,43.2],[123.8,45.2],[125.2,47.0]]},
+  {f:"백제",   n:"백제",   lp:[126.5,35.35], p:[[124.6,36.5],[124.5,38.5],[126.4,38.6],[127.4,37.8],[127.9,37.0],[128.2,36.4],[128.0,35.6],[127.5,34.9],[126.8,34.2],[125.6,34.6]]},
+  {f:"신라",   n:"신라",   lp:[129.35,36.15], p:[[128.2,36.4],[128.9,36.7],[129.7,36.6],[129.8,35.6],[129.3,35.1],[128.8,35.2],[128.4,35.7]]},
+  {f:"가야",   n:"가야",   lp:[127.75,34.95], p:[[127.4,35.5],[127.9,35.9],[128.4,35.7],[128.8,35.2],[128.4,34.8],[127.6,34.8]]}
+ ],
+ T5:[ /* 5세기 후반 — 장수왕의 남진 이후 */
+  {f:"고구려", n:"고구려", lp:[124.4,42.8], p:[[126.6,49.0],[133.4,49.0],[133.4,42.2],[130.4,41.6],[129.4,40.0],[128.7,38.4],[127.9,37.7],[127.0,37.2],[126.2,36.95],[124.5,36.6],[122.0,37.8],[121.3,39.2],[122.3,40.5],[121.8,41.7],[122.7,43.2],[123.8,45.2],[125.2,47.0]]},
+  {f:"백제",   n:"백제",   lp:[126.5,35.35], p:[[125.8,36.6],[126.3,36.95],[127.4,36.85],[128.0,36.5],[127.9,35.9],[127.6,35.3],[127.3,34.9],[126.8,34.2],[125.9,34.6],[125.6,35.8]]},
+  {f:"신라",   n:"신라",   lp:[129.35,36.15], p:[[127.9,36.0],[128.0,36.5],[128.6,36.9],[129.6,36.9],[129.8,35.8],[129.5,35.0],[128.9,34.9],[128.6,35.3],[128.3,35.9]]},
+  {f:"가야",   n:"가야",   lp:[127.75,34.95], p:[[127.4,35.4],[127.9,35.9],[128.5,35.9],[128.9,35.4],[129.0,34.9],[128.2,34.7],[127.5,34.8]]}
+ ],
+ T6:[ /* 6세기 후반 — 진흥왕의 신라 */
+  {f:"고구려", n:"고구려", lp:[124.4,42.8], p:[[126.6,49.0],[133.4,49.0],[133.4,42.2],[130.6,41.5],[130.0,40.3],[128.6,40.2],[128.2,38.6],[127.4,37.9],[126.4,37.6],[124.9,37.6],[123.0,38.4],[121.3,39.2],[122.3,40.5],[121.8,41.7],[122.7,43.2],[123.8,45.2],[125.2,47.0]]},
+  {f:"신라",   n:"신라",   lp:[129.35,36.15], p:[[126.4,37.45],[127.4,37.7],[128.2,38.5],[127.9,39.6],[128.6,40.1],[129.7,40.1],[129.5,39.0],[129.2,37.6],[129.9,36.2],[129.5,35.0],[128.7,34.8],[127.9,34.9],[127.5,35.6],[127.3,36.5],[126.5,36.95]]},
+  {f:"백제",   n:"백제",   lp:[126.4,35.3], p:[[125.9,36.8],[126.5,36.95],[127.3,36.5],[127.6,35.9],[127.4,35.2],[126.9,34.3],[126.0,34.7],[125.7,36.0]]}
+ ],
+ T7:[ /* 7세기 중반 — 삼국의 마지막 대치 */
+  {f:"고구려", n:"고구려", lp:[124.4,42.8], p:[[126.6,49.0],[133.4,49.0],[133.4,42.2],[130.4,41.6],[129.4,40.2],[128.9,39.2],[128.6,38.6],[127.4,38.2],[126.3,37.9],[124.9,37.9],[123.2,38.6],[121.3,39.3],[122.3,40.5],[121.8,41.7],[122.7,43.2],[123.8,45.2],[125.2,47.0]]},
+  {f:"신라",   n:"신라",   lp:[129.35,36.15], p:[[126.3,37.85],[127.4,38.15],[128.4,38.5],[129.3,38.4],[129.2,37.5],[129.9,36.2],[129.5,35.0],[128.6,34.8],[127.6,34.9],[127.4,35.6],[127.5,36.3],[127.1,36.9],[126.3,37.05]]},
+  {f:"백제",   n:"백제",   lp:[126.4,35.3], p:[[125.9,36.9],[126.3,37.0],[127.2,36.8],[127.6,36.2],[127.5,35.5],[127.0,34.4],[126.0,34.7],[125.7,36.0]]}
+ ],
+ T676:[ /* 676년 — 나당전쟁 이후 */
+  {f:"신라", n:"신라", lp:[129.35,36.15], p:[[125.4,38.8],[127.0,39.2],[128.0,39.6],[129.0,39.6],[129.3,38.5],[129.9,36.2],[129.5,35.0],[128.6,34.8],[126.5,34.2],[125.6,35.5],[125.5,37.5]]},
+  {f:"당",   n:"당(唐)", lp:[124.4,42.8], p:[[126.6,49.0],[133.4,49.0],[133.4,42.2],[130.4,41.6],[129.4,40.2],[128.6,39.7],[127.6,39.3],[125.8,39.0],[124.6,39.1],[123.2,39.6],[121.3,39.3],[122.3,40.5],[121.8,41.7],[122.7,43.2],[123.8,45.2],[125.2,47.0]]}
+ ],
+ T920:[ /* 920년경 — 후삼국 */
+  {f:"고구려", n:"고려", lp:[125.9,38.6], p:[[124.3,39.6],[127.0,39.7],[128.6,39.3],[129.4,38.5],[129.4,37.5],[128.6,36.9],[127.5,37.0],[126.6,36.9],[125.6,37.6],[124.4,38.4]]},
+  {f:"백제",   n:"후백제", lp:[126.5,35.25], p:[[125.7,36.0],[125.9,36.8],[126.4,36.9],[127.5,36.9],[128.2,36.3],[128.3,35.5],[127.8,34.9],[126.8,34.3],[126.0,34.7]]},
+  {f:"신라",   n:"신라", lp:[129.4,36.05], p:[[128.2,36.3],[128.6,36.9],[129.4,36.9],[129.9,36.0],[129.5,35.0],[128.7,34.9],[128.3,35.5]]}
+ ]
+};
+const TCOLOR={"고구려":"#d1706a","백제":"#d0ab55","신라":"#5cae9a","가야":"#7f9dc0","부여":"#a98cc4","옥저":"#7f9a86","낙랑":"#6f7681","당":"#7d8590"};
+/* 강역과 무관한 지역 표시 */
+const HM_REGION=[
+ {n:"중원(中原)", lon:117.6, lat:36.6, size:22},
+ {n:"왜(倭)",     lon:130.6, lat:33.3, size:20},
+ {n:"동해",       lon:131.4, lat:38.6, size:17, sea:1},
+ {n:"서해",       lon:124.2, lat:35.6, size:17, sea:1}
+];
+/* 항상 표시되는 주요 도성 */
+const HM_CITY=[
+ {n:"국내성", lon:126.19, lat:41.13}, {n:"평양성", lon:125.74, lat:39.02},
+ {n:"한성",   lon:127.12, lat:37.53}, {n:"웅진",   lon:127.12, lat:36.46},
+ {n:"사비",   lon:126.91, lat:36.28}, {n:"서라벌", lon:129.22, lat:35.85},
+ {n:"금관가야",lon:128.88, lat:35.23}, {n:"대가야", lon:128.26, lat:35.73},
+ {n:"요동성", lon:123.17, lat:41.27}, {n:"송악",   lon:126.55, lat:37.97}
+];
+/* 스테이지의 실제 위치 — p:지명, y:연대 */
+const STAGE_GEO={
+ s0 :{lon:128.05,lat:36.55,p:"소백산 산길",       y:"연대 미상"},
+ s1a:{lon:128.80,lat:35.42,p:"낙동강 삼랑진 나루", y:"1~2세기"},
+ s1b:{lon:128.45,lat:35.52,p:"창녕 · 비화가야",    y:"6세기 초"},
+ s1c:{lon:128.32,lat:34.98,p:"고성 앞바다",        y:"48년"},
+ s1d:{lon:128.88,lat:35.24,p:"김해 구지봉",        y:"42년"},
+ s1e:{lon:128.17,lat:35.57,p:"합천 다라국",        y:"건국 전승"},
+ s1f:{lon:128.26,lat:35.73,p:"고령 주산성",        y:"479년"},
+ s1g:{lon:128.12,lat:35.86,p:"가야산 아래",        y:"562년"},
+ s2a:{lon:128.94,lat:35.97,p:"서라벌 북쪽 관문",   y:"6세기"},
+ s2b:{lon:128.40,lat:35.62,p:"대가야 정벌로",      y:"562년"},
+ s2c:{lon:130.87,lat:37.50,p:"우산국(울릉도)",     y:"512년"},
+ s2d:{lon:126.80,lat:37.13,p:"당항성",             y:"648년"},
+ s2e:{lon:129.22,lat:35.83,p:"서라벌 첨성대",      y:"647년"},
+ s2f:{lon:129.24,lat:35.76,p:"경주 남산 · 천관사", y:"7세기 초"},
+ s2g:{lon:129.48,lat:35.75,p:"감포 대왕암",        y:"676년"},
+ s3a:{lon:127.12,lat:36.46,p:"웅진 나루(공주)",    y:"475년"},
+ s3b:{lon:127.03,lat:36.01,p:"익산 미륵사",        y:"7세기 초"},
+ s3c:{lon:126.77,lat:36.68,p:"임존성(예산)",       y:"660년"},
+ s3d:{lon:127.05,lat:36.55,p:"공주 · 무령왕릉",    y:"521년"},
+ s3e:{lon:127.12,lat:37.53,p:"한성 위례",          y:"371년"},
+ s3f:{lon:127.21,lat:36.19,p:"황산벌(논산)",       y:"660년"},
+ s3g:{lon:127.57,lat:36.31,p:"관산성(옥천)",       y:"554년"},
+ s4a:{lon:123.17,lat:41.27,p:"요동성(요양)",       y:"5세기"},
+ s4b:{lon:125.32,lat:39.10,p:"평양 서쪽 산기슭",   y:"6세기 말"},
+ s4c:{lon:122.85,lat:40.72,p:"안시성",             y:"645년"},
+ s4d:{lon:125.55,lat:38.72,p:"평양 남쪽 · 막리지부",y:"642년"},
+ s4e:{lon:125.66,lat:39.62,p:"살수(청천강)",       y:"612년"},
+ s4f:{lon:126.19,lat:41.13,p:"국내성(집안)",       y:"391~412년"},
+ s4g:{lon:125.74,lat:39.02,p:"평양성",             y:"427년"},
+ s5 :{lon:127.93,lat:36.97,p:"중원(충주) 삼국의 길목", y:"7세기"},
+ x1a:{lon:122.30,lat:41.20,p:"요하 방어선",        y:"612년"},
+ x1b:{lon:125.66,lat:39.62,p:"살수(청천강)",       y:"612년"},
+ x1c:{lon:122.85,lat:40.72,p:"안시성",             y:"645년"},
+ x1d:{lon:127.07,lat:38.03,p:"매소성(연천)",       y:"675년"},
+ x2a:{lon:128.97,lat:35.05,p:"다대포 봉수대",      y:"7세기"},
+ x2b:{lon:129.00,lat:34.60,p:"대한해협",           y:"7세기"},
+ x2c:{lon:129.50,lat:35.75,p:"감포 앞바다",        y:"681년"},
+ x3a:{lon:126.19,lat:41.13,p:"국내성",             y:"194년"},
+ x3b:{lon:126.91,lat:36.28,p:"사비(부여)",         y:"654년"},
+ x3c:{lon:127.15,lat:36.85,p:"직산 옛 무덤가",     y:"661년"},
+ x4a:{lon:128.09,lat:36.66,p:"문경 가은",          y:"867년"},
+ x4b:{lon:127.31,lat:38.15,p:"철원 태봉 도읍",     y:"905년"},
+ x4c:{lon:128.69,lat:35.99,p:"공산(대구 팔공산)",  y:"927년"},
+ x4d:{lon:128.73,lat:36.57,p:"고창(안동)",         y:"930년"},
+ x4e:{lon:127.03,lat:35.79,p:"금산사(김제)",       y:"935년"},
+ x4f:{lon:128.30,lat:36.24,p:"일리천(구미 선산)",  y:"936년"},
+ x4g:{lon:126.55,lat:37.97,p:"송악(개성)",         y:"936년"},
+ x5a:{lon:126.55,lat:43.87,p:"북부여 옛 터(길림)", y:"기원전 2세기"},
+ x5b:{lon:127.20,lat:41.80,p:"우발수",             y:"전승"},
+ x5c:{lon:130.37,lat:42.87,p:"가섭원(동부여)",     y:"기원전 1세기"},
+ x5d:{lon:129.60,lat:42.90,p:"동부여 왕궁",        y:"기원전 58년"},
+ x5e:{lon:126.80,lat:42.50,p:"엄사수",             y:"기원전 37년"},
+ x5f:{lon:129.90,lat:42.95,p:"동부여 최후의 성",   y:"22년"},
+ x5g:{lon:125.18,lat:44.43,p:"부여성(농안)",       y:"494년"}
+};
+/* 장 → 시대. cap은 지도 위 시대 설명 한 줄 */
+const HM_ERA=[
+ {t:"2~3세기",       terr:"T0",     cap:"아직 나라의 경계가 흐릿하던 때 — 마한·진한·변한의 소국들이 흩어져 있었다."},
+ {t:"42~562년",      terr:"T5",     cap:"낙동강 하류의 철의 나라들 — 금관가야에서 대가야로, 오백 년의 연맹."},
+ {t:"6세기",         terr:"T6",     cap:"진흥왕이 한강과 동해안을 차지하며 신라가 처음으로 삼국의 중심에 섰다."},
+ {t:"4~7세기",       terr:"T4",     cap:"근초고왕의 백제가 황해를 건너 왜와 중국을 잇던 시절의 강역."},
+ {t:"4~7세기",       terr:"T5",     cap:"광개토대왕과 장수왕 — 요동에서 한강까지, 고구려 최대 판도."},
+ {t:"7세기 중반",    terr:"T7",     cap:"세 나라가 마지막으로 맞선 순간. 국경은 소백산맥과 임진강을 따라 굳어 있었다."},
+ {t:"612~675년",     terr:"T7",     cap:"수와 당이 요하를 건너왔다. 전선은 요동성·안시성·살수에 걸쳐 있었다."},
+ {t:"7세기 후반",    terr:"T676",   cap:"통일 뒤에도 바다는 조용하지 않았다 — 남해와 동해의 방어선."},
+ {t:"2~7세기",       terr:"T7",     cap:"싸움이 아니라 제도와 글과 깨달음이 남은 자리들."},
+ {t:"900~936년",     terr:"T920",   cap:"신라가 저물고 후백제와 고려가 다시 삼한을 나눠 가졌다."},
+ {t:"기원전~494년",  terr:"TBUYEO", cap:"고구려 이전의 나라 — 북부여와 동부여, 그리고 남쪽으로 떠난 한 소년."}
+];
+/* --- 겹치는 표지를 밀어내는 배치 (결정적: 난수 없음) ---
+   원이 아니라 「원 + 이름 + 연대」가 차지하는 사각형끼리 밀어낸다.
+   실제 위치에서 멀어진 만큼은 지시선으로 이어 보이므로 지리적 사실은 잃지 않는다. */
+function hmDeclutter(nodes, box, R, fs){
+  const GAP=fs(4);
+  nodes.forEach(n=>{
+    n.bx=n.x; n.by=n.y;
+    const chars=Math.max(String(n.st.n).length, String(n.g.y).length*0.62);
+    n.hw=Math.max(R, chars*fs(6.6))+GAP;   // 이름 폭의 절반
+    n.up=R+GAP;                             // 중심 위쪽
+    n.dn=R+fs(30)+GAP;                      // 중심 아래(이름·연대 두 줄)
+  });
+  const rect=n=>[n.bx-n.hw, n.by-n.up, n.bx+n.hw, n.by+n.dn];
+  const ITER=520;
+  for(let it=0; it<ITER; it++){
+    /* 당기는 힘을 점점 줄여(담금질) 마지막에는 겹침이 남지 않게 한다 */
+    const pull=0.05*Math.pow(Math.max(0,1-it/(ITER*0.75)),2);
+    for(let i=0;i<nodes.length;i++){
+      const a=nodes[i], ra=rect(a);
+      for(let j=i+1;j<nodes.length;j++){
+        const b=nodes[j], rb=rect(b);
+        const ox=Math.min(ra[2],rb[2])-Math.max(ra[0],rb[0]);
+        const oy=Math.min(ra[3],rb[3])-Math.max(ra[1],rb[1]);
+        if(ox<=0||oy<=0) continue;
+        if(ox<oy){
+          const s=(b.bx>=a.bx?1:-1)*ox/2;
+          a.bx-=s; b.bx+=s;
+        } else {
+          const s=(b.by>=a.by?1:-1)*oy/2;
+          a.by-=s; b.by+=s;
+        }
+      }
+    }
+    // 실제 위치로 약하게 당긴다 — 지시선이 너무 길어지지 않도록
+    nodes.forEach(n=>{
+      n.bx+=(n.x-n.bx)*pull; n.by+=(n.y-n.by)*pull;
+      n.bx=Math.max(box.x+n.hw, Math.min(box.x+box.w-n.hw, n.bx));
+      n.by=Math.max(box.y+n.up, Math.min(box.y+box.h-n.dn, n.by));
+    });
+  }
+  nodes.forEach(n=>{ n.bx=+n.bx.toFixed(1); n.by=+n.by.toFixed(1); });
+}
+/* 장의 스테이지들을 담는 화면 영역 계산 (가로:세로 = 1.55) */
+const HM_ASPECT=1.55, HM_MINW=360;
+function hmViewBox(ci){
+  const sts=CHAPTERS[ci].stages.map(st=>STAGE_GEO[st.id]).filter(Boolean);
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  sts.forEach(g=>{ const x=gx(g.lon), y=gy(g.lat); x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); });
+  if(!sts.length){ x0=gx(125); x1=gx(130); y0=gy(39); y1=gy(35); }
+  let w=Math.max(HM_MINW, (x1-x0)+150), h=Math.max(HM_MINW/HM_ASPECT, (y1-y0)+130);
+  if(w/h<HM_ASPECT) w=h*HM_ASPECT; else h=w/HM_ASPECT;
+  let cx=(x0+x1)/2, cy=(y0+y1)/2;
+  let vx=cx-w/2, vy=cy-h/2;
+  vx=Math.max(0, Math.min(HM.w-w, vx)); vy=Math.max(0, Math.min(HM.h-h, vy));
+  if(w>HM.w){ vx=(HM.w-w)/2; } if(h>HM.h){ vy=(HM.h-h)/2; }
+  return {x:+vx.toFixed(1), y:+vy.toFixed(1), w:+w.toFixed(1), h:+h.toFixed(1)};
+}
+/* 점이 다각형 안에 있는가 (레이 캐스팅) */
+function hmInPoly(P,x,y){
+  let inside=false;
+  for(let i=0,j=P.length-1;i<P.length;j=i++){
+    const xi=P[i][0],yi=P[i][1],xj=P[j][0],yj=P[j][1];
+    if((yi>y)!==(yj>y) && x < (xj-xi)*(y-yi)/(yj-yi)+xi) inside=!inside;
+  }
+  return inside;
+}
+/* 화면에 보이는 강역 안쪽에서, 가장자리와 노드에서 멀리 떨어진 자리를 고른다 */
+function hmLabelPos(pts, vb, avoid){
+  const P=pts.map(p=>[gx(p[0]),gy(p[1])]);
+  const bx0=Math.max(vb.x+38, Math.min(...P.map(p=>p[0]))),
+        bx1=Math.min(vb.x+vb.w-38, Math.max(...P.map(p=>p[0]))),
+        by0=Math.max(vb.y+34, Math.min(...P.map(p=>p[1]))),
+        by1=Math.min(vb.y+vb.h-34, Math.max(...P.map(p=>p[1])));
+  if(bx1<=bx0||by1<=by0) return null;
+  let best=null, bs=-1;
+  for(let i=0;i<=16;i++) for(let j=0;j<=16;j++){
+    const x=bx0+(bx1-bx0)*i/16, y=by0+(by1-by0)*j/16;
+    if(!hmInPoly(P,x,y)) continue;
+    let sc=Math.min(x-vb.x, vb.x+vb.w-x, y-vb.y, vb.y+vb.h-y);
+    for(const a of avoid) sc=Math.min(sc, Math.hypot(a[0]-x,a[1]-y)*0.85);
+    if(sc>bs){ bs=sc; best=[+x.toFixed(1),+y.toFixed(1)]; }
+  }
+  return bs<vb.w*0.035?null:best;
+}
+/* 지도 SVG 한 장 */
+function histMapSVG(ci, stStates, selId){
+  const era=HM_ERA[ci]||HM_ERA[5], vb=hmViewBox(ci), terr=TERR[era.terr]||[];
+  const scale0=vb.w/900, fs0=n=>+(n*scale0).toFixed(2);
+  const nodes=CHAPTERS[ci].stages.filter(st=>STAGE_GEO[st.id]).map(st=>{
+    const g=STAGE_GEO[st.id];
+    return {st, g, x:gx(g.lon), y:gy(g.lat), ...stStates[st.id]};
+  });
+  const R=fs0(21);                             // 확대율과 무관하게 화면상 크기를 일정하게
+  hmDeclutter(nodes, vb, R, fs0);
+  const stPts=nodes.map(n=>[n.x,n.y]).concat(nodes.map(n=>[n.bx,n.by+n.dn*0.35]));
+  const scale=vb.w/900;                       // 글자 크기를 확대율에 맞춘다
+  const fs=n=>+(n*scale).toFixed(2);
+  let s='<svg viewBox="'+vb.x+' '+vb.y+' '+vb.w+' '+vb.h+'" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+CHAPTERS[ci].t+' 역사지도">';
+  s+='<defs><clipPath id="hm-land"><path d="'+geoPath(LAND_MAIN,true)+'"/><path d="'+geoPath(LAND_SHANDONG,true)+'"/><path d="'+geoPath(LAND_KYUSHU,true)+'"/>'
+    +ISLES.map(i=>'<path d="'+geoPath(i.p,true)+'"/>').join("")+'</clipPath></defs>';
+  // 바다
+  s+='<rect x="0" y="0" width="'+HM.w+'" height="'+HM.h+'" fill="#10151c"/>';
+  for(let y=0;y<HM.h;y+=26) s+='<path d="M0 '+y+' H'+HM.w+'" stroke="#17202b" stroke-width="1"/>';
+  // 육지
+  const landPaths=[LAND_MAIN,LAND_SHANDONG,LAND_KYUSHU].map(p=>geoPath(p,true)).concat(ISLES.map(i=>geoPath(i.p,true)));
+  landPaths.forEach(d=>{ s+='<path d="'+d+'" fill="#232a33" stroke="#46586b" stroke-width="'+fs(1.3)+'"/>'; });
+  // 강역
+  s+='<g clip-path="url(#hm-land)">';
+  terr.forEach(t=>{
+    const c=TCOLOR[t.f]||"#7d8590";
+    s+='<path d="'+geoPath(t.p,true)+'" fill="'+c+'" fill-opacity=".30" stroke="'+c+'" stroke-opacity=".65" stroke-width="'+fs(1.8)+'"/>';
+  });
+  s+='</g>';
+  // 강
+  RIVERS.forEach(r=>{ s+='<path d="'+geoPath(r.p,false)+'" fill="none" stroke="#3f6180" stroke-width="'+fs(2.6)+'" stroke-linecap="round" opacity=".85"/>'; });
+  // 지역 이름
+  HM_REGION.forEach(r=>{
+    const x=gx(r.lon), y=gy(r.lat);
+    if(x<vb.x+30||x>vb.x+vb.w-30||y<vb.y+24||y>vb.y+vb.h-24) return;
+    s+='<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="Song Myung, serif" font-size="'+fs(r.size)+'" fill="'+(r.sea?"#3f5b76":"#6b7078")+'" opacity=".9" letter-spacing="'+fs(3)+'">'+r.n+'</text>';
+  });
+  // 나라 이름 — 화면에 보이는 강역 안쪽, 노드와 겹치지 않는 자리에
+  const avoid=stPts.concat(HM_CITY.map(c=>[gx(c.lon),gy(c.lat)]));
+  terr.forEach(t=>{
+    const c=TCOLOR[t.f]||"#9aa3ad";
+    let pos=hmLabelPos(t.p, vb, avoid);
+    if(!pos){
+      const lx=gx(t.lp[0]), ly=gy(t.lp[1]);
+      if(lx<vb.x+30||lx>vb.x+vb.w-30||ly<vb.y+24||ly>vb.y+vb.h-24) return;
+      pos=[lx,ly];
+    }
+    avoid.push(pos);
+    s+='<text x="'+pos[0]+'" y="'+pos[1]+'" text-anchor="middle" font-family="Song Myung, serif" font-size="'+fs(21)+'" fill="'+c+'" opacity=".95" letter-spacing="'+fs(2)+'">'+t.n+'</text>';
+  });
+  // 강 이름
+  RIVERS.forEach(r=>{
+    const m=r.p[Math.floor(r.p.length/2)];
+    s+='<text x="'+gx(m[0])+'" y="'+(gy(m[1])-fs(6))+'" text-anchor="middle" font-size="'+fs(9.5)+'" fill="#5f83a3" opacity=".9">'+r.n+'</text>';
+  });
+  // 주요 도성 — 이 장의 스테이지와 같은 자리인 도성은 겹치므로 생략한다
+  HM_CITY.forEach(c=>{
+    const x=gx(c.lon), y=gy(c.lat);
+    if(nodes.some(n=>Math.hypot(n.x-x,n.y-y)<fs(16)
+        || (x>n.bx-n.hw&&x<n.bx+n.hw&&y>n.by-n.up&&y<n.by+n.dn))) return;
+    s+='<g opacity=".8"><rect x="'+(x-fs(3.2))+'" y="'+(y-fs(3.2))+'" width="'+fs(6.4)+'" height="'+fs(6.4)+'" fill="#e9e6df"/>'
+      +'<text x="'+x+'" y="'+(y-fs(7))+'" text-anchor="middle" font-size="'+fs(10.5)+'" fill="#c8c3b8" font-family="Song Myung, serif">'+c.n+'</text></g>';
+  });
+  // 진행 경로 — 실제 위치를 잇는다
+  if(nodes.length>1)
+    s+='<polyline points="'+nodes.map(n=>n.x+","+n.y).join(" ")+'" fill="none" stroke="#d0ab55" stroke-width="'+fs(2)+'" stroke-dasharray="'+fs(3)+' '+fs(7)+'" opacity=".35"/>';
+  nodes.forEach((n,i)=>{
+    const stroke=n.cleared?"#68b36b":n.open?"#d0ab55":"#3c434c";
+    const dim=(n.open||n.cleared)?1:.5;
+    // 실제 위치를 점으로 찍고, 밀려난 표지와 가는 선으로 잇는다
+    s+='<g opacity="'+dim+'"><path d="M'+n.x+' '+n.y+' L'+n.bx+' '+n.by+'" stroke="'+stroke+'" stroke-width="'+fs(1.2)+'" opacity=".7"/>'
+      +'<circle cx="'+n.x+'" cy="'+n.y+'" r="'+fs(3.2)+'" fill="'+stroke+'"/></g>';
+    s+='<g class="hm-node'+(selId===n.st.id?" sel":"")+'" data-stage="'+n.st.id+'" opacity="'+dim+'" style="cursor:'+(n.open?"pointer":"default")+'">';
+    s+='<circle cx="'+n.bx+'" cy="'+n.by+'" r="'+R+'" fill="#1b1f25" stroke="'+stroke+'" stroke-width="'+fs(selId===n.st.id?3.4:2.2)+'"/>';
+    if(n.st.rec&&byId[n.st.rec]) s+=pface(byId[n.st.rec]).replace('<svg ','<svg x="'+(n.bx-R*0.78)+'" y="'+(n.by-R*0.78)+'" width="'+(R*1.56)+'" height="'+(R*1.56)+'" ');
+    else s+='<text x="'+n.bx+'" y="'+(n.by+fs(5))+'" text-anchor="middle" font-size="'+fs(15)+'" fill="#9aa3ad" font-family="Song Myung, serif">'+(i+1)+'</text>';
+    if(n.cleared) s+='<circle cx="'+(n.bx+R*0.72)+'" cy="'+(n.by-R*0.72)+'" r="'+fs(7.5)+'" fill="#68b36b"/><text x="'+(n.bx+R*0.72)+'" y="'+(n.by-R*0.72+fs(3.6))+'" text-anchor="middle" font-size="'+fs(10)+'" fill="#15171b" font-weight="bold">✓</text>';
+    else if(n.open) s+='<circle cx="'+n.bx+'" cy="'+n.by+'" r="'+(R+fs(5))+'" fill="none" stroke="#d0ab55" stroke-width="'+fs(1)+'" opacity=".45"/>';
+    s+='<text x="'+n.bx+'" y="'+(n.by+R+fs(13))+'" text-anchor="middle" font-size="'+fs(12.5)+'" fill="#e9e6df" font-family="Song Myung, serif" paint-order="stroke" stroke="#12161c" stroke-width="'+fs(3.5)+'">'+n.st.n+'</text>';
+    s+='<text x="'+n.bx+'" y="'+(n.by+R+fs(25))+'" text-anchor="middle" font-size="'+fs(9)+'" fill="#9aa3ad" paint-order="stroke" stroke="#12161c" stroke-width="'+fs(3)+'">'+n.g.y+'</text>';
+    s+='</g>';
+  });
+  // 시대 표시
+  s+='<text x="'+(vb.x+12)+'" y="'+(vb.y+fs(26))+'" font-family="Song Myung, serif" font-size="'+fs(20)+'" fill="#d0ab55" opacity=".9">'+era.t+'</text>';
+  s+='<text x="'+(vb.x+vb.w-10)+'" y="'+(vb.y+vb.h-8)+'" text-anchor="end" font-size="'+fs(9)+'" fill="#5a6470">강역은 통설을 단순화한 것</text>';
+  return s+"</svg>";
+}
 let ATT_SHOWN=false;   // 출석은 세션당 한 번만 띄운다
+let hmChapter=-1, hmSel=null;
+function hmStates(){
+  const stStates={}; let prevCleared=true;
+  ALL_STAGES.forEach(st=>{
+    const cleared=save.cleared.includes(st.id);
+    stStates[st.id]={cleared, open:prevCleared||cleared};
+    prevCleared=cleared;
+  });
+  return stStates;
+}
+function hmDefaultChapter(){
+  const i=ALL_STAGES.findIndex(st=>!save.cleared.includes(st.id));
+  const st=ALL_STAGES[i<0?ALL_STAGES.length-1:i];
+  return Math.max(0, chapterOfStage(st.id));
+}
+/* 장의 진척도 — 탭에 표시 */
+function hmChapterDone(ci){ return CHAPTERS[ci].stages.filter(st=>save.cleared.includes(st.id)).length; }
+function hmChapterOpen(ci){ const s=hmStates(); return CHAPTERS[ci].stages.some(st=>s[st.id].open||s[st.id].cleared); }
+function renderStageInfo(stStates){
+  const box=$("hm-info"); if(!box) return;
+  const st=hmSel?ALL_STAGES.find(x=>x.id===hmSel):null;
+  if(!st){
+    box.innerHTML='<div class="help">지도에서 지점을 고르면 그곳에서 무슨 일이 있었는지와 출전 정보가 여기에 나온다.</div>';
+    return;
+  }
+  const g=STAGE_GEO[st.id]||{p:"",y:""}, s=stStates[st.id], tier=stageTierOf(st.id);
+  const ef=CHAPTER_EF[chapterOfStage(st.id)];
+  const efTag=ef?'<span class="efchip" style="border-color:'+FCOLOR[ef]+'">적 '+ef
+      +' <span style="color:var(--good)">· '+counterLosesTo(ef)+' 유리</span>'
+      +' <span style="color:var(--bad)">· '+counterBeats(ef)+' 불리</span></span>':"";
+  box.innerHTML='<h3>'+st.n+'</h3>'
+    +'<div class="help" style="margin-bottom:6px">'+g.p+' · '+g.y+'</div>'
+    +'<div style="font-size:.82rem;margin-bottom:6px">권장 Lv '+st.lv+(st.e2?" · 2웨이브":"")
+      +(st.rec?' · <span style="color:var(--gold)">영입: '+byId[st.rec].n+'</span>':"")
+      +(s.cleared&&tier?" · 도전 Lv "+tier:"")+'</div>'
+    +(efTag?'<div style="margin-bottom:8px">'+efTag+'</div>':"")
+    +'<button class="primary" id="hm-go"'+(s.open?"":" disabled")+'>'+(s.open?(s.cleared?"다시 출전":"출전"):"아직 열리지 않았다")+'</button>';
+  const go=$("hm-go");
+  if(go&&s.open) go.onclick=()=>startBattle(st);
+}
+function buildHistMap(){
+  const stStates=hmStates();
+  const wrap=document.createElement("div"); wrap.className="histwrap";
+  // 시대 탭
+  const tabs=document.createElement("div"); tabs.className="eratabs";
+  CHAPTERS.forEach((ch,ci)=>{
+    const done=hmChapterDone(ci), tot=ch.stages.length;
+    const b=document.createElement("button");
+    b.className="eratab"+(ci===hmChapter?" on":"")+(done===tot?" done":"");
+    b.textContent=ch.t.split(" · ")[0]+" "+done+"/"+tot;
+    b.title=ch.t;
+    b.onclick=()=>{ hmChapter=ci; hmSel=null; showMap(); };
+    tabs.appendChild(b);
+  });
+  wrap.appendChild(tabs);
+  const ch=CHAPTERS[hmChapter], era=HM_ERA[hmChapter]||HM_ERA[5];
+  const head=document.createElement("div");
+  head.style.cssText="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px";
+  head.innerHTML='<h2 style="font-size:1.05rem;color:var(--gold)">'+ch.t+'</h2>'
+    +(HISTORY[hmChapter]?'<button class="loreb" style="font-size:.7rem;padding:3px 10px;color:var(--ink-soft)">나라 이야기</button>':"");
+  const lb=head.querySelector(".loreb"); if(lb) lb.onclick=()=>showLore(hmChapter);
+  wrap.appendChild(head);
+  const cap=document.createElement("div");
+  cap.className="help"; cap.style.cssText="margin-bottom:8px;line-height:1.6";
+  cap.textContent=era.cap;
+  wrap.appendChild(cap);
+  // 지도
+  const mapBox=document.createElement("div"); mapBox.className="mapbox";
+  mapBox.innerHTML=histMapSVG(hmChapter, stStates, hmSel);
+  wrap.appendChild(mapBox);
+  const hint=document.createElement("div");
+  hint.className="help"; hint.style.cssText="margin-top:6px;font-size:.72rem";
+  hint.textContent="지점을 한 번 누르면 그곳의 내력이, 다시 누르면 전투가 시작된다. 화면이 좁으면 지도를 좌우로 밀어 볼 수 있다.";
+  wrap.appendChild(hint);
+  /* 한 번 누르면 그 자리의 내력이 뜨고, 같은 곳을 다시 누르면 출전한다 */
+  const bindNodes=()=>{
+    mapBox.querySelectorAll(".hm-node").forEach(g=>{
+      const id=g.dataset.stage;
+      if(!stStates[id].open&&!stStates[id].cleared) return;
+      g.addEventListener("click",()=>{
+        if(hmSel===id&&stStates[id].open){ startBattle(ALL_STAGES.find(x=>x.id===id)); return; }
+        hmSel=id;
+        mapBox.innerHTML=histMapSVG(hmChapter, stStates, hmSel);
+        bindNodes();
+        renderStageInfo(stStates);
+      });
+    });
+  };
+  bindNodes();
+  // 범례 + 선택 정보
+  const foot=document.createElement("div"); foot.className="mapfoot";
+  const info=document.createElement("div"); info.className="stinfo"; info.id="hm-info";
+  foot.appendChild(info);
+  const leg=document.createElement("div"); leg.className="stinfo"; leg.style.flex="0 0 auto";
+  const seen={};
+  (TERR[era.terr]||[]).forEach(t=>{ if(!seen[t.n]){ seen[t.n]=TCOLOR[t.f]||"#7d8590"; } });
+  leg.innerHTML='<div style="font-size:.78rem;color:var(--ink-soft);margin-bottom:6px">이 시대의 나라</div>'
+    +'<div class="maplegend">'+Object.keys(seen).map(n=>'<span><i style="background:'+seen[n]+'"></i>'+n+'</span>').join("")+'</div>'
+    +'<div class="maplegend" style="margin-top:8px"><span><i style="background:#d0ab55"></i>도전 가능</span><span><i style="background:#68b36b"></i>완료</span><span><i style="background:#3c434c"></i>미개방</span></div>';
+  foot.appendChild(leg);
+  wrap.appendChild(foot);
+  setTimeout(()=>renderStageInfo(stStates),0);
+  return wrap;
+}
+function buildDungeons(){
+  dgReset();
+  const day=new Date().getDay();
+  const dd=document.createElement("div"); dd.className="chapter";
+  dd.innerHTML="<h2>일일 던전 · 재료 파밍 <span style='font-size:.75rem;color:var(--ink-soft)'>— 오늘은 "+DAYN[day]+"요일"+(day===0?" (전부 개방!)":"")+" · 던전당 하루 "+DG_LIMIT+"회</span></h2>";
+  DUNGEONS.forEach(dg=>{
+    const open=dgOpen(dg);
+    const runs=save.dgRuns[dg.id]||0;
+    const left=DG_LIMIT-runs;
+    const row=document.createElement("div");
+    row.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px";
+    row.innerHTML='<span style="min-width:170px"><b style="font-family:\'Song Myung\',serif">'+dg.n+'</b> <span class="help">'+dg.mat+" 수급 · "+dg.days.map(x=>DAYN[x]).join("·")+"요일"+(open?(left>0?" · 남은 입장 "+left:" · 오늘 소진"):"")+'</span></span>';
+    DG_TIER.forEach((tn,t)=>{
+      const b=document.createElement("button");
+      b.className="stage"; b.style.minWidth="0";
+      b.disabled=!open||left<=0;
+      b.innerHTML="<span>"+tn+"</span><small>Lv "+DG_LV[t]+" · "+rewText(dg.rew[t])+"</small>";
+      b.onclick=()=>startDungeon(dg,t);
+      row.appendChild(b);
+    });
+    dd.appendChild(row);
+  });
+  return dd;
+}
 function showMap(){
   window.scrollTo(0,0);
   B=null;
@@ -3200,72 +3750,10 @@ function showMap(){
   else { $("btn-mine").disabled=true; $("btn-mine").textContent="광산 (스테이지 2개 클리어 시 개방)"; }
   updHUD();
   $("party-badges").innerHTML=save.party.map(id=>badge(byId[id])).join("");
+  if(hmChapter<0) hmChapter=hmDefaultChapter();
   const box=$("chapters"); box.innerHTML="";
-  // 진행 상태 선계산 (순차 개방)
-  const stStates={};
-  let prevCleared=true;
-  ALL_STAGES.forEach(st=>{
-    const cleared=save.cleared.includes(st.id);
-    stStates[st.id]={cleared, open:prevCleared||cleared};
-    prevCleared=cleared;
-  });
-  CHAPTERS.forEach((ch,ci)=>{
-    const d=document.createElement("div"); d.className="chapter";
-    const ef=CHAPTER_EF[ci];
-    const efTag=ef?'<span class="efchip" style="border-color:'+FCOLOR[ef]+'">적 '+ef
-        +' <span style="color:var(--good)">· '+counterLosesTo(ef)+' 유리</span>'
-        +' <span style="color:var(--bad)">· '+counterBeats(ef)+' 불리</span></span>':"";
-    d.innerHTML='<h2 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+ch.t+efTag
-      +(HISTORY[ci]?'<button class="loreb" style="font-size:.7rem;padding:3px 10px;color:var(--ink-soft)">나라 이야기</button>':"")+'</h2>';
-    const lb=d.querySelector(".loreb");
-    if(lb) lb.onclick=()=>showLore(ci);
-    if(CH_MAPS[ci]){
-      // 일러스트 지도에서 노드 클릭으로 진입
-      const mapBox=document.createElement("div");
-      mapBox.innerHTML=chapterMapSVG(ci, stStates);
-      d.appendChild(mapBox);
-      mapBox.querySelectorAll(".mapnode").forEach(g=>{
-        const st=ALL_STAGES.find(x=>x.id===g.dataset.stage);
-        if(stStates[st.id].open) g.addEventListener("click",()=>startBattle(st));
-      });
-    } else {
-      const sv=document.createElement("div"); sv.className="stages";
-      ch.stages.forEach(st=>{
-        const {cleared,open}=stStates[st.id];
-        const b=document.createElement("button");
-        b.className="stage"+(cleared?" cleared":"")+(open?"":" locked");
-        b.disabled=!open;
-        b.innerHTML="<span>"+st.n+"</span><small>권장 Lv "+st.lv+(st.e2?" · 2웨이브":"")+(st.rec?" · 영입: "+byId[st.rec].n:"")+(cleared&&stageTierOf(st.id)?" · 도전 Lv "+stageTierOf(st.id):"")+"</small>";
-        b.onclick=()=>startBattle(st);
-        sv.appendChild(b);
-      });
-      d.appendChild(sv);
-    }
-    box.appendChild(d);
-  });
-  // 일일 던전
-  dgReset();
-  const day=new Date().getDay();
-  const dd=document.createElement("div"); dd.className="chapter";
-  dd.innerHTML="<h2>일일 던전 · 재료 파밍 <span style='font-size:.75rem;color:var(--ink-soft)'>— 오늘은 "+DAYN[day]+"요일"+(day===0?" (전부 개방!)":"")+" · 던전당 하루 "+DG_LIMIT+"회</span></h2>";
-  DUNGEONS.forEach(dg=>{
-    const open=dgOpen(dg);
-    const runs=save.dgRuns[dg.id]||0;
-    const left=DG_LIMIT-runs;
-    const row=document.createElement("div");
-    row.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px";
-    row.innerHTML='<span style="min-width:170px"><b style="font-family:\'Song Myung\',serif">'+dg.n+'</b> <span class="help">'+dg.mat+" 수급 · "+dg.days.map(x=>DAYN[x]).join("·")+"요일"+(open?(left>0?" · 남은 입장 "+left:" · 오늘 소진"):"")+'</span></span>';
-    DG_TIER.forEach((tn,t)=>{
-      const b=document.createElement("button");
-      b.className="stage"; b.style.minWidth="0";
-      b.disabled=!open||left<=0;
-      b.innerHTML="<span>"+tn+"</span><small>Lv "+DG_LV[t]+" · "+rewText(dg.rew[t])+"</small>";
-      b.onclick=()=>startDungeon(dg,t);
-      row.appendChild(b);
-    });
-    dd.appendChild(row);
-  });
-  box.appendChild(dd);
+  box.appendChild(buildHistMap());
+  box.appendChild(buildDungeons());
 }
 function startDungeon(dg,t){
   dgReset();
@@ -3471,7 +3959,8 @@ $("btn-help").onclick=()=>{
    +"<p><b>원군</b> — 출전 4인 외에 <b>원군 3인</b>을 앉힐 수 있다. 원군은 전투에 나오지 않지만 <b>같은 세력 아군의 공격·방어</b>를 등급·각성에 비례해 올리고(★4 +8%), 역할에 따라 파티 전체를 돕는다(탱커 받는 피해 −3% · 딜러 공격 +3% · 힐러 회복량 +8% · 서포터 개전 기력 +8). 편성 화면에서 「원군 3인」을 눌러 고른다.</p>"
    +"<p><b>국보</b> — 최고 등급(tier 4) 장비 세 가지는 수치에 더해 고유 효과를 갖는다. <b>칠지도</b>는 공격이 다른 적 1명에게 30% 여파를 남기고, <b>가야 판갑옷</b>은 받는 피해를 8% 줄이며, <b>신라 금관</b>은 개전 기력 +30과 라운드마다 기력 +5를 준다. 시련의 탑 영웅층에서 확정으로 얻을 수 있다.</p>"
    +"<p><b>도감·업적</b> — 도감은 수집한 영웅의 일대기와 능력을 모아 본다. 업적은 달성 시 직접 보상을 수령해야 한다.</p>"
-   +"<p><b>이야기 조각·후일담</b> — 전투에서 승리하면 파티원 중 한 명에게 확률로 <b>이야기 조각</b>이 쌓인다. 확률은 스테이지 권장 Lv이 높을수록 올라간다(Lv1 약 35% → 고레벨 스테이지 최대 65%). 한 영웅의 조각을 "+FRAGMENT_GOAL+"개 모으면 도감에서 그 영웅의 <b>후일담</b>과 세력별 여운 음향이 함께 열린다.</p>"
+   +"<p><b>이야기 조각·후일담</b> — 전투에서 승리하면 파티원 중 한 명에게 확률로 <b>이야기 조각</b>이 쌓인다. 확률은 스테이지 권장 Lv이 높을수록 올라간다(Lv1 약 35% → 고레벨 스테이지 최대 65%). 한 영웅의 조각을 "+FRAGMENT_GOAL+"개 모으면 그 영웅의 <b>후일담</b>이 열린다 — 세 장면으로 이어지는 짧은 상영물이며, 브라우저가 지원하면 <b>음성 해설</b>이 함께 나온다(도감에서 다시 볼 수 있다).</p>"
+   +"<p><b>역사지도</b> — 스테이지는 실제 경위도 위에 놓여 있다. 위쪽 시대 탭으로 장을 고르면 그 시대의 강역이 바뀌고, 지점을 한 번 누르면 그곳의 지명과 연대가, 다시 누르면 전투가 시작된다. 강역은 통설을 단순화한 것이다.</p>"
    +"<p><b>사서</b> — 그 역사의 당사자를 출전시켜 해당 스테이지를 이기면 사서에 한 줄이 적히고 보상을 준다(황산벌을 계백으로, 살수를 을지문덕으로). 대개 그 스테이지에서 영입하는 인물이라 영입한 뒤 다시 도전해야 하며, 소탕으로는 적히지 않는다. "+CHRONICLE.length+"장면을 모두 채우면 큰 보상이 있다.</p>"
    +"<p><b>세력 상성</b> — 고구려 → 백제 → 신라 → 가야 → 고구려 순으로 강하다(화살표 방향 피해 +"+Math.round((COUNTER_UP-1)*100)+"%, 반대 −"+Math.round((1-COUNTER_DOWN)*100)+"%). 각 나라의 장에서는 <b>병사도 그 나라 소속</b>이라, 지도의 장 제목 옆에 표시된 적 세력을 보고 유리한 세력으로 편성을 바꾸면 훨씬 수월하다. 대륙(수·당)·왜처럼 무소속인 적에게는 상성이 걸리지 않는다.</p>"
    +"<p><b>소탕</b> — 이미 깬 스테이지를 전투 없이 반복해 보상만 받는다(하루 "+SWEEP_LIMIT+"회). 보상·드랍 확률은 직접 재도전했을 때와 같지만, <b>도전 Lv은 오르지 않고 누적 승수에도 세지 않는다</b> — 그 둘은 직접 싸워야 한다.</p>"
@@ -3819,6 +4308,365 @@ const ULT_QUOTE={
  geumwa:"내 아이들아, 두려워 말라!",
  daemusin:"동부여여, 이제 갚을 때가 되었다!",
 };
+/* ================= 후일담 상영 — 장면 + 음성 해설 =================
+   조각 10개를 모으면 열린다. 세 막(마지막 장면 → 인물의 말 → 후일담 한 줄)을
+   애니메이션 장면과 함께 보여 주고, 브라우저 음성으로 읽어 준다.               */
+/* --- 장면 조각 --- */
+function eSky(a,b){ return '<rect x="0" y="0" width="900" height="820" fill="'+(a||"#1a212a")+'"/>'
+  +'<ellipse cx="450" cy="700" rx="720" ry="320" fill="'+(b||"#222b35")+'"/>'; }
+function eGround(y,c){ return '<path d="M0 '+y+' Q220 '+(y-16)+' 450 '+(y-4)+' Q700 '+(y+8)+' 900 '+(y-10)+' L900 820 L0 820 Z" fill="'+(c||"#28303a")+'"/>'; }
+function eStars(n){ let s='<g class="myth-fade">';
+  for(let i=0;i<n;i++){ const x=(i*137)%880+10, y=(i*61)%210+18, r=1.1+((i*7)%5)*0.28;
+    s+='<circle cx="'+x+'" cy="'+y+'" r="'+r.toFixed(1)+'" fill="#e8e2cf" opacity="'+(0.35+((i*3)%5)*0.11).toFixed(2)+'"/>'; }
+  return s+'</g>'; }
+function eMoon(x,y,r){ return '<g class="myth-fade"><circle cx="'+x+'" cy="'+y+'" r="'+(r*1.7)+'" fill="#e8e2cf" opacity=".05"/>'
+  +'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#e8e2cf" opacity=".82"/><circle cx="'+(x-r*0.32)+'" cy="'+(y-r*0.3)+'" r="'+(r*0.9)+'" fill="#161b22"/></g>'; }
+function ePine(x,y,h,c){ let s='<g class="myth-rise" style="animation-delay:.3s">';
+  s+='<rect x="'+(x-3)+'" y="'+(y-h*0.42)+'" width="6" height="'+(h*0.42)+'" fill="#2e2620"/>';
+  for(let i=0;i<3;i++){ const w=h*(0.46-i*0.1), yy=y-h*0.34-i*h*0.24;
+    s+='<path d="M'+(x-w)+' '+yy+' L'+x+' '+(yy-h*0.34)+' L'+(x+w)+' '+yy+' Z" fill="'+(c||"#26362a")+'"/>'; }
+  return s+'</g>'; }
+function eGlow(x,y,rx,ry,col,op){
+  let s='<g class="myth-fade" style="animation-delay:1.3s">';
+  for(let i=11;i>=1;i--){ const k=Math.pow(i/11,0.78);
+    s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+(rx*k).toFixed(1)+'" ry="'+(ry*k).toFixed(1)+'" fill="'+col+'" opacity="'+((op||0.2)/11).toFixed(4)+'"/>'; }
+  return s+'</g>';
+}
+function eBird(x,y,sc,cls,delay){
+  return '<g transform="translate('+x+','+y+') scale('+(sc||1)+')"><g class="'+(cls||"myth-drift")+'" style="animation-delay:'+(delay||0)+'s">'
+    +'<path d="M0 0 q-16 -20 -44 -24 q22 -2 34 6 q-4 -16 6 -26 q6 12 8 24 q14 -8 34 -6 q-26 6 -38 26 Z" fill="#d8d3c6" opacity=".85"/>'
+    +'<circle cx="6" cy="-24" r="4" fill="#d8d3c6"/><path d="M9 -25 l12 3 l-12 3 Z" fill="#c9a85a"/></g></g>';
+}
+function eFigure(x,y,col,cls,delay){ return '<g transform="translate('+x+','+y+')"><g class="'+(cls||"myth-fade")+'" style="animation-delay:'+(delay||0)+'s">'
+  +'<circle cx="0" cy="-46" r="13" fill="#e3c39e"/><path d="M-14 -56 q14 -10 28 0 q-14 -5 -28 0 Z" fill="#2b2620"/>'
+  +'<path d="M-12 -33 L12 -33 L17 6 L-17 6 Z" fill="'+col+'" opacity=".85"/>'
+  +'<rect x="-17" y="6" width="34" height="5" rx="2" fill="#2b2620"/></g></g>'; }
+const EPI_SCENE={
+ plain:(c,col)=>eSky()+eStars(16)+eMoon(760,86,26)+eGround(430,"#232a2a")
+   +'<g class="myth-drift">'+[[80,392],[300,404],[560,396],[790,408]].map(([x,y])=>'<path d="M'+x+' '+y+' q26 -12 52 0" stroke="#4a5a4c" stroke-width="3" fill="none" opacity=".55"/>').join("")+'</g>'
+   +eFigure(450,432,col,"myth-figure",.4),
+ stele:(c,col)=>eSky("#151a20")+eStars(14)+eGround(470)
+   +'<g transform="translate(450,470)"><g class="myth-rise">'
+   +'<rect x="-46" y="-14" width="92" height="16" rx="3" fill="#3b3a36"/>'
+   +'<rect x="-34" y="-232" width="68" height="220" fill="#4b4a45"/><path d="M-38 -232 L38 -232 L34 -246 L-34 -246 Z" fill="#565550"/>'
+   +'<g class="myth-fade" style="animation-delay:1.2s">'
+   +[0,1,2,3,4,5,6].map(i=>'<path d="M'+(-22+ (i%3)*17)+' '+(-214+Math.floor(i/3)*54)+' v40" stroke="#9c9686" stroke-width="2.4" opacity=".8"/>').join("")
+   +'</g></g></g>'
+   +eGlow(450,352,160,115,col,.30),
+ tomb:(c,col)=>eSky("#141920")+eStars(12)+eMoon(150,92,22)+eGround(470)
+   +'<g class="myth-grow"><ellipse cx="450" cy="470" rx="190" ry="96" fill="#28302c"/><ellipse cx="450" cy="464" rx="190" ry="92" fill="#2e3733"/></g>'
+   +'<g class="myth-fade" style="animation-delay:1.1s"><rect x="432" y="452" width="36" height="44" rx="4" fill="#3a3d42"/>'
+   +'<circle cx="450" cy="440" r="15" fill="'+col+'" opacity=".55"/></g>'
+   +ePine(140,470,120)+ePine(770,470,100),
+ river:(c,col)=>eSky("#141a22")+eStars(10)+eGround(360,"#1e2429")
+   +'<rect x="0" y="356" width="900" height="464" fill="#22384c"/>'
+   +'<g class="myth-tide">'+[0,1,2,3,4,5].map(i=>'<path d="M'+(-60+i*180)+' '+(400+i*36)+' q60 -14 120 0 q60 14 120 0" stroke="#3f6180" stroke-width="3" fill="none" opacity=".6"/>').join("")+'</g>'
+   +'<g class="myth-drift"><path d="M120 470 q28 -10 56 0" stroke="#6f92b0" stroke-width="2.5" fill="none" opacity=".7"/></g>'
+   +eGlow(700,332,160,42,col,.24),
+ lamp:(c,col)=>eSky("#12161c")+eStars(20)+eGround(480)
+   +'<g transform="translate(450,480)"><g class="myth-rise">'
+   +'<rect x="-3" y="-120" width="6" height="120" fill="#3a332b"/>'
+   +'<circle cx="0" cy="-142" r="46" fill="#e0a24a" opacity=".13"/>'
+   +'<g class="myth-flicker"><circle cx="0" cy="-142" r="15" fill="#e0a24a"/><path d="M0 -170 q9 14 0 24 q-9 -10 0 -24 Z" fill="#ffd79a"/></g></g></g>'
+   +eGlow(450,352,200,155,col,.18),
+ wall:(c,col)=>eSky("#151b22")+eStars(12)+eGround(500)
+   +'<g class="myth-rise"><rect x="60" y="300" width="780" height="200" fill="#2e3339"/>'
+   +[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>'<rect x="'+(66+i*66)+'" y="278" width="40" height="26" fill="#363c43"/>').join("")
+   +'</g>'
+   +'<g class="myth-fade" style="animation-delay:1.2s">'+[[220,352],[340,378],[520,344],[640,392],[760,360]].map(([x,y])=>'<path d="M'+x+' '+y+' l26 -9" stroke="#8a8578" stroke-width="3" stroke-linecap="round" opacity=".8"/>').join("")+'</g>'
+   +'<g class="myth-fade" style="animation-delay:1.9s"><rect x="426" y="222" width="5" height="70" fill="#4b443a"/><path d="M431 224 q46 14 0 30 Z" fill="'+col+'"/></g>',
+ sea:(c,col)=>eSky("#131a24")+eStars(14)+eMoon(200,90,25)+'<rect x="0" y="330" width="900" height="490" fill="#1d3245"/>'
+   +'<g class="myth-tide">'+[0,1,2,3,4,5,6].map(i=>'<path d="M'+(-80+i*160)+' '+(376+i*32)+' q50 -13 100 0 q50 13 100 0" stroke="#3f6180" stroke-width="3" fill="none" opacity=".65"/>').join("")+'</g>'
+   +'<g class="myth-grow" style="animation-delay:.8s"><path d="M380 470 L420 356 L470 470 Z" fill="#2b3138"/><path d="M470 470 L510 386 L556 470 Z" fill="#333a41"/></g>'
+   +eGlow(466,364,170,48,col,.28),
+ ship:(c,col)=>eSky("#141b25")+eStars(12)+'<rect x="0" y="352" width="900" height="468" fill="#1d3245"/>'
+   +'<g class="myth-tide">'+[0,1,2,3,4].map(i=>'<path d="M'+(-40+i*200)+' '+(404+i*40)+' q56 -13 112 0" stroke="#3f6180" stroke-width="3" fill="none" opacity=".6"/>').join("")+'</g>'
+   +'<g transform="translate(430,392)"><g class="myth-march"><g class="myth-bob">'
+   +'<path d="M-92 0 q92 40 184 0 l-16 26 q-76 22 -152 0 Z" fill="#4a3a2c"/>'
+   +'<rect x="-3" y="-104" width="6" height="104" fill="#5a4634"/><path d="M3 -100 q68 30 0 58 Z" fill="#d8cfb8"/>'
+   +'<g class="myth-fade" style="animation-delay:1.4s"><circle cx="-64" cy="-16" r="12" fill="#c9a85a"/><path d="M-76 -22 q12 -14 24 0 Z" fill="#c9a85a"/></g>'
+   +'</g></g></g>',
+ strings:(c,col)=>eSky("#161a21")+eStars(16)+eMoon(716,218,24)+eGround(500)
+   +'<g transform="translate(450,430)"><g class="myth-rise">'
+   +'<path d="M-215 -30 q30 -22 74 -22 L150 -52 q56 0 66 26 q10 26 -10 48 q-16 22 -56 22 L-141 44 q-46 0 -72 -22 q-16 -16 -2 -52 Z" fill="#6b5236"/>'
+   +'<path d="M-198 -22 q26 -16 62 -16 L148 -38 q42 0 50 20 q8 20 -8 36 q-14 16 -44 16 L-137 34 q-36 0 -56 -16 q-12 -12 -1 -40 Z" fill="#8a6b45"/>'
+   +'<g class="myth-fade" style="animation-delay:.9s">'
+   +[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>'<path d="M-186 '+(-14+i*5.4).toFixed(1)+' L146 '+(-30+i*5.4).toFixed(1)+'" stroke="#e3d7b6" stroke-width="1.4" opacity=".85"/>').join("")
+   +'</g>'
+   +'<g class="myth-fade" style="animation-delay:1.2s">'
+   +[0,1,2,3,4,5].map(i=>'<path d="M'+(-110+i*46)+' '+(24-i*3)+' l7 -20 l7 20 Z" fill="#3f352a"/>').join("")
+   +'</g></g></g>'
+   +eBird(268,306,1.25,"myth-drift",0)+eBird(372,262,0.9,"myth-drift",2.4)
+   +eGlow(450,428,300,70,col,.16),
+ snow:(c,col)=>eSky("#151920")+eGround(500,"#262c31")
+   +'<g class="myth-fade">'+[[110,470,90],[300,470,130],[620,470,110],[810,470,80]].map(([x,y,h])=>'<path d="M'+(x-h*0.6)+' '+y+' L'+x+' '+(y-h)+' L'+(x+h*0.6)+' '+y+' Z" fill="#2b3238"/>').join("")+'</g>'
+   +[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>'<g class="myth-petal" style="animation-delay:'+(i*0.55).toFixed(2)+'s"><circle cx="'+(60+i*72)+'" cy="'+(40+(i%4)*30)+'" r="'+(2+(i%3))+'" fill="#d7d2c6" opacity=".7"/></g>').join("")
+   +'<g class="myth-fade" style="animation-delay:1.8s"><rect x="0" y="0" width="900" height="820" fill="'+col+'" opacity=".05"/></g>',
+ field:(c,col)=>eSky("#1a1f22")+eMoon(160,88,22)+eGround(430,"#2a2f24")
+   +'<g class="myth-sway">'+[...Array(22)].map((_,i)=>'<path d="M'+(30+i*40)+' '+(500-(i%3)*10)+' q6 -46 -2 -78" stroke="#8a7a3a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="'+(28+i*40)+'" cy="'+(420-(i%3)*10)+'" r="5" fill="#c9a85a" opacity=".85"/>').join("")+'</g>'
+   +eGlow(450,396,330,84,col,.20),
+ pagoda:(c,col)=>eSky("#141920")+eStars(14)+eGround(500)
+   +'<g transform="translate(450,500)">'
+   +[0,1,2,3,4].map(i=>'<g class="myth-step" style="animation-delay:'+(0.3+i*0.28)+'s">'
+     +'<rect x="'+(-58+i*8)+'" y="'+(-70-i*74)+'" width="'+(116-i*16)+'" height="60" fill="#3a3d42"/>'
+     +'<path d="M'+(-76+i*8)+' '+(-70-i*74)+' L'+(76-i*8)+' '+(-70-i*74)+' L'+(58-i*8)+' '+(-84-i*74)+' L'+(-58+i*8)+' '+(-84-i*74)+' Z" fill="#474b52"/></g>').join("")
+   +'<rect x="-70" y="-70" width="140" height="70" fill="#33363b"/>'
+   +'<g class="myth-glow-burst" style="animation-delay:2s"><circle cx="0" cy="-430" r="26" fill="'+col+'"/></g></g>',
+ startower:(c,col)=>eSky("#12171f")+eStars(26)+eGround(500)
+   +'<g transform="translate(450,500)"><g class="myth-rise">'
+   +'<rect x="-52" y="-14" width="104" height="16" fill="#3b3a36"/>'
+   +'<path d="M-40 -14 q10 -180 40 -230 q30 50 40 230 Z" fill="#4b4a45"/>'
+   +'<rect x="-14" y="-160" width="28" height="26" fill="#20242a"/>'
+   +'<rect x="-44" y="-246" width="88" height="14" fill="#565550"/></g></g>'
+   +'<g class="myth-fade" style="animation-delay:1.4s">'+[[300,120],[600,96],[450,64],[720,150],[190,170]].map(([x,y])=>'<g class="myth-pulse"><circle cx="'+x+'" cy="'+y+'" r="3.4" fill="#fff2c9"/></g>').join("")+'</g>',
+ forge:(c,col)=>eSky("#161418")+eGround(500,"#26221f")
+   +'<g class="myth-fade"><rect x="330" y="392" width="240" height="108" rx="8" fill="#33302c"/>'
+   +'<circle cx="450" cy="446" r="42" fill="#e0873f" opacity=".22"/><circle cx="450" cy="446" r="22" fill="#e0873f"/></g>'
+   +'<g transform="translate(300,430)"><g class="myth-figure"><circle cx="0" cy="-44" r="12" fill="#e3c39e"/><rect x="-9" y="-31" width="18" height="30" rx="5" fill="#5c4a30"/>'
+   +'<g transform="translate(12,-32)"><g class="myth-hammer"><rect x="-3" y="0" width="6" height="30" fill="#7a5a3a"/><rect x="-10" y="28" width="20" height="9" rx="2" fill="#4a4a50"/></g></g></g></g>'
+   +[0,1,2,3,4].map(i=>'<circle class="myth-spark" style="animation-delay:'+(0.5+i*0.34)+'s" cx="'+(430+i*14)+'" cy="'+(420-i*8)+'" r="3" fill="#f2b463"/>').join("")
+   +'<g class="myth-grow" style="animation-delay:1.5s"><rect x="620" y="418" width="130" height="12" rx="3" fill="'+col+'" opacity=".8"/></g>',
+ egg:(c,col)=>eSky("#141a20")+eStars(18)+eGround(490)
+   +'<g class="myth-beam"><path d="M420 0 L480 0 L540 470 L360 470 Z" fill="#fff2c9" opacity=".12"/></g>'
+   +'<g transform="translate(450,430)"><g class="myth-egg" style="animation-delay:.5s">'
+   +'<path class="myth-shell-l" d="M0 -46 A32 46 0 0 0 0 46 Z" fill="#e9d18a" stroke="#c9a85a" stroke-width="2"/>'
+   +'<path class="myth-shell-r" d="M0 -46 A32 46 0 0 1 0 46 Z" fill="#e9d18a" stroke="#c9a85a" stroke-width="2"/></g>'
+   +'<circle class="myth-glow-burst" style="animation-delay:1.6s" cx="0" cy="0" r="40" fill="#fff2c9"/></g>',
+ crown:(c,col)=>eSky("#141920")+eStars(12)+eGround(500)
+   +'<g transform="translate(450,440)"><g class="myth-rise">'
+   +'<path d="M-72 30 L-60 -18 L72 -18 L60 30 Z" fill="#c9a85a"/>'
+   +'<path d="M-46 -18 L-46 -78 M0 -18 L0 -92 M46 -18 L46 -78" stroke="#c9a85a" stroke-width="9" stroke-linecap="round"/>'
+   +'<g class="myth-sway"><circle cx="-46" cy="-84" r="7" fill="#5cae9a"/><circle cx="0" cy="-98" r="8" fill="#5cae9a"/><circle cx="46" cy="-84" r="7" fill="#5cae9a"/></g></g></g>'
+   +eGlow(450,414,180,150,col,.30),
+ scroll:(c,col)=>eSky("#171a1e")+eGround(500,"#262a2e")
+   +'<g transform="translate(450,410)"><g class="myth-grow">'
+   +'<rect x="-190" y="-84" width="380" height="168" rx="5" fill="#e6dcc2"/>'
+   +'<rect x="-202" y="-92" width="16" height="184" rx="7" fill="#6b543a"/><rect x="186" y="-92" width="16" height="184" rx="7" fill="#6b543a"/></g>'
+   +'<g class="myth-fade" style="animation-delay:1s">'+[0,1,2,3].map(i=>'<path d="M'+(-150+i*84)+' -56 v112" stroke="#3a352c" stroke-width="3" opacity=".75"/>'
+     +'<path d="M'+(-160+i*84)+' '+(-30+i*8)+' h20" stroke="#3a352c" stroke-width="3" opacity=".55"/>').join("")+'</g></g>'
+   +eGlow(450,338,270,66,col,.20),
+ beacon:(c,col)=>eSky("#12161c")+eStars(18)+eGround(510)
+   +[0,1,2].map(i=>'<g transform="translate('+(200+i*250)+',510)"><g class="myth-rise" style="animation-delay:'+(0.3+i*0.5)+'s">'
+     +'<path d="M-34 0 L-24 -70 L24 -70 L34 0 Z" fill="#3a3d42"/>'
+     +'<g class="myth-flicker" style="animation-delay:'+(i*0.2)+'s"><circle cx="0" cy="-88" r="17" fill="#e0873f"/><circle cx="0" cy="-88" r="40" fill="#e0873f" opacity=".16"/></g></g></g>').join("")
+   +'<g class="myth-drift"><path d="M60 300 q120 -30 240 0" stroke="#5a6470" stroke-width="2" fill="none" opacity=".4"/></g>',
+ bridge:(c,col)=>eSky("#141b25")+eStars(10)+'<rect x="0" y="330" width="900" height="490" fill="#22384c"/>'
+   +[0,1,2,3,4,5].map(i=>'<ellipse class="myth-step" style="animation-delay:'+(0.4+i*0.22)+'s" cx="'+(120+i*132)+'" cy="'+(420+(i%2)*14)+'" rx="52" ry="20" fill="#4a5a4c"/>').join("")
+   +'<g transform="translate(60,392)"><g class="myth-runner" style="animation-delay:1.4s"><circle cx="0" cy="-30" r="12" fill="#e3c39e"/><rect x="-9" y="-17" width="18" height="30" rx="6" fill="'+col+'"/></g></g>'
+   +'<g class="myth-tide">'+[0,1,2].map(i=>'<path d="M'+(i*320)+' '+(540+i*20)+' q70 -14 140 0 q70 14 140 0" stroke="#3f6180" stroke-width="3" fill="none" opacity=".5"/>').join("")+'</g>',
+ moonpine:(c,col)=>eSky("#12171e")+eStars(24)+eMoon(650,120,34)+eGround(500)
+   +ePine(180,500,180)+ePine(300,500,120)+ePine(770,500,140)
+   +eGlow(450,470,350,70,col,.16),
+ spear:(c,col)=>eSky("#181b20")+eGround(446,"#2c2a27")
+   +[0,1,2,3,4,5,6].map(i=>{ const h=92+((i*37)%30), tilt=(i%2?7:-8);
+     return '<g transform="translate('+(132+i*106)+','+(450-(i%3)*9)+') rotate('+tilt+')"><g class="myth-rise" style="animation-delay:'+(0.2+i*0.15).toFixed(2)+'s">'
+      +'<rect x="-3.5" y="'+(-h)+'" width="7" height="'+h+'" fill="#5c4a30"/>'
+      +'<path d="M0 '+(-h-30)+' L9 '+(-h-6)+' L0 '+(-h+4)+' L-9 '+(-h-6)+' Z" fill="#93a3b4"/></g></g>'; }).join("")
+   +[0,1,2].map(i=>'<g class="myth-fade" style="animation-delay:'+(1+i*0.3)+'s"><path d="M'+(230+i*220)+' 452 q26 -22 52 0 Z" fill="#4a4a50"/></g>').join("")
+   +'<g class="myth-fade" style="animation-delay:1.6s"><rect x="0" y="0" width="900" height="820" fill="'+col+'" opacity=".07"/></g>',
+ horse:(c,col)=>eSky("#151a20")+eStars(12)+eMoon(760,100,22)+eGround(500)
+   +'<g transform="translate(430,470)"><g class="myth-fade" style="animation-delay:.4s">'
+   +'<ellipse cx="0" cy="-40" rx="76" ry="38" fill="#5b5148"/><rect x="-58" y="-16" width="13" height="46" fill="#4a423a"/><rect x="-18" y="-16" width="13" height="46" fill="#4a423a"/>'
+   +'<rect x="30" y="-14" width="13" height="44" fill="#4a423a"/><rect x="60" y="-14" width="12" height="44" fill="#4a423a"/>'
+   +'<path d="M62 -58 q30 -14 34 -44 l14 6 q-6 40 -34 56 Z" fill="#5b5148"/>'
+   +'<g class="myth-sway"><path d="M-74 -56 q-24 26 -12 56" stroke="#3d372f" stroke-width="7" fill="none" stroke-linecap="round"/></g>'
+   +'<rect x="-24" y="-80" width="46" height="20" rx="6" fill="'+col+'" opacity=".9"/></g></g>'
+   +eGlow(430,446,240,58,col,.16),
+ bowl:(c,col)=>eSky("#121519")+eStars(8)+eGround(500,"#242024")
+   +'<g transform="translate(450,440)"><g class="myth-rise">'
+   +'<path d="M-70 -20 q70 96 140 0 Z" fill="#c9c2b0"/><ellipse cx="0" cy="-20" rx="70" ry="20" fill="#8a9aa8"/>'
+   +'<g class="myth-tide"><ellipse cx="0" cy="-22" rx="58" ry="13" fill="#5a7d99" opacity=".85"/></g>'
+   +'<circle cx="-26" cy="-24" r="8" fill="#20242a"/><circle cx="26" cy="-24" r="8" fill="#20242a"/></g></g>'
+   +eGlow(450,414,190,155,col,.30),
+ flower:(c,col)=>eSky("#171419")+eGround(500,"#2a2528")
+   +[0,1,2,3,4].map(i=>'<g transform="translate('+(180+i*140)+','+(500-(i%2)*16)+')"><g class="myth-grow" style="animation-delay:'+(0.3+i*0.24)+'s">'
+     +'<path d="M0 0 v-72" stroke="#4a5a4c" stroke-width="4"/>'
+     +[0,1,2,3,4,5].map(k=>'<ellipse cx="'+(Math.cos(k*1.047)*17).toFixed(1)+'" cy="'+(-72+Math.sin(k*1.047)*17).toFixed(1)+'" rx="12" ry="8" fill="'+col+'" opacity=".8" transform="rotate('+(k*60)+' '+(Math.cos(k*1.047)*17).toFixed(1)+' '+(-72+Math.sin(k*1.047)*17).toFixed(1)+')"/>').join("")
+     +'<circle cx="0" cy="-72" r="7" fill="#e9d18a"/></g></g>').join("")
+   +[0,1,2,3,4,5].map(i=>'<g class="myth-petal" style="animation-delay:'+(i*0.9).toFixed(1)+'s"><ellipse cx="'+(120+i*130)+'" cy="'+(90+(i%3)*40)+'" rx="8" ry="5" fill="'+col+'" opacity=".6"/></g>').join(""),
+ road:(c,col)=>eSky("#151a20")+eStars(14)+eMoon(180,96,22)+eGround(430,"#242a2a")
+   +'<path class="myth-fade" d="M380 820 Q440 540 452 430 Q462 380 450 348" stroke="#3b4249" stroke-width="60" fill="none" opacity=".75" stroke-linecap="round"/>'
+   +[0,1,2,3,4,5].map(i=>'<g class="myth-step" style="animation-delay:'+(0.4+i*0.26)+'s"><ellipse cx="'+(414+(i%2)*30+i*4)+'" cy="'+(578-i*40)+'" rx="9" ry="5" fill="#59626a" opacity=".85"/></g>').join("")
+   +ePine(730,430,110)+eFigure(452,352,col,"myth-vanish",1.6),
+ flag:(c,col)=>eSky("#151a20")+eStars(12)+eGround(500)
+   +[0,1,2].map(i=>'<g transform="translate('+(250+i*200)+',500)"><g class="myth-rise" style="animation-delay:'+(0.3+i*0.4)+'s">'
+     +'<rect x="-3" y="-190" width="6" height="190" fill="#4b443a"/>'
+     +'<g class="myth-sway" style="animation-delay:'+(i*0.3)+'s"><path d="M3 -186 q70 22 0 46 Z" fill="'+col+'" opacity="'+(0.9-i*0.18).toFixed(2)+'"/></g></g></g>').join("")
+   +eGlow(450,470,330,64,col,.18)
+};
+/* 후일담 대본 — s:장면 셋, n:마지막 장면의 서술, q:인물이 남긴 말 (3막은 EPILOGUE) */
+const EPI_SCRIPT={
+ gwang:{s:["plain","stele","moonpine"], n:"정복의 북소리가 그친 만주의 벌판에, 마흔에 세상을 떠난 태왕을 덮는 흙이 내려앉았다.", q:"내가 넓힌 것은 땅이 아니라, 이 땅에 사는 사람들의 내일이다."},
+ eulji:{s:["river","scroll","moonpine"], n:"살수의 물이 다시 맑아질 무렵, 그는 아무 말 없이 조정에서 물러났다.", q:"이긴 싸움을 자랑하지 마라. 다시 오지 않게 하는 것이 진짜 승리다."},
+ yeongae:{s:["spear","wall","snow"], n:"다섯 자루의 칼을 내려놓은 자리에서, 그가 쥐고 있던 권력이 세 아들의 손으로 갈라졌다.", q:"나는 나라를 지켰다고 믿었다 — 지킬 사람을 기르지 못한 채로."},
+ yang:{s:["wall","beacon","moonpine"], n:"당의 깃발이 물러간 뒤에도, 안시성의 성가퀴에는 여든여드레의 화살자국이 그대로 남았다.", q:"이름은 남지 않아도 좋다. 성이 남았으면 되었다."},
+ ondal:{s:["spear","road","moonpine"], n:"아단성 아래에서 화살을 맞은 그의 관은, 아무리 밀어도 움직이지 않았다.", q:"평강, 이제야 돌아갈 수 있겠소."},
+ pyeong:{s:["road","horse","flower"], n:"울보라 놀림받던 공주는 남편의 관을 어루만져, 마지막 길을 열어 주었다.", q:"사람은 바뀌지 않는다고들 했지요. 저는 한 사람으로 그 말을 뒤집었습니다."},
+ jumong:{s:["bridge","egg","flag"], n:"물고기와 자라가 놓았던 다리는 강물에 잠겼고, 소년이 세운 나라만 남았다.", q:"쫓기던 길이 나라의 첫 길이 될 줄은, 나도 몰랐다."},
+ wangsanak:{s:["strings","moonpine","flower"], n:"현을 뜯자 검은 학이 내려앉았다는 그날 이후, 그 악기는 거문고라 불렸다.", q:"소리는 붙잡을 수 없다. 그래서 사람의 마음에만 남는다."},
+ jangsu:{s:["stele","wall","moonpine"], n:"일흔아홉 해를 다스린 왕이 눈을 감았을 때, 고구려의 국경은 그가 그은 그대로였다.", q:"오래 사는 것이 공이 아니다 — 오래 지키는 것이 공이다."},
+ eulpaso:{s:["field","road","lamp"], n:"봄에 꾸어 준 곡식이 가을에 돌아오던 해, 굶어 죽는 백성의 수가 처음으로 줄었다.", q:"나라의 창고는 백성의 배를 채울 때에만 창고라 불린다."},
+ wanggeon:{s:["flag","road","pagoda"], n:"후백제의 마지막 창이 꺾이던 날, 삼한은 삼백 년 만에 하나의 이름으로 불렸다.", q:"칼로 얻은 것은 말로 지켜야 한다. 나는 이제부터가 더 어렵다."},
+ sinsunggyeom:{s:["horse","spear","snow"], n:"공산의 포위 속에서 왕의 수레에 오른 그는, 끝내 그 자리에서 내려오지 않았다.", q:"폐하, 제 얼굴이 오늘 하루만 폐하와 닮으면 됩니다."},
+ yuhwa:{s:["egg","river","flower"], n:"아들을 남쪽으로 떠나보낸 어머니는, 동부여의 궁에서 조용히 나이를 먹었다.", q:"가거라. 어미는 네가 돌아오지 못할 것을 알고도 보낸다."},
+ geumwa:{s:["egg","road","lamp"], n:"짐승들이 지켜 준 알에서 나온 아이를, 그는 제 아들들과 나란히 길렀다.", q:"핏줄이 아니어도 품으면 자식이다. 그것만은 후회하지 않는다."},
+ daemusin:{s:["spear","flag","river"], n:"할아버지가 쫓겨 나왔던 나라의 왕을 베고, 그는 말없이 강을 건너 돌아왔다.", q:"갚음은 끝났다. 이제 세울 차례다."},
+ geun:{s:["forge","scroll","sea"], n:"칠지도에 새긴 글자가 마르기도 전에, 백제의 배는 이미 바다 건너에 닿아 있었다.", q:"칼을 벼린 손으로 붓을 들어라. 나라는 그 둘로 선다."},
+ gyebaek:{s:["spear","field","snow"], n:"네 번을 이기고 다섯 번째에 무너진 오천의 자리에는, 이름 없는 창들만 서 있었다.", q:"돌아갈 집을 내 손으로 지웠다. 그러니 나는 물러설 곳이 없다."},
+ muryeong:{s:["tomb","crown","moonpine"], n:"그가 잠든 벽돌무덤은, 천오백 년 동안 한 번도 열리지 않았다.", q:"다시 강한 나라가 되었다고, 나는 정말로 쓸 수 있었다."},
+ heukchi:{s:["wall","road","snow"], n:"임존성을 지켰던 손은 훗날 당의 갑옷을 입었고, 그 끝은 낯선 옥 안이었다.", q:"나는 두 나라를 위해 싸웠으나, 어느 쪽에도 온전히 속하지 못했다."},
+ seongchung:{s:["lamp","scroll","river"], n:"옥에서 굶어 죽어 가면서도 그가 마지막으로 적은 것은, 탄현과 백강 두 지명이었다.", q:"믿어 주지 않아도 괜찮습니다. 적어 두는 것까지가 신하의 일입니다."},
+ seonhwa:{s:["pagoda","flower","moonpine"], n:"노래 한 곡에 쫓겨난 공주는, 국경 너머에서 미륵사의 돌을 쌓아 올렸다.", q:"저를 내몬 것도 노래였고, 여기까지 데려온 것도 노래였습니다."},
+ muwang:{s:["pagoda","field","crown"], n:"마를 캐던 아이가 세운 절의 그림자가, 익산 벌판을 하루 종일 덮었다.", q:"가진 것이 없어 노래를 지었다. 이제는 돌을 세울 수 있다."},
+ wangin:{s:["scroll","sea","pagoda"], n:"논어 열 권과 천자문 한 권을 실은 배가, 낯선 섬의 나루에 닿았다.", q:"글은 국경을 묻지 않는다. 읽는 사람이 있으면 그곳이 내 자리다."},
+ seong:{s:["pagoda","spear","river"], n:"사비에 새 도읍을 세운 왕은 되찾은 한강을 다시 잃고, 관산성의 매복에 걸렸다.", q:"동맹이란 것도 결국, 서로가 필요할 때까지였구나."},
+ sataekjijeok:{s:["stele","moonpine","lamp"], n:"관직에서 물러난 노대신은, 늙어감을 슬퍼하는 마음을 돌에 새겨 두었다.", q:"날은 가고 달은 간다. 사람만 그것을 아깝다고 한다."},
+ gyeonhwon:{s:["flag","road","snow"], n:"제 손으로 세운 나라를 제 손으로 무너뜨린 뒤, 그는 이레 만에 등창으로 숨을 거두었다.", q:"아들을 이기고도, 이겼다는 말이 나오지 않는다."},
+ yusin:{s:["horse","crown","moonpine"], n:"삼한이 하나가 된 뒤에도 그는 여든까지 갑옷을 벗지 않았고, 죽어서 왕으로 추존되었다.", q:"말의 목을 벤 그날, 나는 내 안의 무엇을 벤 것이었다."},
+ seondeok:{s:["startower","flower","moonpine"], n:"여왕이 세운 돌탑은 별을 보기 위한 것이었고, 그 별을 그는 오래 보지 못했다.", q:"향기 없는 꽃을 알아본 것은 지혜가 아니라, 오래 들여다본 눈이었소."},
+ chunchu:{s:["road","scroll","flag"], n:"고구려의 옥과 왜의 바다와 당의 궁을 지나온 사내가, 마침내 신라의 왕관을 썼다.", q:"빌린 힘은 언젠가 갚아야 한다. 그 빚은 내 아들에게 남긴다."},
+ isabu:{s:["ship","sea","moonpine"], n:"나무로 깎은 사자를 뱃머리에 세운 그날, 우산국은 화살 한 대 없이 문을 열었다.", q:"싸우지 않고 이기는 법을 아는 자만이, 싸울 때를 안다."},
+ gwanchang:{s:["spear","bowl","flower"], n:"열여섯의 목이 신라 진영으로 돌아오자, 물러서던 군사들이 일제히 일어섰다.", q:"두 번째로 나갈 때는 무섭지 않았습니다. 이미 한 번 죽어 보았으니까요."},
+ sadaham:{s:["road","strings","flower"], n:"포로를 풀어 주고 땅을 나눠 준 소년은, 벗이 죽자 이레를 울다 열일곱에 뒤를 따랐다.", q:"약속은 한쪽이 사라졌다고 없어지는 것이 아닙니다."},
+ munmu:{s:["sea","tomb","moonpine"], n:"화장한 재를 동해에 묻으라는 유언대로, 감포 앞바다의 바위가 그의 능이 되었다.", q:"죽어 용이 되어서라도, 이 바다는 내가 지키겠다."},
+ wonhyo:{s:["bowl","road","pagoda"], n:"해골에 고인 물을 마신 밤을 지나, 그는 당으로 가는 길을 버리고 저잣거리로 내려갔다.", q:"깨달음은 먼 곳에 있지 않았다. 어젯밤의 물맛과 오늘 아침의 물맛 사이에 있었다."},
+ choechiwon:{s:["scroll","road","moonpine"], n:"당을 떨게 한 문장가는 돌아온 나라에서 쓸 자리를 얻지 못하고, 가야산으로 걸어 들어갔다.", q:"글이 세상을 바꾼다고 믿었다. 세상이 글을 읽지 않을 줄은 몰랐다."},
+ bakjesang:{s:["sea","beacon","snow"], n:"왕자를 배에 태워 보낸 그는 홀로 남아 불에 타 죽었고, 아내는 고개 위에서 돌이 되었다.", q:"계림의 개돼지가 될지언정, 왜의 신하는 되지 않는다."},
+ suro:{s:["egg","forge","crown"], n:"황금알에서 나온 아이가 세운 나라는, 철을 팔아 바다 건너까지 이름을 알렸다.", q:"거북에게 머리를 내라 했더니, 정말로 내 차례가 왔더군."},
+ heo:{s:["ship","sea","flower"], n:"파사석탑을 실은 배가 김해의 나루에 닿은 뒤, 두 성씨가 한 어머니에게서 갈라져 나왔다.", q:"먼 곳에서 왔다고 남이 되는 것은 아닙니다. 낳고 기른 자리가 고향이지요."},
+ ureuk:{s:["strings","river","moonpine"], n:"나라가 무너지자 그는 가야금만 안고 강을 건넜고, 신라의 왕은 그에게 제자를 붙여 주었다.", q:"나라는 없어졌지만 가락은 남았습니다. 그러면 된 것 아니겠습니까."},
+ wolgwang:{s:["pagoda","moonpine","snow"], n:"대가야의 마지막 태자는 산으로 들어가 절 하나를 세우고, 그 뒤로 기록에서 사라졌다.", q:"두 나라의 피를 받았으나, 어느 쪽도 나를 제 편이라 부르지 않았다."},
+ guhyeong:{s:["crown","field","tomb"], n:"왕은 싸우지 않고 나라를 넘겼고, 그 대가로 백성은 한 사람도 잃지 않았다.", q:"왕관을 지키는 것보다 사람을 지키는 것이 왕의 일이다."},
+ jeonggyeon:{s:["flower","egg","moonpine"], n:"가야산의 여신에게서 두 아들이 났으니, 형은 고령에 아우는 김해에 나라를 세웠다.", q:"산은 아무 말도 하지 않는다. 다만 자식들을 내려보낼 뿐이다."},
+ ijinasi:{s:["forge","flag","field"], n:"형은 고령의 언덕에 첫 성을 쌓았고, 그 성은 오백 년을 버텼다.", q:"아우는 바다를, 나는 강을 택했다. 우리는 다투지 않았다."},
+ haji:{s:["ship","flag","stele"], n:"479년, 남제의 조정에 대가야의 사신이 들어섰다 — 가야가 제 이름으로 남긴 유일한 기록이다.", q:"작은 나라라도 제 이름을 부를 줄 알아야 한다."}
+};
+/* --- 음성 해설 (브라우저 내장 음성) --- */
+const TTS={vo:null, tick:null, cur:null};
+function ttsAvailable(){ return !!(window.speechSynthesis && window.SpeechSynthesisUtterance); }
+function ttsPickVoice(){
+  if(!ttsAvailable()) return null;
+  let vs=[]; try{ vs=speechSynthesis.getVoices()||[]; }catch(e){}
+  return vs.find(v=>/^ko/i.test(v.lang||"")) || null;
+}
+function ttsInit(){
+  if(!ttsAvailable()) return;
+  TTS.vo=ttsPickVoice();
+  try{ speechSynthesis.addEventListener("voiceschanged",()=>{ TTS.vo=ttsPickVoice(); }); }catch(e){}
+}
+function ttsStopTick(){ if(TTS.tick){ clearInterval(TTS.tick); TTS.tick=null; } }
+function ttsCancel(){ ttsStopTick(); TTS.cur=null; try{ if(ttsAvailable()) speechSynthesis.cancel(); }catch(e){} }
+/* 낭독 예상 시간 — 음성이 없을 때의 자막 진행 속도로도 쓴다 */
+function ttsEstimate(txt){ return Math.max(2600, txt.length*150+1100); }
+function ttsSpeak(txt, kind, onend){
+  const plain=String(txt).replace(/<[^>]*>/g,"").replace(/\s+/g," ").trim();
+  const est=ttsEstimate(plain);
+  if(save.ttsOff || save.mute || !ttsAvailable() || !TTS.vo){ const t=setTimeout(onend, est); return ()=>clearTimeout(t); }
+  let done=false, guard=null;
+  const fin=()=>{ if(done) return; done=true; clearTimeout(guard); ttsStopTick(); onend(); };
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(plain);
+    u.voice=TTS.vo; u.lang=TTS.vo.lang||"ko-KR";
+    u.rate=kind==="q"?0.95:0.88;
+    u.pitch=kind==="q"?1.06:0.92;
+    u.onend=fin; u.onerror=fin;
+    TTS.cur=u;
+    guard=setTimeout(fin, est+10000);   // 끝을 알리지 않는 브라우저 대비
+    speechSynthesis.speak(u);
+    /* 크롬은 15초쯤에서 스스로 멈춘다 — 주기적으로 깨워 준다 */
+    ttsStopTick();
+    TTS.tick=setInterval(()=>{ try{ if(speechSynthesis.speaking){ speechSynthesis.pause(); speechSynthesis.resume(); } }catch(e){} }, 9000);
+  }catch(e){ guard=setTimeout(fin, est); }
+  return ()=>{ done=true; clearTimeout(guard); ttsStopTick(); };
+}
+/* --- 상영기 --- */
+function epiTtsLabel(){ return save.mute?"🔇 음소거 중":(save.ttsOff?"🔇 음성 꺼짐":"🔊 음성 해설"); }
+let EPI={id:null, i:0, auto:true, cancel:null, typer:null, hold:null, bgm:false};
+function epiSlides(id){
+  const sc=EPI_SCRIPT[id];
+  if(!sc) return [{k:"n", t:EPILOGUE[id]||"", s:"moonpine"}];
+  return [{k:"n", t:sc.n, s:sc.s[0]}, {k:"q", t:sc.q, s:sc.s[1]}, {k:"n", t:EPILOGUE[id]||sc.n, s:sc.s[2]}];
+}
+function epiClearTimers(){
+  if(EPI.cancel){ EPI.cancel(); EPI.cancel=null; }
+  if(EPI.typer){ clearInterval(EPI.typer); EPI.typer=null; }
+  if(EPI.hold){ clearTimeout(EPI.hold); EPI.hold=null; }
+  ttsCancel();
+  const bar=$("epi-bar"); if(bar){ bar.style.animation="none"; bar.style.width="0%"; }
+}
+function showEpilogue(id){
+  const c=byId[id]; if(!c) return;
+  epiClearTimers();
+  EPI.id=id; EPI.i=0; EPI.auto=true;
+  $("epi").classList.remove("hidden");
+  $("epi-tts").textContent=epiTtsLabel();
+  $("epi-tts").classList.toggle("epi-ttsoff", !!(save.ttsOff||save.mute));
+  if(BGM){ clearInterval(BGM.iv); BGM=null; EPI.bgm=true; } else EPI.bgm=false;
+  startStoryBGM(c.f);
+  epiRender();
+}
+function epiRender(){
+  const c=byId[EPI.id], col=FHEX[c.f]||"#c9a85a";
+  const sl=epiSlides(EPI.id), s=sl[EPI.i];
+  epiClearTimers();
+  const fn=EPI_SCENE[s.s]||EPI_SCENE.moonpine;
+  $("epi-bg").innerHTML='<svg viewBox="0 108 900 620" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">'+fn(c,col)+'</svg>';
+  $("epi-speaker").innerHTML=(s.k==="q"
+    ? '<span class="badge" style="width:38px;height:38px">'+pface(c, awkOf(c.id))+'</span><span>'+c.n+'</span>'
+    : '<span style="color:var(--ink-soft);font-family:\'Noto Sans KR\',sans-serif;font-size:.8rem">'+c.n+' · 후일담</span>');
+  $("epi-progress").textContent=(EPI.i+1)+" / "+sl.length;
+  $("epi-prev").disabled=EPI.i<=0;
+  $("epi-next").textContent=EPI.i>=sl.length-1?"↺ 처음부터":"다음 ▶";
+  const box=$("epi-caption");
+  const full=(s.k==="q"?'"'+s.t+'"':s.t);
+  const dur=ttsEstimate(full);
+  const bar=$("epi-bar");
+  if(!REDUCED){ bar.style.width="0%"; void bar.offsetWidth; bar.style.animation="storyBarFill "+dur+"ms linear forwards"; }
+  else bar.style.width="100%";
+  /* 자막을 낭독 속도에 맞춰 한 글자씩 드러낸다 */
+  box.className="epi-caption"+(s.k==="q"?" epi-quote":"");
+  if(REDUCED){ box.textContent=full; }
+  else{
+    box.textContent="";
+    let k=0; const step=Math.max(28, Math.round(dur/Math.max(1,full.length)));
+    EPI.typer=setInterval(()=>{ k++; box.textContent=full.slice(0,k); if(k>=full.length){ clearInterval(EPI.typer); EPI.typer=null; } }, step);
+  }
+  EPI.cancel=ttsSpeak(full, s.k, ()=>{
+    EPI.cancel=null;
+    if(EPI.i>=sl.length-1){ playEpilogueSting(c.f); return; }
+    if(EPI.auto) EPI.hold=setTimeout(()=>{ EPI.i++; epiRender(); }, 1100);
+  });
+}
+function epiClose(){
+  epiClearTimers();
+  stopStoryBGM();
+  $("epi").classList.add("hidden");
+  if(EPI.bgm) toggleBgm();
+  EPI.id=null;
+}
+/* 조작 */
+$("epi-prev").onclick=()=>{ if(EPI.i>0){ EPI.i--; epiRender(); } };
+$("epi-next").onclick=()=>{ const n=epiSlides(EPI.id).length; EPI.i=EPI.i<n-1?EPI.i+1:0; epiRender(); };
+$("epi-auto").onclick=()=>{
+  EPI.auto=!EPI.auto;
+  $("epi-auto").textContent=EPI.auto?"⏸ 자동재생":"▶ 자동재생 꺼짐";
+  if(!EPI.auto&&EPI.hold){ clearTimeout(EPI.hold); EPI.hold=null; }
+};
+$("epi-tts").onclick=()=>{
+  save.ttsOff=!save.ttsOff; persist();
+  $("epi-tts").textContent=epiTtsLabel();
+  $("epi-tts").classList.toggle("epi-ttsoff", !!(save.ttsOff||save.mute));
+  if(EPI.id) epiRender();
+};
+$("epi-close").onclick=epiClose;
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&EPI.id) epiClose(); });
+/* 결과 모달 등 어디서든 「후일담 보기」 버튼이 동작하도록 */
+$("modal-box").addEventListener("click",e=>{
+  const b=e.target.closest("[data-epi]");
+  if(b){ closeModal(); showEpilogue(b.dataset.epi); }
+});
+ttsInit();
 const RECAT={};
 ALL_STAGES.forEach(st=>{ if(st.rec) RECAT[st.rec]=st.n; });
 DEFAULT_SAVE.unlocked.forEach(id=>RECAT[id]="시작 멤버");
@@ -4020,6 +4868,7 @@ function fragmentHTML(c){
     return '<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:8px">'
       +'<div style="font-size:.78rem;color:var(--gold);margin-bottom:4px">✦ 후일담</div>'
       +'<p style="font-style:italic;line-height:1.7">'+(EPILOGUE[c.id]||"")+'</p>'
+      +'<button class="primary" data-epi="'+c.id+'" style="font-size:.76rem;padding:5px 12px">▶ 후일담 감상</button> '
       +'<button id="btn-epilogue-sting" style="font-size:.72rem;padding:3px 10px">🔊 여운 다시 듣기</button>'
       +'</div>';
   }
