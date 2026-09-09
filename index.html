@@ -502,6 +502,10 @@ const CHARS=[
 {id:"gyeonhwon", n:"견훤", f:"백제", s:5, role:"딜러", king:1, st:[98,72,68,92,82], skill:{nm:"일리천의 참회", cd:3, d:"단일 260% 피해, 방어 20% 무시"}},
 {id:"wanggeon", n:"왕건", f:"고구려", s:5, role:"서포터", king:1, st:[45,95,60,88,80], skill:{nm:"삼한일통", cd:3, d:"아군 전체 회복 + 공격·방어 15%↑(2턴)"}},
 {id:"sinsunggyeom", n:"신숭겸", f:"고구려", s:4, role:"탱커", st:[70,45,90,95,58], skill:{nm:"어기의 위장", cd:3, d:"도발(2턴) + 받는 피해 30%↓(2턴)"}},
+{id:"haji", n:"하지왕", f:"가야", s:4, role:"지략딜러", king:1, st:[55,92,60,85,88], skill:{nm:"보국장군의 위엄", cd:3, d:"적 전체 지략 180% + 자신 공격 15%↑(2턴)"}},
+{id:"yuhwa", n:"유화부인", f:"고구려", s:4, role:"힐러", st:[25,90,65,90,85], skill:{nm:"물의 어머니", cd:3, d:"아군 전체 회복 + 지속 회복(2턴)"}},
+{id:"geumwa", n:"금와왕", f:"고구려", s:4, role:"서포터", king:1, st:[40,85,70,90,70], skill:{nm:"동부여의 관용", cd:3, d:"아군 전체 방어 20%↑(2턴) + 회복"}},
+{id:"daemusin", n:"대무신왕", f:"고구려", s:5, role:"딜러", king:1, st:[92,68,72,90,88], skill:{nm:"동부여 정벌", cd:3, d:"단일 270% 피해, 방어 15% 무시"}},
 ];
 const byId=Object.fromEntries(CHARS.map(c=>[c.id,c]));
 /* 기본 스킬 2종 (쿨다운제) — 기존 skill 필드는 궁극기(기력 100 소모)로 승격.
@@ -547,6 +551,10 @@ const BASICS={
  gyeonhwon:[{nm:"후백제의 창",cd:1,kind:"dmg",pow:1.6,d:"단일 160% 피해"},{nm:"공산의 기습",cd:3,kind:"dmg",pow:1.3,n:2,d:"단일 130% 2연격"}],
  wanggeon:[{nm:"결혼동맹",cd:2,kind:"buff",target:"ally1",b:[{k:"def",v:.2,t:2}],d:"아군 1인 방어 20%↑(2턴)"},{nm:"회유",cd:3,kind:"debuff",b:[{k:"atk",v:-.2,t:2}],d:"적 1인 공격 20%↓(2턴)"}],
  sinsunggyeom:[{nm:"창을 앞세워",cd:1,kind:"dmg",pow:1.3,d:"단일 130% 피해"},{nm:"대장기를 걸치고",cd:3,kind:"buff",target:"self",b:[{k:"def",v:.25,t:2}],taunt:1,d:"도발 1턴 + 방어 25%↑"}],
+ haji:[{nm:"외교의 언사",cd:1,kind:"dmg",stat:"ji",pow:1.5,d:"지략 단일 150%"},{nm:"대가야의 위세",cd:3,kind:"dmg",stat:"ji",pow:0.9,aoe:1,d:"전체 지략 90%"}],
+ yuhwa:[{nm:"강가의 기도",cd:1,kind:"heal",pow:1.3,d:"아군 1인 회복"},{nm:"비둘기의 전언",cd:3,kind:"heal",aoe:1,pow:0.7,d:"아군 전체 소량 회복"}],
+ geumwa:[{nm:"금빛 개구리의 지혜",cd:2,kind:"buff",target:"ally1",b:[{k:"def",v:.2,t:2}],d:"아군 1인 방어 20%↑(2턴)"},{nm:"양육의 은혜",cd:3,kind:"heal",pow:1.2,d:"아군 1인 회복"}],
+ daemusin:[{nm:"부여 정벌군",cd:1,kind:"dmg",pow:1.6,d:"단일 160% 피해"},{nm:"쇠뇌부대",cd:3,kind:"dmg",pow:1.0,aoe:1,d:"적 전체 100% 피해"}],
 };
 function basicNeedsTarget(sk){
   if(sk.aoe) return null;
@@ -576,6 +584,9 @@ const MOBS={
  hubaekje:{n:"후백제병", st:[72,35,55,68,62], kind:"melee"},
  taebong:{n:"태봉군", st:[68,38,52,64,66], kind:"melee"},
  singeom:{n:"신검", st:[88,55,68,105,70], kind:"brute"},
+ dosulji:{n:"도설지왕", st:[70,55,80,90,58], kind:"brute"},
+ buyeo:{n:"부여 병사", st:[65,32,52,62,60], kind:"melee"},
+ daeso:{n:"대소", st:[85,50,65,95,75], kind:"brute"},
 };
 /* 일일 던전 (요일제 재료 파밍): 일요일은 전부 개방, 던전당 하루 2회 */
 const DUNGEONS=[
@@ -597,7 +608,9 @@ const CHAPTERS=[
  {id:"s1b", n:"가야금 소리", lv:3, e:["soldier",{boss:"ureuk"},"soldier"], rec:"ureuk"},
  {id:"s1c", n:"바다의 손님", lv:4, e:["spear",{boss:"heo"},"shaman"], rec:"heo"},
  {id:"s1d", n:"구지봉의 왕", lv:5, e:["spear",{boss:"suro"},"spear","shaman"], rec:"suro"},
- {id:"s1e", n:"형제의 재회", lv:6, e:["spear","spear",{boss:"ijinasi"},"shaman"], rec:"ijinasi"}]},
+ {id:"s1e", n:"형제의 재회", lv:6, e:["spear","spear",{boss:"ijinasi"},"shaman"], rec:"ijinasi"},
+ {id:"s1f", n:"주산성의 번영", lv:7, e:["spear","spear",{boss:"haji"}], rec:"haji"},
+ {id:"s1g", n:"대가야 최후의 성", lv:8, e:["spear","spear","dosulji","shaman"]}]},
 {t:"2장 · 화랑의 나라 신라", stages:[
  {id:"s2a", n:"서라벌 관문", lv:6, e:["soldier","archer","soldier","archer"]},
  {id:"s2b", n:"십대 선봉", lv:7, e:["soldier",{boss:"sadaham"},"archer"], rec:"sadaham"},
@@ -645,6 +658,14 @@ const CHAPTERS=[
  {id:"x4e", n:"금산사의 유폐", lv:45, e:["hubaekje","hubaekje","singeom","hubaekje"]},
  {id:"x4f", n:"일리천, 부자의 창끝", lv:47, e:["hubaekje","hubaekje","taebong"], e2:["hubaekje","hubaekje","singeom"], rec:"gyeonhwon"},
  {id:"x4g", n:"고려, 하나 된 삼한", lv:48, e:["hubaekje","hubaekje"], rec:"wanggeon"}]},
+{t:"외전 5 · 해모수의 나라 (부여)", stages:[
+ {id:"x5a", n:"하늘에서 내려온 자", lv:49, e:["buyeo","buyeo","soldier"]},
+ {id:"x5b", n:"하백의 딸", lv:51, e:["buyeo","buyeo","buyeo"], rec:"yuhwa"},
+ {id:"x5c", n:"동부여로 온 도읍", lv:53, e:["buyeo","buyeo","buyeo","buyeo"], rec:"geumwa"},
+ {id:"x5d", n:"알에서 태어난 아이", lv:55, e:["buyeo","buyeo","buyeo"]},
+ {id:"x5e", n:"엄사수의 다리", lv:57, e:["buyeo","buyeo","daeso"]},
+ {id:"x5f", n:"동부여의 최후", lv:59, e:["buyeo","buyeo","buyeo"], e2:["daeso","buyeo","buyeo"], rec:"daemusin"},
+ {id:"x5g", n:"부여의 남은 빛", lv:61, e:["buyeo","buyeo"]}]},
 ];
 const ALL_STAGES=CHAPTERS.flatMap(c=>c.stages);
 
@@ -1229,12 +1250,16 @@ function ultExec(u, tgt){
     case "gyeonhwon": dealDamage(u,tgt,atkOf(u)*2.6,{pierce:.2}); break;
     case "wanggeon": A.forEach(x=>{heal(x,intOf(u)*1.2); x.buffs.push({k:"atk",v:.15,t:2}); x.buffs.push({k:"def",v:.15,t:2});}); log("왕건 [삼한일통] — 아군 전체 회복 + 공격·방어 +15%(2턴)","note"); break;
     case "sinsunggyeom": u.taunt=2; u.buffs.push({k:"dmgred",v:.3,t:2}); log("신숭겸 [어기의 위장] — 도발(2턴) + 받는 피해 −30%(2턴)","note"); break;
+    case "haji": E.forEach(x=>dealDamage(u,x,intOf(u)*1.8,{noCounter:true})); u.buffs.push({k:"atk",v:.15,t:2}); break;
+    case "yuhwa": A.forEach(x=>{heal(x,intOf(u)*1.3); x.buffs.push({k:"regen",v:Math.round(intOf(u)*0.4),t:2});}); break;
+    case "geumwa": A.forEach(x=>{x.buffs.push({k:"def",v:.2,t:2}); heal(x,intOf(u)*0.8);}); log("금와왕 [동부여의 관용] — 아군 전체 방어 +20%(2턴) + 회복","note"); break;
+    case "daemusin": dealDamage(u,tgt,atkOf(u)*2.7,{pierce:.15}); break;
     default: basicAttack(u,tgt||E[0]);
   }
   renderField();
   BTO(stepTurn,D(420));
 }
-const NEEDS_TARGET={yeongae:1,pyeong:1,gyebaek:1,heukchi:1,yusin:1,isabu:1,gwanchang:1,sadaham:1,jumong:1,gyeonhwon:1};
+const NEEDS_TARGET={yeongae:1,pyeong:1,gyebaek:1,heukchi:1,yusin:1,isabu:1,gwanchang:1,sadaham:1,jumong:1,gyeonhwon:1,daemusin:1};
 
 /* ============ 플레이어 입력 ============ */
 let pending=null; // {u, mode:"attack"|"skill"}
@@ -1613,6 +1638,8 @@ const PORT={
  ijinasi:{hg:"crown",eye:"fierce",beard:"full"},
  gyeonhwon:{hg:"crown",eye:"fierce",beard:"full"}, wanggeon:{hg:"crown",eye:"calm",beard:"full",hc:"#8d8d95"},
  sinsunggyeom:{hg:"helm",eye:"fierce",beard:"mu",hc:"#8d8d95"},
+ haji:{hg:"crown",eye:"calm",beard:"mu"}, yuhwa:{hg:"princess",eye:"calm",fem:1},
+ geumwa:{hg:"crown",eye:"calm",beard:"full",hc:"#8d8d95"}, daemusin:{hg:"helm",eye:"fierce",beard:"mu"},
 };
 function pface(c, awk){
  awk=awk||0;
@@ -1667,9 +1694,10 @@ const HISTORY=[
 {t:"외전 2 — 바다의 침공 (왜)", b:"<p>바다 건너의 왜(倭)는 삼국시대 내내 해안을 위협했다.</p><p><b>400년</b>, 신라가 왜군에 시달리자 <b>광개토대왕</b>이 보병·기병 5만을 보내 이를 격퇴했다 — 광개토대왕릉비에 새겨진 기록이다. 신라는 이후로도 수십 차례의 왜구 침입을 막아냈고, 삼국을 통일한 <b>문무왕</b>은 '죽어서도 동해의 용이 되어 왜로부터 나라를 지키겠다'는 유언을 남겨 바다 무덤(대왕암)에 잠들었다.</p><p class='help'>이 외전은 그 격퇴전들의 재구성이다. 봉수대에 불이 오르면, 영웅들이 바다로 나선다.</p>"},
 {t:"외전 3 — 유산과 깨달음", b:"<p>전장의 영웅들만이 나라를 지킨 것은 아니다.</p><p>굶주린 백성에게 봄에 곡식을 빌려주고 가을에 갚게 한 재상 <b>을파소</b>, 늙어가는 삶을 슬퍼하며 비석에 마음을 새긴 귀족 <b>사택지적</b>, 해골에 고인 물 한 모금으로 깨달음을 얻어 신분과 종파를 넘어 사람들 사이로 걸어 들어간 승려 <b>원효</b> — 이들은 칼 대신 제도와 글과 가르침으로 시대를 버텨낸 이들이다.</p><p class='help'>이 외전은 전장 밖에서 나라를 지탱한 이들을 기리는 무대다.</p>"},
 {t:"외전 4 — 형제의 나라 (후삼국, 892 ~ 936)", b:"<p>삼국 통일로부터 250년, 신라가 흔들리자 옛 나라들의 이름이 다시 깨어났다. 상주의 장수 <b>견훤</b>이 900년 완산주(전주)에서 '백제의 원한을 갚겠다'며 <b>후백제</b>를 세웠고, 송악의 호족 <b>왕건</b>은 918년 궁예를 몰아내고 '고구려의 뒤를 잇는다'는 뜻으로 <b>고려</b>를 세웠다. 신라는 이제 두 나라 사이에 낀 옛 왕조로 남았다.</p><p><b>공산의 함정</b> — 927년 견훤이 왕건의 군대를 크게 격파했다. 왕건은 <b>신숭겸</b>이 임금 행세를 하며 대신 목숨을 바친 덕에 간신히 탈출했다. 그러나 930년 <b>고창 전투</b>에서 전세는 뒤집혔다.</p><p><b>부자의 비극</b> — 935년, 견훤의 아들 <b>신검</b>이 형제들과 반란을 일으켜 아버지를 금산사에 가두었다. 석 달 만에 탈출한 견훤은 원수였던 왕건에게 투항했고, 이듬해 <b>일리천 전투</b>에서 자신이 세운 나라를 무너뜨리는 데 앞장섰다.</p><p><b>통일</b> — 936년, 고려는 마침내 후삼국을 하나로 묶었다. 삼국의 이름을 내세웠던 두 나라는 이렇게 저물었고, 한반도는 새로운 이름 아래 다시 하나가 되었다.</p><p class='help'>이 외전은 사국의 시대로부터 두 세기 반이 지난 후일담이다 — 이름은 이어졌으나, 그 사람들은 이미 다른 시대를 살고 있었다.</p>"},
+{t:"외전 5 — 해모수의 나라 (부여)", b:"<p>사국이 있기 전, 만주 벌판에는 <b>부여</b>가 있었다. 하늘신의 아들 <b>해모수</b>가 세웠다는 북부여, 그리고 도읍을 동쪽으로 옮긴 동부여 — 고구려와 백제, 두 나라 모두 자신의 뿌리를 이 나라에서 찾았다.</p><p><b>어머니와 아들</b> — 물의 신 하백의 딸 <b>유화부인</b>은 우발수에서 지내다 동부여 <b>금와왕</b>에게 거두어졌고, 알을 낳아 <b>주몽</b>을 얻었다. 금와왕은 자기 아들이 아닌 그 아이를 함께 길렀으나, 왕자들의 시기가 깊어지자 주몽은 남쪽으로 도망쳐야 했다.</p><p><b>추격과 대물림</b> — 금와왕의 아들 <b>대소</b>는 끝까지 주몽을 뒤쫓았다. 세월이 흘러 주몽의 손자 <b>대무신왕</b>이 22년 동부여를 정벌해 대소를 죽였으니, 할아버지가 도망쳐 나온 나라를 손자가 창끝으로 갚은 셈이었다. 남은 부여는 이후로도 명맥을 이어가다 494년 고구려에 완전히 흡수된다.</p><p class='help'>이 외전은 사국의 시대보다도 앞선, 그 뿌리의 이야기다 — 대가야의 5세기 전성기를 연 <b>하지왕</b>의 사신 파견 기록도 함께 다룬다(1장에서 만날 수 있다).</p>"},
 ];
 /* 나라별 여운 음색으로 재생되는 배경음 (스토리 뷰어 전용, 루프) */
-const CHAPTER_MOOD=["가야","가야","신라","백제","고구려","고구려","고구려","신라","백제","백제"];
+const CHAPTER_MOOD=["가야","가야","신라","백제","고구려","고구려","고구려","신라","백제","백제","고구려"];
 let STORY_BGM=null;
 function startStoryBGM(faction){
   stopStoryBGM();
@@ -1935,7 +1963,7 @@ $("story-playpause").onclick=()=>{
 };
 $("story-close").onclick=()=>{ clearStoryTimer(); stopStoryBGM(); $("story").classList.add("hidden"); if(storyPausedBgm) toggleBgm(); };
 /* 장별 일러스트 지도 (풍경 위 노드 클릭 진입) */
-const GAYA_NODES={s1a:{x:90,y:200},s1b:{x:270,y:150},s1c:{x:450,y:195},s1d:{x:630,y:120},s1e:{x:810,y:175}};
+const GAYA_NODES={s1a:{x:70,y:195},s1b:{x:197,y:145},s1c:{x:323,y:190},s1d:{x:450,y:120},s1e:{x:577,y:170},s1f:{x:703,y:130},s1g:{x:830,y:180}};
 function sceneryPrologue(){
   let s='';
   // 밤의 산길과 산적 소굴: 솔숲, 동굴, 모닥불
@@ -2471,6 +2499,10 @@ const LORE={
  gyeonhwon:"신라의 장수에서 후백제의 왕이 되었으나, 끝내 아들과 창을 겨눈 비운의 군주.",
  wanggeon:"후삼국의 혼란을 끝내고 삼한을 하나로 묶은 고려의 태조.",
  sinsunggyeom:"공산 전투에서 왕을 대신해 목숨을 바친 고려의 충장.",
+ haji:"중국 남제에 사신을 보내 대가야의 이름을 알린 전성기의 왕.",
+ yuhwa:"물의 신 하백의 딸이자, 알에서 태어난 주몽의 어머니.",
+ geumwa:"버려진 아이 주몽을 거두어 기른 동부여의 왕.",
+ daemusin:"동부여를 정벌하고 고구려의 기틀을 다진 정복왕.",
 };
 /* 영웅 개인 스토리 (도감 클릭) */
 const STORY={
@@ -2514,6 +2546,10 @@ const STORY={
  gyeonhwon:"상주의 농민 출신으로 신라 서남해 방수군의 비장이 되었으나, 신라 왕실의 혼란을 틈타 892년 무진주(광주)에서 봉기해 900년 완산주(전주)에 후백제를 세웠다. 백제의 원한을 갚겠다며 옛 백제의 땅과 이름을 내세워 세력을 키웠고, 927년 공산 전투에서는 왕건의 군대를 크게 격파해 신숭겸 등 고려 장수들을 전사시켰다. 그러나 만년에 넷째 아들 신검이 형제들과 함께 반란을 일으켜 그를 금산사에 유폐시켰다. 견훤은 석 달 만에 탈출해 원수였던 왕건에게 투항했고, 936년 일리천 전투에서 자신이 세운 나라를 무너뜨리는 데 앞장섰다 — 아버지가 아들의 나라를 멸망시킨, 후삼국 최대의 비극이었다.",
  wanggeon:"송악(개성)의 호족 출신으로 궁예 휘하에서 전공을 세워 시중에 올랐으나, 궁예가 폭정으로 민심을 잃자 918년 신하들의 추대를 받아 왕위에 오르고 국호를 '고려'로 정했다 — 고구려의 후계자임을 내세운 이름이었다. 927년 공산에서 견훤에게 대패해 신숭겸의 희생으로 겨우 목숨을 건졌으나, 930년 고창 전투에서 승기를 잡았다. 이후 혼인 동맹과 포용 정책으로 지방 호족들을 끌어안았고, 935년에는 항복해 온 신라 경순왕을, 936년에는 견훤과 손잡고 후백제의 신검을 무너뜨려 마침내 후삼국을 통일했다. 스물아홉 명의 부인을 둔 것도 이 통합 정책의 일환이었다.",
  sinsunggyeom:"곡성 출신으로 왕건을 도와 고려 개국에 공을 세운 개국공신. 927년 공산 전투에서 견훤의 군대에 포위되자, 왕건과 비슷한 외모를 이용해 어차(임금의 수레)에 대신 올라 시선을 끌었다. 그 틈에 왕건은 겨우 탈출했고, 신숭겸은 끝까지 싸우다 전사했다. 훗날 그의 목이 없는 시신을 수습할 때 왕건이 황금으로 머리를 만들어 장사지냈다는 이야기가 전하며, 그 충절을 기려 지금도 대구 공산 자락에 그의 사당이 남아 있다.",
+ haji:"5세기 후반 대가야를 다스린 왕. 「남제서」에 따르면 479년 중국 남제에 사신을 보내 '보국장군본국왕'이라는 벼슬을 받았는데, 이는 가야 소국이 독자적으로 중국과 통교했다는 사실을 보여주는 유일한 기록이다. 이 시기 대가야는 고령을 중심으로 낙동강 서쪽의 여러 소국을 아우르며 전성기를 누렸다.",
+ yuhwa:"물의 신 하백의 맏딸로, 하늘신의 아들 해모수와 정을 통했다가 쫓겨나 우발수에서 지내던 중 동부여 금와왕에게 거두어졌다. 방 안에 들어온 햇빛을 받고 태기가 있어 알을 낳았는데, 그 알에서 나온 아이가 주몽이다. 아들이 부여 왕자들의 시기를 받자 남쪽으로 떠나라 일렀고, 훗날 고구려에서 사람을 보내 부여의 어머니를 그리워했다는 이야기가 전한다.",
+ geumwa:"동부여 해부루왕이 산천에 제사를 지내다 곤연이라는 못에서 금빛 개구리 모양의 아이를 얻어 태자로 삼았다는 설화의 주인공. 해부루의 뒤를 이어 왕이 되었고, 우발수에서 유화부인을 만나 궁으로 데려와 거두었다. 유화가 낳은 알을 상서롭지 않다 여겨 버리려 했으나 짐승들이 알을 보호하자 다시 유화에게 돌려주었고, 그렇게 태어난 주몽을 자기 아들들과 함께 키웠다.",
+ daemusin:"주몽의 손자이자 고구려 3대 왕. 22년 동부여를 침공해 대소를 죽이고 그 나라를 크게 꺾어, 주몽이 도망쳐 나왔던 옛 나라에 마침내 갚음을 했다. 부여의 일부 왕족은 고구려에 투항해 받아들여졌고, 나머지 동부여는 이후로도 명맥을 이어가다 494년 문자명왕 때 완전히 고구려에 흡수된다. 대무신왕은 이 밖에도 낙랑을 정벌하는 등 건국 초기 고구려의 강역을 크게 넓혔다.",
 };
 /* 이야기 조각 10개를 모으면 열리는 후일담 — 여운을 남기는 마지막 한 줄 */
 const EPILOGUE={
@@ -2557,6 +2593,10 @@ const EPILOGUE={
  gyeonhwon:"자신이 세운 나라를 자신의 손으로 허문 노년의 왕은, 역사에 가장 쓸쓸한 승리를 남겼다.",
  wanggeon:"스물아홉 번의 혼인으로 엮어낸 나라는, 칼보다 오래가는 통합의 방식을 보여주었다.",
  sinsunggyeom:"황금으로 빚은 머리는 진짜 얼굴을 대신할 수 없었지만, 그 충절만은 천 년이 지나도 잊히지 않았다.",
+ haji:"바다 건너 보낸 사신의 이름 석 자가, 잊혀질 뻔한 소국의 존재를 천오백 년 뒤까지 증언했다.",
+ yuhwa:"떠나보낸 아들을 그리워하던 어머니의 이름은, 강물처럼 그 나라의 뿌리 깊은 곳에 남았다.",
+ geumwa:"자기 핏줄이 아닌 아이를 거두어 기른 그 관용이, 훗날 자기 나라를 무너뜨릴 손자를 세상에 내보냈다.",
+ daemusin:"할아버지가 도망쳐 나온 나라를 손자가 창끝으로 되갚았으니, 이보다 차가운 대물림도 드물다.",
 };
 /* 궁극기 대사 — 컷인 배너에 함께 표시 */
 const ULT_QUOTE={
@@ -2600,6 +2640,10 @@ const ULT_QUOTE={
  gyeonhwon:"내 손으로 세운 나라, 내 손으로 끝내리라!",
  wanggeon:"삼한은 이제 하나다!",
  sinsunggyeom:"폐하는 내가 대신한다 — 모두 나를 보라!",
+ haji:"대가야의 이름을 천하에 알리리라!",
+ yuhwa:"물의 어머니가 그대들을 지키리라!",
+ geumwa:"내 아이들아, 두려워 말라!",
+ daemusin:"동부여여, 이제 갚을 때가 되었다!",
 };
 const RECAT={};
 ALL_STAGES.forEach(st=>{ if(st.rec) RECAT[st.rec]=st.n; });
