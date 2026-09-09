@@ -2937,6 +2937,15 @@ const ACH=[
  {id:"wins30", n:"백전노장", d:"누적 30승", rew:{merit:200}, chk:()=>save.wins>=30},
  {id:"tower5", n:"탑의 도전자", d:"시련의 탑 5층 돌파", rew:{scrolls:2}, chk:()=>save.bestFloor>=5},
  {id:"tower10", n:"탑의 정복자", d:"시련의 탑 10층 돌파", rew:{scrolls:5}, chk:()=>save.bestFloor>=10},
+ {id:"gaiden1", n:"대륙을 막아서다", d:"외전 1 대륙의 침공 전 스테이지 클리어", rew:{scrolls:3}, chk:()=>chCleared(6)},
+ {id:"gaiden2", n:"바다를 지키다", d:"외전 2 바다의 침공 전 스테이지 클리어", rew:{scrolls:3}, chk:()=>chCleared(7)},
+ {id:"gaiden3", n:"붓과 제도의 힘", d:"외전 3 유산과 깨달음 전 스테이지 클리어", rew:{merit:300}, chk:()=>chCleared(8)},
+ {id:"gaiden4", n:"후삼국을 매듭짓다", d:"외전 4 형제의 나라 전 스테이지 클리어", rew:{merit:300,scrolls:5}, chk:()=>chCleared(9)},
+ {id:"gaiden5", n:"뿌리를 찾아서", d:"외전 5 해모수의 나라 전 스테이지 클리어", rew:{merit:300,scrolls:5}, chk:()=>chCleared(10)},
+ {id:"codexKings", n:"왕가의 인장", d:"도감의 왕 전원 수집 (도감 효과 발동)", rew:{iron:400}, chk:()=>codexBonusActive(CODEX_BONUSES.find(cb=>cb.id==="kings"))},
+ {id:"eliteWin", n:"정예를 넘어서", d:"도전 Lv "+REPLAY_HERO_TIER+" 이상 돌파 (정예 영웅 격파)", rew:{iron:300}, chk:()=>Object.values(save.stageTier||{}).some(t=>t>=REPLAY_HERO_TIER)},
+ {id:"treasure", n:"국보 수집가", d:"국보 등급 장비 획득", rew:{merit:200}, chk:()=>(save.items||[]).some(it=>it.tier>=4)},
+ {id:"epilogue3", n:"여운을 모으다", d:"후일담 3편 이상 열람", rew:{scrolls:3}, chk:()=>(save.epilogues||[]).length>=3},
 ];
 function rewText(r){ const p=[]; if(r.merit)p.push("공훈 "+r.merit); if(r.iron)p.push("철 "+r.iron); if(r.scrolls)p.push("소집령 "+r.scrolls); return p.join(" · "); }
 function showAch(){
