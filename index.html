@@ -27,6 +27,15 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .topbar .lv{color:var(--gold); font-size:.9rem}
 .topbar .sp{flex:1}
 .hudgain{font-size:.82rem; color:var(--good); white-space:nowrap}
+.chronrow{display:flex; gap:14px; padding:11px 14px; border-left:2px solid var(--line); margin-left:6px; position:relative}
+.chronrow.done{border-left-color:var(--gold)}
+.chronrow::before{content:""; position:absolute; left:-5px; top:17px; width:8px; height:8px; border-radius:50%; background:var(--line)}
+.chronrow.done::before{background:var(--gold)}
+.chronyear{min-width:74px; font-family:"Song Myung",serif; color:var(--ink-soft); font-size:.82rem; padding-top:1px}
+.chronrow.done .chronyear{color:var(--gold)}
+.chronbody{min-width:0; flex:1}
+@media(max-width:640px){.chronrow{flex-direction:column; gap:3px} .chronyear{min-width:0}}
+.efchip{font-size:.68rem; font-family:"Noto Sans KR",sans-serif; color:var(--ink-soft); border:1px solid var(--line); border-radius:999px; padding:2px 9px; white-space:nowrap}
 @keyframes hudGain{0%{opacity:0; transform:translateY(6px)}18%{opacity:1; transform:translateY(0)}72%{opacity:1}100%{opacity:0; transform:translateY(-5px)}}
 .hudgain.show{animation:hudGain 2.2s ease-out both}
 @keyframes hudBump{0%,100%{color:var(--gold)}30%{color:var(--good)}}
@@ -309,7 +318,10 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
       <button id="btn-forge">대장간</button>
       <button id="btn-codex">도감</button>
       <button id="btn-syn">시너지 도감</button>
+      <button id="btn-chron">사서</button>
       <button id="btn-ach">업적</button>
+      <button id="btn-daily">일일</button>
+      <button id="btn-sweep">소탕</button>
       <button id="btn-tower">시련의 탑</button>
       <button id="btn-mine">광산</button>
       <button id="btn-exchange">교환상점</button>
@@ -368,6 +380,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
   <div id="screen-syn" class="hidden">
     <h2 style="font-size:1.1rem">시너지 도감 <span style="font-size:.8rem;color:var(--ink-soft)" id="syn-count"></span></h2>
     <p class="help" style="margin:8px 0">같은 파티에 함께 편성하면 발동하는 결속과 인연. 초록 = 발동 조건 영웅 보유.</p>
+    <div id="syn-counter"></div>
     <div class="pickgrid" id="syngrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))"></div>
     <button id="btn-syn-back">돌아가기</button>
   </div>
@@ -417,6 +430,23 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
     <div class="pickgrid" id="pickgrid"></div>
     <button class="primary" id="btn-party-done">편성 완료</button>
     <button id="btn-party-cancel">취소</button>
+  </div>
+
+  <div id="screen-chron" class="hidden">
+    <h2 style="font-size:1.1rem">사서 <span style="font-size:.8rem;color:var(--ink-soft)" id="chron-count"></span></h2>
+    <p class="help" id="chron-note" style="margin:6px 0 12px"></p>
+    <div id="chron-list"></div>
+    <button id="btn-chron-back" style="margin-top:12px">지도로</button>
+  </div>
+
+  <div id="screen-daily" class="hidden">
+    <h2 style="font-size:1.1rem">일일 <span class="help" id="daily-sub" style="font-size:.8rem"></span></h2>
+    <div class="rosterbar" id="att-box"></div>
+    <h2 style="font-size:1rem;margin:14px 0 6px">임무</h2>
+    <div class="pickgrid" id="daily-list"></div>
+    <h2 style="font-size:1rem;margin:14px 0 6px">상점 <span class="help" style="font-size:.78rem">— 재고는 매일 새로 채워진다</span></h2>
+    <div class="pickgrid" id="shop-list"></div>
+    <button id="btn-daily-back" style="margin-top:12px">지도로</button>
   </div>
 
   <div id="screen-battle" class="hidden">
@@ -538,6 +568,19 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 "use strict";
 /* ============ 데이터 ============ */
 const FCOLOR={"고구려":"var(--goguryeo)","백제":"var(--baekje)","신라":"var(--silla)","가야":"var(--gaya)"};
+/* 세력 상성 — 고구려 → 백제 → 신라 → 가야 → 고구려 (앞이 뒤에 강하다)
+   무소속("적", 대륙·왜 등)은 상성을 타지 않는다 */
+const FACTION_CYCLE=["고구려","백제","신라","가야"];
+const COUNTER_UP=1.25, COUNTER_DOWN=0.85;
+function counterMul(af, df){
+  const i=FACTION_CYCLE.indexOf(af), j=FACTION_CYCLE.indexOf(df);
+  if(i<0||j<0) return 1;
+  if((i+1)%4===j) return COUNTER_UP;
+  if((j+1)%4===i) return COUNTER_DOWN;
+  return 1;
+}
+function counterBeats(f){ const i=FACTION_CYCLE.indexOf(f); return i<0?null:FACTION_CYCLE[(i+1)%4]; }
+function counterLosesTo(f){ const i=FACTION_CYCLE.indexOf(f); return i<0?null:FACTION_CYCLE[(i+3)%4]; }
 // stats: [무, 지, 방, 체, 속]
 const CHARS=[
 {id:"gwang", n:"광개토대왕", f:"고구려", s:5, role:"딜러", king:1, st:[98,78,70,84,90], skill:{nm:"영락", cd:3, d:"적 전체에 무력 180% 피해"}},
@@ -659,12 +702,12 @@ const MOBS={
  ujungmun:{n:"적장 우중문", st:[80,70,60,95,65], kind:"brute"},
  seolingwi:{n:"적장 설인귀", st:[88,60,65,100,75], kind:"brute"},
  waeboss:{n:"왜군 대장", st:[85,45,60,100,72], kind:"brute"},
- hubaekje:{n:"후백제병", st:[72,35,55,68,62], kind:"melee"},
- taebong:{n:"태봉군", st:[68,38,52,64,66], kind:"melee"},
- singeom:{n:"신검", st:[88,55,68,105,70], kind:"brute"},
- dosulji:{n:"도설지왕", st:[70,55,80,90,58], kind:"brute"},
- buyeo:{n:"부여 병사", st:[65,32,52,62,60], kind:"melee"},
- daeso:{n:"대소", st:[85,50,65,95,75], kind:"brute"},
+ hubaekje:{n:"후백제병", st:[72,35,55,68,62], kind:"melee", f:"백제"},
+ taebong:{n:"태봉군", st:[68,38,52,64,66], kind:"melee", f:"고구려"},
+ singeom:{n:"신검", st:[88,55,68,105,70], kind:"brute", f:"백제"},
+ dosulji:{n:"도설지왕", st:[70,55,80,90,58], kind:"brute", f:"가야"},
+ buyeo:{n:"부여 병사", st:[65,32,52,62,60], kind:"melee", f:"고구려"},
+ daeso:{n:"대소", st:[85,50,65,95,75], kind:"brute", f:"고구려"},
 };
 /* 일일 던전 (요일제 재료 파밍): 일요일은 전부 개방, 던전당 하루 2회 */
 const DUNGEONS=[
@@ -674,7 +717,8 @@ const DUNGEONS=[
 ];
 const DG_LV=[6,14,22], DG_TIER=["하","중","상"], DG_LIMIT=2;
 const DAYN=["일","월","화","수","목","금","토"];
-function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function dayStr(off){ const d=new Date(); if(off) d.setDate(d.getDate()+off); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function todayStr(){ return dayStr(0); }
 function dgReset(){ const t=todayStr(); if(save.dgDate!==t){ save.dgDate=t; save.dgRuns={}; persist(); } }
 function dgOpen(d){ const day=new Date().getDay(); return day===0||d.days.includes(day); }
 // 스테이지: e = 적 구성(문자열=몹, {boss:id}=로스터 캐릭터), rec = 클리어 시 영입
@@ -746,25 +790,31 @@ const CHAPTERS=[
  {id:"x5g", n:"부여의 남은 빛", lv:61, e:["buyeo","buyeo"]}]},
 ];
 const ALL_STAGES=CHAPTERS.flatMap(c=>c.stages);
+/* 장별 적 세력 — 그 나라를 상대하는 장에서는 병사도 그 나라 소속이다.
+   외전의 대륙·왜·인물 중심 장은 무소속으로 두어 상성이 걸리지 않게 한다 */
+const CHAPTER_EF=[null,"가야","신라","백제","고구려",null,null,null,null,null,"고구려"];
 
 /* 국보(tier 4) 고유 효과 — 아이템 이름으로 붙인다 */
 const TREASURE_EFF={"칠지도":"chilji", "가야 판갑옷":"panga", "신라 금관":"geumgwan"};
 const SUPPORT_SLOTS=3;   // 전투에는 나오지 않고 파티를 후원하는 원군 자리
 
 /* ============ 저장 ============ */
-const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[]};
+const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[], sweepDate:"", sweepUses:0, daily:{date:"",prog:{},claimed:[]}, att:{last:"",streak:0,total:0}, shop:{date:"",bought:{}}, chronicle:[]};
 let save=load();
 /* 세이브 보정 — 구버전 세이브에 새 필드 기본값을 채워 넣는다.
    load()와 가져오기가 같은 함수를 쓰도록 분리해 두었다 (필드를 추가하면 여기만 고치면 된다) */
 function normalizeSave(s){
   if(!s||!s.unlocked||!s.party||!s.cleared) return null;
   const d=DEFAULT_SAVE;
-  ["merit","scrolls","iron","wins","pulls","promoCnt","forgeCnt","bestFloor","mineUses","defBestWave"].forEach(k=>{ s[k]=s[k]||0; });
+  ["merit","scrolls","iron","wins","pulls","promoCnt","forgeCnt","bestFloor","mineUses","defBestWave","sweepUses"].forEach(k=>{ s[k]=s[k]||0; });
   ["promo","equip","dgRuns","wear","stageTier","fragments","awaken"].forEach(k=>{ s[k]=s[k]||{}; });
-  ["claimed","items","epilogues","support"].forEach(k=>{ s[k]=s[k]||[]; });
-  ["dgDate","mineDate","nickname"].forEach(k=>{ s[k]=s[k]||""; });
+  ["claimed","items","epilogues","support","chronicle"].forEach(k=>{ s[k]=s[k]||[]; });
+  ["dgDate","mineDate","nickname","sweepDate"].forEach(k=>{ s[k]=s[k]||""; });
   s.mute=!!s.mute; s.auto=!!s.auto; s.firstTenDone=!!s.firstTenDone;
   s.materials=s.materials||{silk:0,pearl:0};
+  s.daily=s.daily||{date:"",prog:{},claimed:[]}; s.daily.prog=s.daily.prog||{}; s.daily.claimed=s.daily.claimed||[];
+  s.att=s.att||{last:"",streak:0,total:0};
+  s.shop=s.shop||{date:"",bought:{}}; s.shop.bought=s.shop.bought||{};
   if(!s.starterGift){ s.starterGift=true; s.scrolls+=10; }
   // 구버전 아이템 보정: 피안개의 검은 수치 보너스가 없고, 국보는 고유 효과를 갖는다
   s.items.forEach(it=>{
@@ -1154,8 +1204,13 @@ function sfx(t){
   }catch(e){}
 }
 
-function mkWave(arr, lv, hpMul){
-  const units=arr.map(e=> typeof e==="string" ? mkUnit({...MOBS[e], id:"mob-"+e, f:"적", s:1, role:MOBS[e].kind, skill:null}, "enemy", lv, true)
+function stageEnemyFaction(stage){
+  if(!stage||stage.tower||stage.dungeon) return null;
+  const ci=chapterOfStage(stage.id);
+  return (ci>=0&&CHAPTER_EF[ci])||null;
+}
+function mkWave(arr, lv, hpMul, ef){
+  const units=arr.map(e=> typeof e==="string" ? mkUnit({...MOBS[e], id:"mob-"+e, f:(MOBS[e].f||ef||"적"), s:1, role:MOBS[e].kind, skill:null}, "enemy", lv, true)
                                               : mkUnit(byId[e.boss], "enemy", lv));
   if(hpMul) units.forEach(u=>{ u.maxhp=Math.round(u.maxhp*hpMul); u.hp=u.maxhp; });
   return units;
@@ -1185,8 +1240,9 @@ function startBattle(stage){
     }
   }
   const waves=[st.e].concat(st.e2?[st.e2]:[]);
-  const enemies=mkWave(waves[0], st.lv, st.hpMul);
-  B={stage:st, allies, enemies, waves, wave:0, round:0, order:[], idx:0, waiting:null, over:false};
+  const ef=stageEnemyFaction(stage);
+  const enemies=mkWave(waves[0], st.lv, st.hpMul, ef);
+  B={stage:st, allies, enemies, waves, wave:0, round:0, order:[], idx:0, waiting:null, over:false, ef};
   AUTO=false; $("btn-auto").textContent="자동 꺼짐"; // 전투는 수동으로 시작, 자동은 버튼으로
   $("stagebg").innerHTML=battleStageSVG(stage);
   $("screen-map").classList.add("hidden"); $("screen-party").classList.add("hidden");
@@ -1194,9 +1250,10 @@ function startBattle(stage){
   pBoot(); // 화면이 보이는 상태에서 부팅해야 Phaser Scale.FIT이 실제 크기를 인식한다
   // 렌더러가 없으면 대상을 클릭할 수 없으므로 자동 전투로 강제한다 (수동은 진행 불가)
   if(!phaserReady()){ AUTO=true; $("btn-auto").textContent="자동 켜짐"; }
-  $("battle-title").textContent=stage.n+" (권장 Lv "+st.lv+")"+(st!==stage?" · 도전 Lv "+stageTierOf(stage.id):"")+(eliteReplay?" · 정예 출현":"");
+  $("battle-title").textContent=stage.n+" (권장 Lv "+st.lv+")"+(ef?" · 적 "+ef:"")+(st!==stage?" · 도전 Lv "+stageTierOf(stage.id):"")+(eliteReplay?" · 정예 출현":"");
   $("log").innerHTML="";
   log("― 전투 개시 ―","sys");
+  if(ef) log("적은 <b>"+ef+"</b> — "+counterLosesTo(ef)+" 아군이 유리하고, "+counterBeats(ef)+" 아군은 불리하다.","note");
   if(eliteReplay) log("적진에 이름 있는 영웅들이 나타났다!","sys");
   applyStartEffects();
   renderField();
@@ -1316,7 +1373,7 @@ function checkEnd(){
     if(B.wave<B.waves.length-1){
       B.wave++;
       pClearSide(B.enemies);
-      B.enemies=mkWave(B.waves[B.wave], B.stage.lv, B.stage.hpMul);
+      B.enemies=mkWave(B.waves[B.wave], B.stage.lv, B.stage.hpMul, B.ef);
       log("― 적 제"+(B.wave+1)+"진 등장! (다음 라운드부터 행동) ―","sys");
       renderField();
       return false;
@@ -1340,6 +1397,8 @@ function dealDamage(src, tgt, raw, opts){
   if(tgt.guard) dmg*=0.5;
   let red=1; for(const b of tgt.buffs) if(b.k==="dmgred") red*=(1-b.v); dmg*=red;
   if(tgt.wearEff&&tgt.wearEff.includes("panga")) dmg*=0.92;   // 가야 판갑옷
+  const cmul=counterMul(src.c.f, tgt.c.f);
+  if(cmul!==1) dmg*=cmul;                                       // 세력 상성
   if(src.c.id==="gyebaek"&&src.hp/src.maxhp<0.5) dmg*=1.3;
   if(src.flags.doubleNext){ dmg*=2; src.flags.doubleNext=false; log("관창 [화랑의 투혼] — 혼신의 일격!","sys"); }
   if(src.c.id==="geun") dmg+=atkOf(src)*0.15;
@@ -1354,7 +1413,8 @@ function dealDamage(src, tgt, raw, opts){
   if(src.wearEff&&src.wearEff.includes("healrecv")) tgt.buffs.push({k:"healrecv",v:-.5,t:2});
   gainG(tgt,10);
   sfx(crit?"crit":"hit"); popup(tgt, "-"+dmg, crit?"crit":""); fxHit(tgt,crit);
-  log(nameOf(src)+" → "+nameOf(tgt)+" <b>"+dmg+"</b> 피해"+(crit?" <span style='color:var(--gold)'>치명타!</span>":""),"dmg");
+  log(nameOf(src)+" → "+nameOf(tgt)+" <b>"+dmg+"</b> 피해"+(crit?" <span style='color:var(--gold)'>치명타!</span>":"")
+    +(cmul>1?" <span style='color:var(--good)'>상성 우위</span>":cmul<1?" <span style='color:var(--ink-soft)'>상성 열세</span>":""),"dmg");
   // 피격 트리거
   if(tgt.alive&&tgt.c.id==="ondal"){ const p=B.allies.find(x=>x.alive&&x.c.id==="pyeong"); if(p&&tgt.hp>0) heal(tgt, Math.round(tgt.maxhp*0.04), "평강공주 [믿음]"); }
   if(tgt.c.id==="muryeong"&&tgt.hp>0){ const r=Math.round(dmg*0.10); src.hp-=r; log("무령왕 [반사] — "+nameOf(src)+"에게 "+r+" 반사","note"); if(src.hp<=0) die(src,tgt); }
@@ -1627,6 +1687,7 @@ function epilogueNotice(ids){
 function win(){
   sfx("win");
   save.wins++;
+  dailyBump("win");
   if(B.stage.tower){ towerWin(); return; }
   if(B.stage.dungeon){ dungeonWin(); return; }
   const st=B.stage; let msg="";
@@ -1640,6 +1701,7 @@ function win(){
   if(first){ save.cleared.push(st.id); save.scrolls+=1; rew+=" · 소집령 +1";
     if(st.rec&&!save.unlocked.includes(st.rec)){ save.unlocked.push(st.rec); msg="<p class='big'>"+byId[st.rec].n+" 영입! ("+byId[st.rec].f+" ★"+byId[st.rec].s+")</p>"; } }
   else { save.stageTier[st.id]=tier+1; rew+=" (재도전 · 도전 Lv "+(tier+1)+" 돌파!)"; }
+  const chron=chronCheck(st.id);
   const newEpilogue=gainFragments(st.lv);
   const drop=rollDrop(st.lv, st.rec?0.6:0.45);
   if(drop) rew+=" · <b style='color:var(--gold)'>"+drop.n+"</b> 드랍!";
@@ -1649,6 +1711,7 @@ function win(){
   persist();
   if(st.id==="s5") msg="<p class='big'>네 나라의 영웅이 한자리에 — 사국쟁패 완결!</p>";
   if(newEpilogue) msg+=epilogueNotice([newEpilogue]);
+  if(chron.length){ msg+=chronNoticeHTML(chron); playEpilogueSting(byId[st.rec]?byId[st.rec].f:"신라"); }
   const next=ALL_STAGES[ALL_STAGES.findIndex(s=>s.id===st.id)+1];
   const nextBtn=next?'<button class="primary" id="m-next">다음 스테이지로</button>':"";
   const retryBtn=(!st.dungeon&&!st.tower)?'<button id="m-retry">이 스테이지 다시</button>':"";
@@ -3112,10 +3175,11 @@ function chapterMapSVG(ci, stStates){
   });
   return s+"</svg>";
 }
+let ATT_SHOWN=false;   // 출석은 세션당 한 번만 띄운다
 function showMap(){
   window.scrollTo(0,0);
   B=null;
-  ["screen-battle","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-map").classList.remove("hidden");
   const nAch=ACH.filter(a=>a.chk()&&!save.claimed.includes(a.id)).length;
   $("btn-ach").textContent="업적"+(nAch?" ("+nAch+")":"");
@@ -3123,6 +3187,15 @@ function showMap(){
   $("btn-gacha").textContent=freePull?"모집소 — 무료 10연!":"모집소";
   $("btn-gacha").classList.toggle("primary",freePull);
   $("btn-tower").textContent="시련의 탑"+(save.bestFloor?" · "+save.bestFloor+"층":"");
+  const nChron=CHRONICLE.length-CHRONICLE.filter(c=>chronDone(c.id)).length;
+  $("btn-chron").textContent="사서"+(nChron?" ("+(CHRONICLE.length-nChron)+"/"+CHRONICLE.length+")":" · 완성");
+  const nDaily=dailyClaimable();
+  $("btn-daily").textContent="일일"+(nDaily?" ("+nDaily+")":"");
+  $("btn-daily").classList.toggle("primary",nDaily>0);
+  if(!ATT_SHOWN){ ATT_SHOWN=true; const a=attCheck(); if(a) setTimeout(()=>showAttendance(a),350); }
+  const swL=sweepLeft(), swOK=save.cleared.length>0;
+  $("btn-sweep").disabled=!swOK;
+  $("btn-sweep").textContent=swOK?"소탕 ("+swL+"/"+SWEEP_LIMIT+")":"소탕 (스테이지 클리어 후)";
   if(mineUnlocked()){ mineReset(); $("btn-mine").disabled=false; $("btn-mine").textContent="광산 ("+Math.max(0,MINE_LIMIT-save.mineUses)+"/"+MINE_LIMIT+")"; }
   else { $("btn-mine").disabled=true; $("btn-mine").textContent="광산 (스테이지 2개 클리어 시 개방)"; }
   updHUD();
@@ -3138,7 +3211,11 @@ function showMap(){
   });
   CHAPTERS.forEach((ch,ci)=>{
     const d=document.createElement("div"); d.className="chapter";
-    d.innerHTML='<h2 style="display:flex;align-items:center;gap:10px">'+ch.t
+    const ef=CHAPTER_EF[ci];
+    const efTag=ef?'<span class="efchip" style="border-color:'+FCOLOR[ef]+'">적 '+ef
+        +' <span style="color:var(--good)">· '+counterLosesTo(ef)+' 유리</span>'
+        +' <span style="color:var(--bad)">· '+counterBeats(ef)+' 불리</span></span>':"";
+    d.innerHTML='<h2 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+ch.t+efTag
       +(HISTORY[ci]?'<button class="loreb" style="font-size:.7rem;padding:3px 10px;color:var(--ink-soft)">나라 이야기</button>':"")+'</h2>';
     const lb=d.querySelector(".loreb");
     if(lb) lb.onclick=()=>showLore(ci);
@@ -3196,6 +3273,7 @@ function startDungeon(dg,t){
   startBattle({id:dg.id, n:dg.n+" ("+DG_TIER[t]+")", lv:DG_LV[t], e:dg.comp[t], dungeon:{id:dg.id, rew:dg.rew[t]}});
 }
 function dungeonWin(){
+  dailyBump("dungeon");
   const dg=B.stage.dungeon;
   save.dgRuns[dg.id]=(save.dgRuns[dg.id]||0)+1;
   if(dg.rew.merit) save.merit+=dg.rew.merit;
@@ -3394,6 +3472,9 @@ $("btn-help").onclick=()=>{
    +"<p><b>국보</b> — 최고 등급(tier 4) 장비 세 가지는 수치에 더해 고유 효과를 갖는다. <b>칠지도</b>는 공격이 다른 적 1명에게 30% 여파를 남기고, <b>가야 판갑옷</b>은 받는 피해를 8% 줄이며, <b>신라 금관</b>은 개전 기력 +30과 라운드마다 기력 +5를 준다. 시련의 탑 영웅층에서 확정으로 얻을 수 있다.</p>"
    +"<p><b>도감·업적</b> — 도감은 수집한 영웅의 일대기와 능력을 모아 본다. 업적은 달성 시 직접 보상을 수령해야 한다.</p>"
    +"<p><b>이야기 조각·후일담</b> — 전투에서 승리하면 파티원 중 한 명에게 확률로 <b>이야기 조각</b>이 쌓인다. 확률은 스테이지 권장 Lv이 높을수록 올라간다(Lv1 약 35% → 고레벨 스테이지 최대 65%). 한 영웅의 조각을 "+FRAGMENT_GOAL+"개 모으면 도감에서 그 영웅의 <b>후일담</b>과 세력별 여운 음향이 함께 열린다.</p>"
+   +"<p><b>사서</b> — 그 역사의 당사자를 출전시켜 해당 스테이지를 이기면 사서에 한 줄이 적히고 보상을 준다(황산벌을 계백으로, 살수를 을지문덕으로). 대개 그 스테이지에서 영입하는 인물이라 영입한 뒤 다시 도전해야 하며, 소탕으로는 적히지 않는다. "+CHRONICLE.length+"장면을 모두 채우면 큰 보상이 있다.</p>"
+   +"<p><b>세력 상성</b> — 고구려 → 백제 → 신라 → 가야 → 고구려 순으로 강하다(화살표 방향 피해 +"+Math.round((COUNTER_UP-1)*100)+"%, 반대 −"+Math.round((1-COUNTER_DOWN)*100)+"%). 각 나라의 장에서는 <b>병사도 그 나라 소속</b>이라, 지도의 장 제목 옆에 표시된 적 세력을 보고 유리한 세력으로 편성을 바꾸면 훨씬 수월하다. 대륙(수·당)·왜처럼 무소속인 적에게는 상성이 걸리지 않는다.</p>"
+   +"<p><b>소탕</b> — 이미 깬 스테이지를 전투 없이 반복해 보상만 받는다(하루 "+SWEEP_LIMIT+"회). 보상·드랍 확률은 직접 재도전했을 때와 같지만, <b>도전 Lv은 오르지 않고 누적 승수에도 세지 않는다</b> — 그 둘은 직접 싸워야 한다.</p>"
    +"<p><b>시련의 탑</b> — 층수 무한 연속 전투. 층마다 적이 강해지고 매 층 공훈·철, 5층마다 소집령을 준다. 패배 시 도전 종료, 최고 기록이 남는다. <b style='color:var(--accent)'>"+TOWER_HERO_EVERY+"층마다 영웅층</b>이 열려 로스터 영웅 넷이 한꺼번에 나오는 대신, 돌파하면 공훈·철 3배와 <b style='color:var(--gold)'>국보 장비</b>·이야기 조각 여러 개·소집령 여러 장을 한꺼번에 준다(층이 깊을수록 증가).</p>"
    +"<p><b>광산</b> — 전투 없이 영웅을 보내 철을 캐 온다(스테이지 2개 클리어 시 개방, 하루 "+MINE_LIMIT+"회). 최대 4명까지 함께 보낼 수 있으며, 영웅의 등급(★)·각성 단계와 현재 파티 레벨이 높을수록 채굴량이 늘어난다.</p>"
    +"<p><b>일일 던전</b> — 요일제 재료 파밍: 연무장(월·목, 공훈=승급 재료) · 폐광(화·금, 철=장비 재료) · 기원의 사당(수·토, 소집령=모집 재료). 일요일은 전부 개방, 던전당 하루 2회, 난이도 하/중/상.</p>"
@@ -3467,7 +3548,7 @@ updMute();
 /* ============ 모집소 (영웅뽑기) ============ */
 const DUP_REFUND={3:40,4:100,5:250};
 function showGacha(keepResults){
-  ["screen-map","screen-battle","screen-party","screen-forge","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-forge","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-gacha").classList.remove("hidden");
   $("gacha-res").textContent="보유: 소집령 "+save.scrolls+" · 공훈 "+save.merit+" · 영웅 "+save.unlocked.length+"/"+CHARS.length;
   $("btn-pull1").disabled=save.scrolls<1;
@@ -3487,6 +3568,7 @@ function rollChar(minStar){
 function doGacha(n){
   if(save.scrolls<n) return;
   save.scrolls-=n; save.pulls+=n;
+  dailyBump("gacha", n);
   const results=[];
   for(let i=0;i<n;i++) results.push(rollChar(null));
   if(n===10 && !save.firstTenDone){
@@ -3519,7 +3601,7 @@ const FORGE_MAX=5;
 const FORGE_COST=[30,60,120,220,380];
 const SLOTS=[["무기","+6% 공격 / 단계"],["갑옷","+6% HP / 단계"],["장신구","+4 속도 / 단계"]];
 function showForge(){
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-forge").classList.remove("hidden");
   $("forge-res").textContent="보유 철 "+save.iron;
   const g=$("forgegrid"); g.innerHTML="";
@@ -3880,7 +3962,7 @@ function close3DViewer(){
 $("viewer3d-close").onclick=close3DViewer;
 
 function showCodex(){
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-forge","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-codex").classList.remove("hidden");
   $("codex-count").textContent="— "+save.unlocked.length+" / "+CHARS.length+" 수집 · 카드를 누르면 영웅의 이야기";
   $("codex-bonuses").innerHTML=CODEX_BONUSES.map(cb=>{
@@ -3984,11 +4066,26 @@ const SYNERGY=[
  {n:"철벽 전선", type:"역할", icon:"🛡", ids:[], f:"", cond:"탱커 2인 이상 편성", eff:"파티 방어 +8%"},
  {n:"속전속결", type:"역할", icon:"⚔", ids:[], f:"", cond:"딜러·지략딜러 3인 이상 편성", eff:"파티 공격 +8%"},
 ];
+/* 상성 관계를 한눈에 보여 주는 표 */
+function counterTableHTML(){
+  const rows=FACTION_CYCLE.map(f=>
+    '<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
+    +'<span class="efchip" style="border-color:'+FCOLOR[f]+';min-width:56px;text-align:center">'+f+'</span>'
+    +'<span style="color:var(--ink-soft)">→</span>'
+    +'<span class="efchip" style="border-color:'+FCOLOR[counterBeats(f)]+';min-width:56px;text-align:center">'+counterBeats(f)+'</span>'
+    +'<span class="help">에게 피해 +'+Math.round((COUNTER_UP-1)*100)+'%</span></div>').join("");
+  return '<div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:14px">'
+    +'<div style="font-family:\'Song Myung\',serif;color:var(--gold);margin-bottom:6px">세력 상성</div>'
+    +'<p class="help" style="margin-bottom:6px">화살표 방향으로 강하다. 반대 방향은 피해 −'+Math.round((1-COUNTER_DOWN)*100)+'%. 대륙·왜처럼 무소속인 적에게는 상성이 걸리지 않는다.</p>'
+    +rows+'</div>';
+}
 function showSyn(){
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-syn").classList.remove("hidden");
   const owned=SYNERGY.filter(sy=>sy.ids.every(id=>save.unlocked.includes(id))).length;
   $("syn-count").textContent="— "+owned+" / "+SYNERGY.length+" 발동 가능";
+  const ct=document.getElementById("syn-counter");
+  if(ct) ct.innerHTML=counterTableHTML();
   const g=$("syngrid"); g.innerHTML="";
   SYNERGY.forEach(sy=>{
     const have=sy.ids.every(id=>save.unlocked.includes(id));
@@ -4042,7 +4139,7 @@ const ACH=[
 ];
 function rewText(r){ const p=[]; if(r.merit)p.push("공훈 "+r.merit); if(r.iron)p.push("철 "+r.iron); if(r.scrolls)p.push("소집령 "+r.scrolls); return p.join(" · "); }
 function showAch(){
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-forge","screen-codex","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-ach").classList.remove("hidden");
   const done=ACH.filter(a=>save.claimed.includes(a.id)).length;
   $("ach-count").textContent="— "+done+" / "+ACH.length+" 달성";
@@ -4185,6 +4282,324 @@ $("btn-tower").onclick=()=>{
   const c=$("m-cancel"); if(c) c.onclick=closeModal;
 };
 
+/* ============ 사서 (역사 재현) ============ */
+/* 그 역사의 당사자를 출전시켜 해당 스테이지를 이기면 한 줄이 사서에 적힌다.
+   대부분 그 스테이지에서 영입하는 인물이라, 처음엔 불가능하고 재도전에서 채우게 된다.
+   y = 정렬용 연도(음수 = 기원전), ys = 표시용 문자열 */
+const CHRONICLE=[
+ {id:"h_jumong",  st:"x5e", need:["jumong"],            y:-37, ys:"기원전 37", n:"엄사수를 건너",     d:"주몽이 동부여를 벗어나 졸본에 고구려를 세우다"},
+ {id:"h_suro",    st:"s1d", need:["suro"],              y:42,  ys:"42",        n:"구지봉의 황금알",   d:"김수로가 알에서 나와 금관가야의 왕이 되다"},
+ {id:"h_heo",     st:"s1c", need:["suro","heo"],        y:48,  ys:"48",        n:"바다를 건너온 왕비", d:"아유타국의 허황옥이 김수로의 왕비가 되다", rew:{scrolls:1}},
+ {id:"h_daemusin",st:"x5f", need:["daemusin"],          y:22,  ys:"22",        n:"동부여 정벌",       d:"대무신왕이 대소를 꺾어 할아버지가 떠난 나라를 갚다"},
+ {id:"h_eulpaso", st:"x3a", need:["eulpaso"],           y:194, ys:"194",       n:"진대법",            d:"을파소가 봄에 빌려주고 가을에 갚게 하는 제도를 세우다"},
+ {id:"h_geun",    st:"s3e", need:["geun"],              y:371, ys:"371",       n:"평양성 진격",       d:"근초고왕이 고구려 평양성을 쳐 고국원왕을 쓰러뜨리다"},
+ {id:"h_gwang",   st:"s4f", need:["gwang"],             y:391, ys:"391",       n:"영락",              d:"광개토대왕이 즉위해 스스로 연호를 쓰고 만주를 정복하다", rew:{scrolls:1}},
+ {id:"h_jangsu",  st:"s4g", need:["jangsu"],            y:427, ys:"427",       n:"평양 천도",         d:"장수왕이 도읍을 평양으로 옮겨 남쪽으로 눈을 돌리다"},
+ {id:"h_ijinasi", st:"s1e", need:["ijinasi"],           y:450, ys:"5세기",     n:"형제의 나라",       d:"이진아시왕의 대가야가 낙동강 상류에서 일어서다"},
+ {id:"h_haji",    st:"s1f", need:["haji"],              y:479, ys:"479",       n:"보국장군 하지",     d:"대가야의 하지왕이 남제에 사신을 보내 이름을 알리다"},
+ {id:"h_isabu",   st:"s2c", need:["isabu"],             y:512, ys:"512",       n:"우산국 정벌",       d:"이사부가 나무 사자로 우산국을 굴복시키다"},
+ {id:"h_muryeong",st:"s3d", need:["muryeong"],          y:521, ys:"521",       n:"갱위강국",          d:"무령왕이 '다시 강한 나라가 되었다'고 양나라에 알리다"},
+ {id:"h_ureuk",   st:"s1b", need:["ureuk"],             y:551, ys:"551",       n:"가야금 열두 곡",     d:"우륵이 가야금을 안고 신라로 가 그 음악을 남기다"},
+ {id:"h_seong",   st:"s3g", need:["seong"],             y:554, ys:"554",       n:"관산성",            d:"성왕이 관산성에서 전사하고 나제동맹이 끝나다"},
+ {id:"h_gaya",    st:"s1g", need:["isabu","sadaham"],   y:562, ys:"562",       n:"대가야의 최후",     d:"이사부와 사다함이 대가야를 무너뜨려 가야가 역사에서 사라지다", rew:{scrolls:1}},
+ {id:"h_ondal",   st:"s4b", need:["ondal","pyeong"],    y:590, ys:"590",       n:"바보 온달",         d:"평강공주가 택한 온달이 장군이 되어 아단성에서 지다"},
+ {id:"h_eulji",   st:"s4e", need:["eulji"],             y:612, ys:"612",       n:"살수대첩",          d:"을지문덕이 수나라 113만 대군을 살수에서 수장시키다", rew:{scrolls:1}},
+ {id:"h_muwang",  st:"s3b", need:["muwang","seonhwa"],  y:600, ys:"7세기 초",  n:"서동요",            d:"서동이 노래 하나로 선화공주를 얻다"},
+ {id:"h_yeongae", st:"s4d", need:["yeongae"],           y:642, ys:"642",       n:"막리지",            d:"연개소문이 정변을 일으켜 절대 권력을 쥐다"},
+ {id:"h_yang",    st:"s4c", need:["yang"],              y:645, ys:"645",       n:"안시성",            d:"양만춘이 당 태종의 친정을 성벽 하나로 막아내다", rew:{scrolls:1}},
+ {id:"h_seondeok",st:"s2e", need:["seondeok"],          y:647, ys:"632~647",   n:"첨성대의 밤",       d:"선덕여왕이 하늘을 읽는 대를 세우다"},
+ {id:"h_chunchu", st:"s2d", need:["chunchu"],           y:648, ys:"648",       n:"나당동맹",          d:"김춘추가 당으로 건너가 동맹을 성사시키다"},
+ {id:"h_sataek",  st:"x3b", need:["sataekjijeok"],      y:654, ys:"654",       n:"사택지적비",        d:"사택지적이 늙어가는 삶을 슬퍼하며 비석에 마음을 새기다"},
+ {id:"h_gyebaek", st:"s3f", need:["gyebaek"],           y:660, ys:"660",       n:"황산벌",            d:"계백이 오천 결사대로 오만 대군을 맞아 네 번 이기고 지다", rew:{scrolls:1}},
+ {id:"h_wonhyo",  st:"x3c", need:["wonhyo"],            y:661, ys:"661",       n:"해골에 고인 물",     d:"원효가 한 모금의 물로 마음이 곧 법임을 깨닫다"},
+ {id:"h_heukchi", st:"s3c", need:["heukchi"],           y:663, ys:"660~663",   n:"임존성의 깃발",     d:"흑치상지가 무너진 나라를 다시 세우려 임존성에 서다"},
+ {id:"h_unify",   st:"s2g", need:["yusin","munmu"],     y:668, ys:"668",       n:"삼국통일",          d:"김유신과 문무왕이 마침내 하나의 나라를 이루다", rew:{scrolls:2}},
+ {id:"h_munmu",   st:"x2c", need:["munmu"],             y:681, ys:"681",       n:"대왕암",            d:"문무왕이 죽어서도 동해의 용이 되어 나라를 지키겠다 이르다"},
+ {id:"h_gongsan", st:"x4c", need:["sinsunggyeom"],      y:927, ys:"927",       n:"공산의 함정",       d:"신숭겸이 임금의 옷을 대신 입고 죽어 왕건을 살리다", rew:{scrolls:1}},
+ {id:"h_illicheon",st:"x4f",need:["gyeonhwon"],         y:936, ys:"936",       n:"일리천",            d:"견훤이 자신이 세운 나라를 무너뜨리는 앞에 서다"},
+ {id:"h_goryeo",  st:"x4g", need:["wanggeon"],          y:937, ys:"936",       n:"하나 된 삼한",      d:"왕건이 후삼국을 통일해 새로운 이름 아래 모으다", rew:{scrolls:2}},
+];
+const CHRONICLE_ALL={merit:2000, iron:2000, scrolls:10};
+const CHRON_BASE={merit:250, iron:180};
+function chronRew(c){ return Object.assign({}, CHRON_BASE, c.rew||{}); }
+function chronDone(id){ return save.chronicle.includes(id); }
+function chronSorted(){ return CHRONICLE.slice().sort((a,b)=>a.y-b.y); }
+function chronAllDone(){ return CHRONICLE.every(c=>chronDone(c.id)); }
+/* 전투에서 이겼을 때 호출 — 조건을 채운 항목을 기록하고 보상을 준다 */
+function chronCheck(stageId){
+  const got=[];
+  CHRONICLE.forEach(c=>{
+    if(c.st!==stageId||chronDone(c.id)) return;
+    if(!c.need.every(id=>save.party.includes(id))) return;
+    save.chronicle.push(c.id); grantReward(chronRew(c)); got.push(c);
+  });
+  if(got.length&&chronAllDone()&&!save.chronicle.includes("__all")){
+    save.chronicle.push("__all"); grantReward(CHRONICLE_ALL);
+    got.push({id:"__all", ys:"", n:"사서를 다 채우다", d:CHRONICLE.length+"장면이 모두 제자리를 찾았다", rew:CHRONICLE_ALL});
+  }
+  if(got.length) persist();
+  return got;
+}
+function chronNoticeHTML(got){
+  if(!got||!got.length) return "";
+  return got.map(c=>"<p class='big' style='color:var(--gold)'>📜 사서에 적히다 — <b>"+c.n+"</b>"
+    +(c.ys?" ("+c.ys+")":"")+"<br><span class='help'>"+c.d+" · 보상 "+rewText(c.id==="__all"?CHRONICLE_ALL:chronRew(c))+"</span></p>").join("");
+}
+function showChron(){
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  $("screen-chron").classList.remove("hidden");
+  const done=CHRONICLE.filter(c=>chronDone(c.id)).length;
+  $("chron-count").textContent="— "+done+" / "+CHRONICLE.length+" 기록"+(chronAllDone()?" · 완성":"");
+  $("chron-list").innerHTML=chronSorted().map(c=>{
+    const ok=chronDone(c.id);
+    const st=ALL_STAGES.find(s=>s.id===c.st);
+    const heroes=c.need.map(id=>{
+      const owned=save.unlocked.includes(id);
+      return '<span class="slotchip" style="font-size:.72rem'+(owned?"":";opacity:.5")+'">'
+        +'<span class="badge" style="width:26px;height:26px">'+pface(byId[id],awkOf(id))+'</span>'+byId[id].n
+        +(owned?"":" <span class='help'>미보유</span>")+'</span>';
+    }).join(" ");
+    return '<div class="chronrow'+(ok?" done":"")+'">'
+      +'<div class="chronyear">'+c.ys+'</div>'
+      +'<div class="chronbody">'
+        +'<div class="nm" style="font-family:\'Song Myung\',serif;color:'+(ok?"var(--gold)":"var(--ink)")+'">'+(ok?"📜 ":"")+c.n+'</div>'
+        +'<div class="meta" style="font-size:.78rem;color:var(--ink-soft);margin:2px 0 5px">'+c.d+'</div>'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+          +'<span class="help" style="font-size:.72rem">'+(st?st.n:"?")+'에서</span>'+heroes
+          +'<span class="help" style="font-size:.72rem">'+(ok?"· 기록 완료":"· 보상 "+rewText(chronRew(c)))+'</span>'
+        +'</div>'
+      +'</div></div>';
+  }).join("");
+  $("chron-note").innerHTML=chronAllDone()
+    ? "<b style='color:var(--gold)'>사서를 모두 채웠다.</b> "+CHRONICLE.length+"장면이 제자리를 찾았다."
+    : "그 역사의 당사자를 <b>출전 4인</b>에 넣고 해당 스테이지를 이기면 한 줄이 적힌다. 대개 그 스테이지에서 영입하는 인물이므로, 영입한 뒤 <b>다시 도전</b>해야 한다. 소탕으로는 적히지 않는다.";
+}
+$("btn-chron").onclick=showChron;
+$("btn-chron-back").onclick=showMap;
+
+/* ============ 일일 콘텐츠 (출석 · 미션 · 상점) ============ */
+function grantReward(r){
+  if(!r) return;
+  if(r.merit) save.merit+=r.merit;
+  if(r.iron) save.iron+=r.iron;
+  if(r.scrolls) save.scrolls+=r.scrolls;
+}
+/* --- 출석: 어제 접속했으면 연속, 아니면 1일차로 되돌아간다 --- */
+const ATT_REWARDS=[{merit:100},{iron:100},{scrolls:1},{merit:200},{iron:200},{merit:300,iron:300},{scrolls:3}];
+function attStage(){ return ((save.att.streak||1)-1)%ATT_REWARDS.length; }
+function attCheck(){
+  const t=todayStr();
+  if(save.att.last===t) return null;              // 오늘은 이미 받았다
+  save.att.streak = (save.att.last===dayStr(-1)) ? (save.att.streak||0)+1 : 1;
+  save.att.last=t; save.att.total=(save.att.total||0)+1;
+  const r=ATT_REWARDS[attStage()];
+  grantReward(r); persist();
+  return {stage:attStage(), rew:r, streak:save.att.streak};
+}
+function showAttendance(a){
+  const cells=ATT_REWARDS.map((r,i)=>{
+    const done=i<=a.stage;
+    return "<div style='flex:1;min-width:62px;text-align:center;padding:7px 4px;border-radius:8px;border:1px solid "
+      +(i===a.stage?"var(--gold)":"var(--line)")+";background:"+(done?"var(--panel2)":"transparent")+"'>"
+      +"<div style='font-size:.68rem;color:"+(i===a.stage?"var(--gold)":"var(--ink-soft)")+"'>"+(i+1)+"일차</div>"
+      +"<div style='font-size:.72rem;margin-top:3px'>"+rewText(r)+"</div>"
+      +(i===a.stage?"<div style='color:var(--good);font-size:.63rem;margin-top:2px'>오늘</div>":"")+"</div>";
+  }).join("");
+  showModal("<h2>출석</h2><p class='help'>연속 "+a.streak+"일차 · 누적 "+save.att.total+"일</p>"
+    +"<div style='display:flex;gap:5px;flex-wrap:wrap;margin:10px 0'>"+cells+"</div>"
+    +"<p style='color:var(--gold)'>오늘의 보상 — "+rewText(a.rew)+"</p>"
+    +"<p style='color:var(--gold)'>"+walletText()+"</p>"
+    +"<button class='primary' id='m-ok'>받기</button>", closeModal);
+}
+/* --- 일일 미션 --- */
+const DAILY=[
+ {id:"d_win",   n:"전투 3회 승리",       key:"win",     goal:3, rew:{merit:150}},
+ {id:"d_sweep", n:"소탕 5회",            key:"sweep",   goal:5, rew:{iron:150}},
+ {id:"d_dg",    n:"일일 던전 1회 클리어", key:"dungeon", goal:1, rew:{merit:200}},
+ {id:"d_gacha", n:"영웅 모집 1회",       key:"gacha",   goal:1, rew:{iron:200}},
+ {id:"d_mine",  n:"광산 파견 1회",       key:"mine",    goal:1, rew:{merit:120,iron:120}},
+];
+const DAILY_ALL={id:"d_all", n:"오늘의 임무 완수", rew:{scrolls:2, merit:300}};
+function dailyReset(){ if(save.daily.date!==todayStr()){ save.daily={date:todayStr(), prog:{}, claimed:[]}; persist(); } }
+function dailyBump(key,n){ dailyReset(); save.daily.prog[key]=(save.daily.prog[key]||0)+(n||1); persist(); }
+function dailyProg(m){ return Math.min(m.goal, save.daily.prog[m.key]||0); }
+function dailyDone(m){ return dailyProg(m)>=m.goal; }
+function dailyAllDone(){ return DAILY.every(dailyDone); }
+function dailyClaimable(){
+  dailyReset();
+  let n=DAILY.filter(m=>dailyDone(m)&&!save.daily.claimed.includes(m.id)).length;
+  if(dailyAllDone()&&!save.daily.claimed.includes(DAILY_ALL.id)) n++;
+  return n;
+}
+function dailyClaim(id){
+  dailyReset();
+  const m=id===DAILY_ALL.id?DAILY_ALL:DAILY.find(x=>x.id===id);
+  if(!m||save.daily.claimed.includes(id)) return false;
+  if(id===DAILY_ALL.id?!dailyAllDone():!dailyDone(m)) return false;
+  save.daily.claimed.push(id); grantReward(m.rew); persist();
+  return true;
+}
+/* --- 상점: 재화를 쓸 곳을 만든다. 하루 재고 제한 --- */
+const SHOP=[
+ {id:"s_iron",  n:"철 400",              d:"공훈이 남을 때 철로 바꾼다",       cost:{merit:250},  limit:3, give:{iron:400}},
+ {id:"s_merit", n:"공훈 400",            d:"철이 남을 때 공훈으로 바꾼다",     cost:{iron:250},   limit:3, give:{merit:400}},
+ {id:"s_box3",  n:"장비 상자 (명품 확정)", d:"3등급 장비 1개",                  cost:{iron:800},   limit:2, item:3},
+ {id:"s_frag",  n:"이야기 조각 ×3",       d:"편성 중인 영웅에게 나뉜다",        cost:{merit:600},  limit:1, frag:3},
+ {id:"s_box4",  n:"국보 상자",            d:"국보 장비 1개 (고유 효과)",        cost:{iron:4000},  limit:1, item:4},
+];
+function shopReset(){ if(save.shop.date!==todayStr()){ save.shop={date:todayStr(), bought:{}}; persist(); } }
+function shopLeft(it){ shopReset(); return Math.max(0, it.limit-(save.shop.bought[it.id]||0)); }
+function shopAfford(it){ return (!it.cost.merit||save.merit>=it.cost.merit)&&(!it.cost.iron||save.iron>=it.cost.iron); }
+function shopBuy(id){
+  shopReset();
+  const it=SHOP.find(x=>x.id===id);
+  if(!it||shopLeft(it)<1||!shopAfford(it)) return null;
+  if(it.cost.merit) save.merit-=it.cost.merit;
+  if(it.cost.iron) save.iron-=it.cost.iron;
+  save.shop.bought[it.id]=(save.shop.bought[it.id]||0)+1;
+  const out={n:it.n, opened:[]};
+  if(it.give) grantReward(it.give);
+  if(it.item) out.item=makeItem(it.item).n;
+  if(it.frag) out.opened=grantFragments(it.frag);
+  persist();
+  return out;
+}
+function costText(c){ const p=[]; if(c.merit)p.push("공훈 "+num(c.merit)); if(c.iron)p.push("철 "+num(c.iron)); return p.join(" · "); }
+/* --- 화면 --- */
+function showDaily(){
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  $("screen-daily").classList.remove("hidden");
+  dailyReset(); shopReset();
+  $("daily-sub").textContent="— "+walletText();
+  // 출석
+  const stage=attStage(), gotToday=save.att.last===todayStr();
+  $("att-box").innerHTML="<strong style=\"font-family:'Song Myung',serif\">출석</strong>"
+    +"<span class='help'>연속 "+(save.att.streak||0)+"일차 · 누적 "+(save.att.total||0)+"일"+(gotToday?" · 오늘 수령 완료":"")+"</span>"
+    +"<span class='sp' style='flex:1'></span>"
+    +"<span style='display:flex;gap:4px;flex-wrap:wrap'>"+ATT_REWARDS.map((r,i)=>
+      "<span class='slotchip"+(gotToday&&i===stage?"":" empty")+"' style='font-size:.7rem;padding:3px 8px'>"+(i+1)+"일 "+rewText(r)+"</span>").join("")+"</span>";
+  // 미션
+  const rows=DAILY.map(m=>{
+    const p=dailyProg(m), done=dailyDone(m), claimed=save.daily.claimed.includes(m.id);
+    return "<div class='pick' style='cursor:default'><div class='info' style='flex:1'>"
+      +"<div class='nm'>"+m.n+"</div>"
+      +"<div class='meta'>"+p+" / "+m.goal+" · 보상 "+rewText(m.rew)+"</div>"
+      +"<div style='height:5px;background:var(--panel2);border-radius:3px;margin-top:5px;overflow:hidden'>"
+        +"<div style='height:100%;width:"+Math.round(p/m.goal*100)+"%;background:"+(done?"var(--good)":"var(--gold)")+"'></div></div>"
+      +"</div>"
+      +(claimed?"<span class='help'>수령 완료</span>"
+        :"<button class='dclaim' data-id='"+m.id+"'"+(done?" ":" disabled")+">받기</button>")
+      +"</div>";
+  }).join("");
+  const allClaimed=save.daily.claimed.includes(DAILY_ALL.id);
+  const allRow="<div class='pick' style='cursor:default;border-color:"+(dailyAllDone()?"var(--gold)":"var(--line)")+"'>"
+    +"<div class='info' style='flex:1'><div class='nm' style='color:var(--gold)'>✦ "+DAILY_ALL.n+"</div>"
+    +"<div class='meta'>"+DAILY.filter(dailyDone).length+" / "+DAILY.length+" · 보상 "+rewText(DAILY_ALL.rew)+"</div></div>"
+    +(allClaimed?"<span class='help'>수령 완료</span>"
+      :"<button class='dclaim' data-id='"+DAILY_ALL.id+"'"+(dailyAllDone()?" ":" disabled")+">받기</button>")+"</div>";
+  $("daily-list").innerHTML=rows+allRow;
+  $("daily-list").querySelectorAll(".dclaim").forEach(b=>{ b.onclick=()=>{
+    if(dailyClaim(b.dataset.id)){ sfx("gacha"); showDaily(); }
+  }; });
+  // 상점
+  $("shop-list").innerHTML=SHOP.map(it=>{
+    const left=shopLeft(it), ok=left>0&&shopAfford(it);
+    return "<div class='pick' style='cursor:default"+(left?"":";opacity:.55")+"'><div class='info' style='flex:1'>"
+      +"<div class='nm'>"+it.n+"</div><div class='meta'>"+it.d+"</div>"
+      +"<div class='meta' style='color:var(--gold)'>"+costText(it.cost)+" · 오늘 "+left+"/"+it.limit+"</div></div>"
+      +"<button class='shopb' data-id='"+it.id+"'"+(ok?" ":" disabled")+">구매</button></div>";
+  }).join("");
+  $("shop-list").querySelectorAll(".shopb").forEach(b=>{ b.onclick=()=>{
+    const r=shopBuy(b.dataset.id);
+    if(!r) return;
+    sfx("gacha"); showDaily();
+    let m="<b>"+r.n+"</b> 구매";
+    if(r.item) m+=" — <b style='color:var(--gold)'>"+r.item+"</b>";
+    showModal("<h2>구매 완료</h2><p>"+m+"</p>"+epilogueNotice(r.opened)
+      +"<p style='color:var(--gold)'>"+walletText()+"</p><button class='primary' id='m-ok'>확인</button>", closeModal);
+  }; });
+}
+$("btn-daily").onclick=showDaily;
+$("btn-daily-back").onclick=showMap;
+
+/* ============ 소탕 (클리어한 스테이지를 전투 없이 반복) ============ */
+/* 보상은 '재도전(첫 클리어가 아닌 승리)'과 똑같이 계산한다 — 소탕이 직접 싸우는 것보다
+   이득이어서도, 손해여서도 안 된다. 다만 도전 Lv은 실제로 싸워야 오른다. */
+const SWEEP_LIMIT=20;
+function sweepReset(){ const t=todayStr(); if(save.sweepDate!==t){ save.sweepDate=t; save.sweepUses=0; persist(); } }
+function sweepLeft(){ sweepReset(); return Math.max(0, SWEEP_LIMIT-save.sweepUses); }
+function sweepableStages(){ return ALL_STAGES.filter(s=>save.cleared.includes(s.id)); }
+function sweepReward(st){
+  const amp=1+stageTierOf(st.id)*0.12;
+  return {merit:Math.round((10+st.lv*2)*amp), iron:Math.round((8+st.lv*2)*amp)};
+}
+function doSweep(st, n){
+  const out={n:0, merit:0, iron:0, drops:[], mats:[], opened:[]};
+  const times=Math.min(n, sweepLeft());
+  for(let i=0;i<times;i++){
+    const r=sweepReward(st);
+    save.merit+=r.merit; save.iron+=r.iron;
+    out.merit+=r.merit; out.iron+=r.iron;
+    const drop=rollDrop(st.lv, st.rec?0.6:0.45);
+    if(drop) out.drops.push(drop.n);
+    const ep=gainFragments(st.lv);
+    if(ep) out.opened.push(ep);
+    const mk=materialDropChance(st.id);
+    if(mk&&Math.random()<0.55){ save.materials[mk]=(save.materials[mk]||0)+1; out.mats.push(MATERIALS[mk].n); }
+    save.sweepUses++; out.n++;
+  }
+  if(out.n) dailyBump("sweep", out.n);
+  persist();
+  return out;
+}
+function sweepCountLabel(list){
+  const c={}; list.forEach(x=>{ c[x]=(c[x]||0)+1; });
+  return Object.keys(c).map(k=>k+(c[k]>1?" ×"+c[k]:"")).join(" · ");
+}
+let sweepSel=null;
+function showSweep(){
+  const list=sweepableStages();
+  if(!list.length){ alertMsg("아직 클리어한 스테이지가 없다. 먼저 한 곳을 깨고 오자."); return; }
+  if(!sweepSel||!save.cleared.includes(sweepSel)) sweepSel=list[list.length-1].id;
+  const left=sweepLeft();
+  const st=ALL_STAGES.find(s=>s.id===sweepSel)||list[list.length-1];
+  const r=sweepReward(st), tier=stageTierOf(st.id);
+  const opts=CHAPTERS.map((ch,ci)=>{
+    const inCh=ch.stages.filter(s=>save.cleared.includes(s.id));
+    if(!inCh.length) return "";
+    return '<optgroup label="'+escapeHtml(ch.t)+'">'
+      +inCh.map(s=>'<option value="'+s.id+'"'+(s.id===sweepSel?" selected":"")+'>'+escapeHtml(s.n)+" (Lv "+s.lv+")"+'</option>').join("")
+      +'</optgroup>';
+  }).join("");
+  showModal("<h2>소탕</h2>"
+    +"<p class='help'>이미 깬 스테이지를 전투 없이 반복해 보상만 받는다. 보상은 직접 재도전했을 때와 같고, 장비·이야기 조각·특산물도 같은 확률로 나온다. <b>도전 Lv은 오르지 않는다</b> — 그건 직접 싸워야 한다.</p>"
+    +"<div style='margin:10px 0'><select id='sweep-stage' style='width:100%;padding:7px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px'>"+opts+"</select></div>"
+    +"<p>1회 보상 — 공훈 "+num(r.merit)+" · 철 "+num(r.iron)+(tier?" <span class='help'>(도전 Lv "+tier+" 반영)</span>":"")+"</p>"
+    +"<p class='help'>오늘 남은 소탕 "+left+" / "+SWEEP_LIMIT+"회</p>"
+    +"<div style='display:flex;gap:6px;flex-wrap:wrap;margin:10px 0'>"
+    +[1,5,10].map(n=>'<button class="swb'+(n===1?" primary":"")+'" data-n="'+n+'"'+(left<1?" disabled":"")+'>'+n+'회 소탕</button>').join(" ")
+    +(left>=1?'<button class="swb" data-n="'+left+'">남은 '+left+'회 전부</button>':"")
+    +"</div>"
+    +"<div id='sweep-out'></div>"
+    +"<button class='primary' id='m-ok' style='margin-top:6px'>닫기</button>", closeModal);
+  const box=$("modal-box");
+  box.querySelector("#sweep-stage").onchange=e=>{ sweepSel=e.target.value; showSweep(); };
+  box.querySelectorAll(".swb").forEach(b=>{ b.onclick=()=>{
+    const got=doSweep(st, +b.dataset.n);
+    if(!got.n){ alertMsg("오늘 소탕 횟수를 다 썼다."); return; }
+    const parts=["공훈 +"+num(got.merit), "철 +"+num(got.iron)];
+    if(got.drops.length) parts.push("<b style='color:var(--gold)'>"+sweepCountLabel(got.drops)+"</b>");
+    if(got.mats.length) parts.push("<b style='color:var(--gold)'>"+sweepCountLabel(got.mats)+"</b>");
+    showSweep();
+    const out=$("modal-box").querySelector("#sweep-out");
+    if(out) out.innerHTML="<div style='border-top:1px solid var(--line);margin-top:8px;padding-top:8px'>"
+      +"<p><b>"+st.n+"</b> "+got.n+"회 소탕 — "+parts.join(" · ")+"</p>"
+      +epilogueNotice(got.opened)
+      +"<p style='color:var(--gold)'>"+walletText()+"</p></div>";
+  }; });
+}
+$("btn-sweep").onclick=showSweep;
+
 /* ============ 광산 (전투 없는 철 채굴 파견) ============ */
 const MINE_LIMIT=3;
 function mineReset(){ const t=todayStr(); if(save.mineDate!==t){ save.mineDate=t; save.mineUses=0; persist(); } }
@@ -4200,7 +4615,7 @@ let mineSel=[];
 function showMine(){
   if(!mineUnlocked()){ alertMsg("스테이지를 2개 이상 클리어하면 광산이 열린다."); return; }
   mineReset();
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-mine").classList.remove("hidden");
   mineSel=mineSel.filter(id=>save.unlocked.includes(id));
   const left=MINE_LIMIT-save.mineUses;
@@ -4229,7 +4644,7 @@ function doMine(){
   mineReset();
   if(!mineSel.length||save.mineUses>=MINE_LIMIT) return;
   const got=mineYield(mineSel);
-  save.iron+=got; save.mineUses++; persist(); sfx("heal");
+  save.iron+=got; save.mineUses++; dailyBump("mine"); persist(); sfx("heal");
   const names=mineSel.map(id=>byId[id].n).join(", ");
   mineSel=[];
   showModal("<h2>채굴 완료!</h2><p>"+names+" — <b style='color:var(--gold)'>철 +"+got+"</b></p><p class='help'>오늘 남은 파견: "+(MINE_LIMIT-save.mineUses)+"/"+MINE_LIMIT+"회</p><button class='primary' id='m-ok'>확인</button>", ()=>{ closeModal(); showMine(); });
@@ -4238,7 +4653,7 @@ $("btn-mine").onclick=showMine;
 
 /* ============ 교환상점 (외전 특산물 → 철) ============ */
 function showExchange(){
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-exchange").classList.remove("hidden");
   const list=$("exchange-list"); list.innerHTML="";
   Object.keys(MATERIALS).forEach(key=>{
@@ -4496,7 +4911,7 @@ function showLoading(cb){
   setTimeout(()=>{ $("screen-loading").classList.add("hidden"); cb(); }, 1700);
 }
 function showModeSelect(){
-  ["screen-map","screen-battle","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
+  ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-codex","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   hideOverlays();
   $("modesel-bg").innerHTML=loginBgSVG();
   $("modesel-greeting").textContent=(save.nickname?save.nickname+"님, ":"")+"플레이할 모드를 선택하세요";
