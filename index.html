@@ -328,6 +328,113 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 @media (prefers-reduced-motion: reduce){.epi-deeds .row{animation:none; opacity:1}}
 .epi-ttsoff{color:var(--ink-soft)}
 @media(max-width:640px){.epi-caption{font-size:.94rem; min-height:150px}}
+
+/* ===== 연격(緣格) 모달 ===== */
+.bondwrap{display:flex; flex-direction:column; gap:3px; margin:10px 0}
+.bondrow{display:flex; gap:10px; align-items:baseline; font-size:.8rem; padding:6px 10px; border-radius:7px; border:1px solid var(--line); background:var(--panel)}
+.bondrow .bn{flex:0 0 34px; font-family:"Song Myung",serif; color:var(--ink-soft)}
+.bondrow .bt{flex:1; min-width:0; color:var(--ink-soft)}
+.bondrow .bs{flex:0 0 auto; font-size:.72rem; color:var(--ink-soft); white-space:nowrap}
+.bondrow.done{border-color:var(--silla); background:var(--panel2)}
+.bondrow.done .bn,.bondrow.done .bt{color:var(--ink)}
+.bondrow.done .bs{color:var(--good)}
+.bondrow.next{border-color:var(--gold)}
+.bondrow.next .bt{color:var(--ink)}
+.bondrow.next .bs{color:var(--gold)}
+.bondtok{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; margin-top:4px}
+.bondtok b{font-family:"Song Myung",serif; color:var(--gold); font-size:1.1rem}
+
+/* ===== 스킬 설명판 (전투 행동바) ===== */
+.skdesc{width:100%; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:2px 14px; margin-top:4px; padding-top:9px; border-top:1px solid var(--line)}
+.skrow{display:flex; gap:7px; align-items:baseline; font-size:.75rem; line-height:1.55; padding:3px 8px; border-radius:6px; border:1px solid transparent; transition:background .15s, border-color .15s}
+.skrow .k{flex:0 0 auto; font-family:"Song Myung",serif; color:var(--ink); white-space:nowrap}
+.skrow .cd{flex:0 0 auto; font-size:.66rem; color:var(--ink-soft); white-space:nowrap}
+.skrow .t{flex:1 1 auto; min-width:0; color:var(--ink-soft)}
+.skrow.ult .k{color:var(--gold)}
+.skrow.off{opacity:.62}
+.skrow.on{border-color:var(--accent); background:var(--panel2)}
+.skrow.on .t{color:var(--ink)}
+.skrow.ready .cd{color:var(--good)}
+@media(max-width:640px){.skdesc{grid-template-columns:1fr; gap:1px} .skrow{font-size:.72rem}}
+@media (prefers-reduced-motion: reduce){.skrow{transition:none}}
+
+/* ===== 재화 칩 ===== */
+.wallet{display:flex; gap:8px; flex-wrap:wrap; align-items:stretch}
+.wchip{position:relative; min-width:104px; background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:7px 12px 7px 32px; text-align:right; line-height:1.25}
+.wchip .wi{position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:1.02rem; opacity:.85; line-height:1}
+.wchip .wl{display:block; font-size:.65rem; color:var(--ink-soft); letter-spacing:.03em}
+.wchip .wv{display:block; font-family:"Song Myung",serif; font-size:1.12rem; color:var(--gold)}
+.wchip.lack .wv{color:var(--ink-soft)}
+.wchip .wd{position:absolute; right:9px; top:-10px; font-size:.72rem; font-weight:700; white-space:nowrap; opacity:0; pointer-events:none}
+.wchip .wd.up{color:var(--good)}
+.wchip .wd.dn{color:var(--bad)}
+.wchip .wd.show{animation:wDelta 1.6s ease-out both}
+@keyframes wDelta{0%{opacity:0; transform:translateY(7px)}18%{opacity:1; transform:translateY(0)}72%{opacity:1}100%{opacity:0; transform:translateY(-7px)}}
+@keyframes wPulse{0%,100%{border-color:var(--line)}35%{border-color:var(--gold)}}
+.wchip.bump{animation:wPulse 1s ease-out}
+.gacha-bar{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; margin-bottom:10px}
+.gacha-btns{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+@media(max-width:640px){.gacha-bar{flex-direction:column-reverse; align-items:stretch} .wallet .wchip{flex:1 1 0; min-width:0}}
+@media (prefers-reduced-motion: reduce){.wchip .wd.show,.wchip.bump{animation:none}}
+
+/* ===== 소환 연출 (모집소 뽑기) ===== */
+.summon{position:fixed; inset:0; z-index:14; background:radial-gradient(ellipse at 50% 44%,#171a20 0%,#0a0b0e 68%); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow:hidden; -webkit-user-select:none; user-select:none; cursor:pointer}
+.summon .sm-skip{position:absolute; top:14px; right:16px; z-index:6; font-size:.76rem; padding:6px 12px; cursor:pointer}
+.summon .sm-count{position:absolute; top:19px; left:18px; z-index:6; font-size:.78rem; color:var(--ink-soft); font-family:"Song Myung",serif}
+/* 충전 단계 — 소환진 */
+.sm-charge{position:relative; width:min(76vw,360px); aspect-ratio:1; display:flex; align-items:center; justify-content:center}
+.sm-charge svg{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+.sm-spin,.sm-spin-r{transform-box:fill-box; transform-origin:center}
+.sm-spin{animation:smSpin 11s linear infinite}
+.sm-spin-r{animation:smSpin 7s linear infinite reverse}
+@keyframes smSpin{to{transform:rotate(360deg)}}
+.sm-ring{opacity:0; animation:smRingIn .7s ease-out forwards; transform-box:fill-box; transform-origin:center}
+@keyframes smRingIn{from{opacity:0; transform:scale(.72)}to{opacity:1; transform:none}}
+.sm-core{position:relative; width:24px; height:24px; border-radius:50%; background:var(--sc); box-shadow:0 0 34px 12px var(--sc); animation:smCore 1.6s cubic-bezier(.55,0,.8,.1) forwards}
+@keyframes smCore{0%{transform:scale(.2); opacity:.3}68%{transform:scale(1.05); opacity:1}100%{transform:scale(2.6); opacity:1}}
+.sm-mote{position:absolute; left:50%; top:50%; width:5px; height:5px; margin:-2.5px 0 0 -2.5px; border-radius:50%; background:var(--sc); opacity:0; animation:smMote 1.5s ease-in infinite}
+@keyframes smMote{0%{opacity:0; transform:translate(var(--mx),var(--my)) scale(.45)}28%{opacity:.85}100%{opacity:0; transform:translate(0,0) scale(.15)}}
+.sm-title{margin-top:22px; font-family:"Song Myung",serif; font-size:1.14rem; color:var(--ink); letter-spacing:.1em; opacity:.9}
+.sm-omenbar{position:absolute; left:0; right:0; top:20%; transform:translateY(-50%); z-index:8; pointer-events:none; text-align:center; padding:16px 0; background:linear-gradient(90deg,transparent,rgba(9,10,13,.93) 15%,rgba(9,10,13,.93) 85%,transparent); animation:smOmenBar 1.5s ease-out forwards}
+.sm-omenbar b{display:block; font-family:"Song Myung",serif; font-size:clamp(1.15rem,4.4vw,1.7rem); letter-spacing:.16em}
+.sm-omenbar i{display:block; margin-top:5px; font-style:normal; font-size:.76rem; color:var(--ink-soft); letter-spacing:.08em}
+@keyframes smOmenBar{0%{opacity:0; transform:translateY(-50%) scaleY(.2)}14%{opacity:1; transform:translateY(-50%) scaleY(1)}78%{opacity:1}100%{opacity:0}}
+@media(max-width:640px){.sm-omenbar{top:20%}}
+.sm-flash{position:fixed; inset:0; z-index:20; pointer-events:none; background:var(--sc); animation:smFlash .55s ease-out forwards}
+@keyframes smFlash{0%{opacity:0}12%{opacity:.85}100%{opacity:0}}
+.sm-flash.soft{animation:smFlashSoft .6s ease-out forwards}
+@keyframes smFlashSoft{0%{opacity:0}14%{opacity:.38}100%{opacity:0}}
+/* 공개 단계 — 카드 */
+.sm-cards{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; width:min(94vw,660px)}
+.sm-cards.one{grid-template-columns:minmax(0,1fr); width:min(58vw,224px)}
+.sm-card{position:relative; aspect-ratio:3/4.25; perspective:900px; opacity:0; animation:smDeal .34s ease-out forwards}
+@keyframes smDeal{from{opacity:0; transform:translateY(16px) scale(.9)}to{opacity:1; transform:none}}
+.sm-inner{position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .5s cubic-bezier(.32,.85,.36,1)}
+.sm-card.flip .sm-inner{transform:rotateY(180deg)}
+.sm-face{position:absolute; inset:0; -webkit-backface-visibility:hidden; backface-visibility:hidden; border-radius:9px; border:1px solid var(--line); overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:6px 4px}
+.sm-back{background:linear-gradient(158deg,#20242c,#14171d); padding:0}
+.sm-back svg{width:100%; height:100%; display:block}
+.sm-front{transform:rotateY(180deg); background:var(--panel)}
+.sm-front .badge{width:clamp(34px,8.4vw,54px); height:clamp(34px,8.4vw,54px)}
+.sm-star{font-size:.66rem; color:var(--gold); letter-spacing:.04em; line-height:1.2}
+.sm-nm{font-family:"Song Myung",serif; font-size:clamp(.64rem,1.9vw,.82rem); color:var(--ink); text-align:center; line-height:1.25; word-break:keep-all}
+.sm-f{font-size:.6rem; opacity:.9}
+.sm-tag{position:absolute; top:5px; left:5px; font-size:.55rem; font-weight:700; padding:1px 5px; border-radius:999px; letter-spacing:.04em}
+.sm-tag.new{background:var(--good); color:#10201b}
+.sm-tag.dup{background:var(--panel2); color:var(--ink-soft); border:1px solid var(--line)}
+.sm-card.s4 .sm-front{border-color:var(--silla); box-shadow:0 0 10px rgba(92,174,154,.28)}
+.sm-card.s5 .sm-front{border-color:var(--gold); box-shadow:0 0 20px 3px rgba(208,171,85,.45)}
+.sm-card.s5.flip .sm-front{animation:smS5 1.5s ease-out .28s}
+@keyframes smS5{0%{box-shadow:0 0 44px 16px rgba(208,171,85,.9)}100%{box-shadow:0 0 20px 3px rgba(208,171,85,.45)}}
+.sm-foot{margin-top:16px; min-height:52px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; text-align:center}
+.sm-sum{font-size:.84rem; color:var(--ink-soft)}
+.sm-sum b{color:var(--gold); font-family:"Song Myung",serif}
+@media(max-width:640px){.sm-cards{gap:6px} .sm-foot{margin-top:12px}}
+@media (prefers-reduced-motion: reduce){
+  .sm-spin,.sm-spin-r,.sm-ring,.sm-core,.sm-mote,.sm-omenbar,.sm-flash,.sm-card,.sm-card.s5.flip .sm-front{animation:none}
+  .sm-omenbar{display:none}
+  .sm-card{opacity:1} .sm-flash{display:none} .sm-inner{transition:none}
+}
 </style>
 </head>
 <body>
@@ -433,11 +540,14 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
   <div id="screen-gacha" class="hidden">
     <h2 style="font-size:1.1rem">모집소 <span style="font-size:.8rem;color:var(--ink-soft)">— 천하의 영웅을 부른다</span></h2>
     <p class="help" style="margin:8px 0" id="gacha-res"></p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="primary" id="btn-pull1">1회 모집 (소집령 1)</button>
-      <button class="primary" id="btn-pull10">10연 모집 (소집령 10)</button>
-      <button id="btn-buy-scroll">소집령 구매 (공훈 100)</button>
-      <button id="btn-gacha-back">돌아가기</button>
+    <div class="gacha-bar">
+      <div class="gacha-btns">
+        <button class="primary" id="btn-pull1">1회 모집 (소집령 1)</button>
+        <button class="primary" id="btn-pull10">10연 모집 (소집령 10)</button>
+        <button id="btn-buy-scroll">소집령 구매 (공훈 100)</button>
+        <button id="btn-gacha-back">돌아가기</button>
+      </div>
+      <div class="wallet" id="gacha-wallet"></div>
     </div>
     <p class="help" id="gacha-note">확률: ★5 5% · ★4 25% · ★3 70% — 10연 시 ★4 이상 1명 보장. 이미 보유한 영웅은 공훈으로 환급(★3 40 / ★4 100 / ★5 250).</p>
     <div class="pickgrid" id="gacha-results"></div>
@@ -510,6 +620,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
         <button id="act-ult" style="border-color:var(--gold)"></button>
         <button id="act-guard">방어</button>
         <span class="hint" id="act-hint"></span>
+        <div class="skdesc" id="act-desc"></div>
       </div>
     </div>
   </div>
@@ -852,18 +963,43 @@ const CHAPTER_EF=[null,"가야","신라","백제","고구려",null,null,null,nul
 
 /* 국보(tier 4) 고유 효과 — 아이템 이름으로 붙인다 */
 const TREASURE_EFF={"칠지도":"chilji", "가야 판갑옷":"panga", "신라 금관":"geumgwan"};
+/* ---- 부절(符節)과 연격(緣格) ----
+   같은 영웅을 또 뽑으면 그 영웅 전용 부절이 한 장 쌓인다.
+   부절을 맞춰 연격을 올리면 그 인물만의 고유 강화가 붙는다.
+   비용은 **본래 등급**(byId[id].s)으로 계산한다 — 승급으로 ★가 올라간 영웅의
+   연격이 갑자기 싸지거나 비싸지지 않게 하려는 것이다.
+   낮은 등급일수록 부절이 많이 나오므로 필요 장수도 더 많다. */
+const BOND_MAX=5;
+const BOND_COST={3:[2,3,5,7,10], 4:[1,2,3,4,6], 5:[1,1,2,3,4]};
+const BOND_STEP=[
+ {n:"기본 스킬 1 위력 +15%"},
+ {n:"최대 HP +10%"},
+ {n:"기본 스킬 2 재사용 −1턴"},
+ {n:"개전 기력 +25"},
+ {n:"궁극기 위력 +25%"},
+];
+const TOKEN_REFUND={3:40, 4:100, 5:250};   // 부절 1장을 공훈으로 돌릴 때
+function tokOf(id){ return (save.tokens&&save.tokens[id])||0; }
+function bondOf(id){ return (save.bond&&save.bond[id])||0; }
+function bondCostOf(id){ const b=bondOf(id); if(b>=BOND_MAX) return null; return (BOND_COST[byId[id].s]||BOND_COST[3])[b]; }
+/* 전투 유닛에 실린 단계를 본다 — 편성 화면에서 올려도 진행 중인 전투에는 반영되지 않는다 */
+function ubond(u){ return (u.side==="ally"&&!u.isMob)?(u.bond||0):0; }
+function bondBasicMul(u,idx){ return (idx===0&&ubond(u)>=1)?1.15:1; }
+function bondCd(u,idx,cd){ return (idx===1&&ubond(u)>=3)?Math.max(1,cd-1):cd; }
+function bondUltMul(u){ return ubond(u)>=5?1.25:1; }
+
 const SUPPORT_SLOTS=3;   // 전투에는 나오지 않고 파티를 후원하는 원군 자리
 
 /* ============ 저장 ============ */
-const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[], sweepDate:"", sweepUses:0, daily:{date:"",prog:{},claimed:[]}, att:{last:"",streak:0,total:0}, shop:{date:"",bought:{}}, chronicle:[], ttsOff:false};
+const DEFAULT_SAVE={unlocked:["ondal","seongchung","gwanchang","wolgwang"], party:["ondal","seongchung","gwanchang","wolgwang"], cleared:[], merit:0, promo:{}, scrolls:10, iron:0, equip:{}, mute:false, wins:0, pulls:0, promoCnt:0, forgeCnt:0, bestFloor:0, claimed:[], starterGift:true, firstTenDone:false, awaken:{}, auto:false, dgDate:"", dgRuns:{}, items:[], wear:{}, mineDate:"", mineUses:0, stageTier:{}, fragments:{}, epilogues:[], nickname:"", defBestWave:0, materials:{silk:0,pearl:0}, support:[], sweepDate:"", sweepUses:0, daily:{date:"",prog:{},claimed:[]}, att:{last:"",streak:0,total:0}, shop:{date:"",bought:{}}, chronicle:[], ttsOff:false, tokens:{}, bond:{}, bondCnt:0, tokenLegacy:1};
 let save=load();
 /* 세이브 보정 — 구버전 세이브에 새 필드 기본값을 채워 넣는다.
    load()와 가져오기가 같은 함수를 쓰도록 분리해 두었다 (필드를 추가하면 여기만 고치면 된다) */
 function normalizeSave(s){
   if(!s||!s.unlocked||!s.party||!s.cleared) return null;
   const d=DEFAULT_SAVE;
-  ["merit","scrolls","iron","wins","pulls","promoCnt","forgeCnt","bestFloor","mineUses","defBestWave","sweepUses"].forEach(k=>{ s[k]=s[k]||0; });
-  ["promo","equip","dgRuns","wear","stageTier","fragments","awaken"].forEach(k=>{ s[k]=s[k]||{}; });
+  ["merit","scrolls","iron","wins","pulls","promoCnt","forgeCnt","bestFloor","mineUses","defBestWave","sweepUses","bondCnt"].forEach(k=>{ s[k]=s[k]||0; });
+  ["promo","equip","dgRuns","wear","stageTier","fragments","awaken","tokens","bond"].forEach(k=>{ s[k]=s[k]||{}; });
   ["claimed","items","epilogues","support","chronicle"].forEach(k=>{ s[k]=s[k]||[]; });
   ["dgDate","mineDate","nickname","sweepDate"].forEach(k=>{ s[k]=s[k]||""; });
   s.mute=!!s.mute; s.auto=!!s.auto; s.firstTenDone=!!s.firstTenDone;
@@ -879,7 +1015,26 @@ function normalizeSave(s){
   });
   // 원군에 파티원이 섞여 있으면 제거 (구버전 세이브 방어)
   s.support=s.support.filter(id=>byId[id]&&!s.party.includes(id)&&s.unlocked.includes(id)).slice(0,SUPPORT_SLOTS);
+  // 연격 단계는 0~BOND_MAX 안에 있어야 한다
+  Object.keys(s.bond).forEach(id=>{ s.bond[id]=Math.max(0,Math.min(BOND_MAX, s.bond[id]|0)); });
+  if(!s.tokenLegacy){ s.tokenLegacy=1; grantLegacyTokens(s); }
   return s;
+}
+/* 부절 소급 지급 — 부절 체계 이전에 뽑은 중복은 공훈으로 이미 녹아 되돌릴 수 없다.
+   대신 【누적 뽑기 수 − 보유 영웅 수】를 중복 수로 보고, 뽑기 확률(★3 70 / ★4 25 / ★5 5)에
+   맞춰 등급별로 나눈 뒤 그 등급 보유 영웅에게 돌려가며 나눠 준다.
+   ★를 구분하지 않고 균등 분배하면 ★5 연격이 공짜로 만렉이 되어 버린다.
+   보스 영입으로 얻은 영웅도 unlocked에 섞여 있으므로 이 추정은 실제보다 적게 준다(의도적). */
+function grantLegacyTokens(s){
+  const dup=Math.max(0,(s.pulls||0)-(s.unlocked||[]).length);
+  if(dup<=0) return;
+  const share={3:0.70, 4:0.25, 5:0.05};
+  [3,4,5].forEach(st=>{
+    const pool=s.unlocked.filter(id=>byId[id]&&byId[id].s===st).slice().sort();
+    if(!pool.length) return;
+    const n=Math.floor(dup*share[st]);
+    for(let i=0;i<n;i++){ const id=pool[i%pool.length]; s.tokens[id]=(s.tokens[id]||0)+1; }
+  });
 }
 function load(){ try{const raw=localStorage.getItem("saguk-save"); if(raw){ const s=normalizeSave(JSON.parse(raw)); if(s) return s; }}catch(e){} return JSON.parse(JSON.stringify(DEFAULT_SAVE)); }
 /* 파티 레벨 상한 = 전체 스테이지 수 + 1 — 스테이지가 늘어나도 권장 Lv과 자동으로 보조를 맞춘다 */
@@ -1001,14 +1156,16 @@ function supportSummary(ids){
 function mkUnit(c, side, lv, isMob){
   const promo=(side==="ally"&&!isMob&&save.promo[c.id])?save.promo[c.id]:0;
   const awk=(side==="ally"&&!isMob&&save.awaken&&save.awaken[c.id])||0;
+  const bond=(side==="ally"&&!isMob)?bondOf(c.id):0;
   const sc=scale(lv)*(1+0.08*promo)*(1+0.12*awk);
-  const u={c, side, lv, isMob:!!isMob, sc, star:c.s+promo, awk, alive:true, shield:0, taunt:0, stun:0, guard:false,
+  const u={c, side, lv, isMob:!!isMob, sc, star:c.s+promo, awk, bond, ultAmp:1, alive:true, shield:0, taunt:0, stun:0, guard:false,
     cds:[0,0], ult:(side==="ally"&&!isMob)?Math.min(100,50+awk*25):(isMob?0:25),
     buffs:[], addMu:0, addJi:0, addSok:0, flags:{}, eq:(side==="ally"&&!isMob)?eqOf(c.id):[0,0,0],
     wearB:(side==="ally"&&!isMob)?wearBonus(c.id):{atkP:0,hpP:0,spd:0},
     wearEff:(side==="ally"&&!isMob)?wearEffects(c.id):[]};
   const cx=(side==="ally"&&!isMob)?codexMult():null;
-  u.maxhp=Math.round((c.st[3]*32+800)*sc*(isMob?0.48:(side==="enemy"?0.68:1))*(cx?1+cx.hp:1)); u.hp=u.maxhp;
+  u.maxhp=Math.round((c.st[3]*32+800)*sc*(isMob?0.48:(side==="enemy"?0.68:1))*(cx?1+cx.hp:1)*(bond>=2?1.10:1)); u.hp=u.maxhp;
+  if(bond>=4) u.ult=Math.min(100,u.ult+25);                                     // 연격 4단계
   if(u.wearEff.includes("geumgwan")&&u.c.skill) u.ult=Math.min(100,u.ult+30);   // 신라 금관
   return u;
 }
@@ -1029,8 +1186,11 @@ function codexMult(){
   return m;
 }
 function codexAmp(u){ return (u.side==="ally"&&!u.isMob)?codexMult():null; }
-function atkOf(u){ const cx=codexAmp(u); return ((u.c.st[0]+u.addMu)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*(cx?1+cx.atk:1); }
-function intOf(u){ const cx=codexAmp(u); return ((u.c.st[1]+u.addJi)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*(cx?1+cx.atk:1); }
+/* `u.ultAmp`는 ultExec 안에서만 1이 아니다(연격 5단계). 궁극기의 계수가 case마다
+   하드코딩되어 있어, 공식을 다 고치는 대신 그 동안의 공격력·지력을 높여 피해·회복·보호막을
+   한꺼번에 같은 비율로 올린다. 방어·속도는 손대지 않는다. */
+function atkOf(u){ const cx=codexAmp(u); return ((u.c.st[0]+u.addMu)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*(cx?1+cx.atk:1)*(u.ultAmp||1); }
+function intOf(u){ const cx=codexAmp(u); return ((u.c.st[1]+u.addJi)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*(cx?1+cx.atk:1)*(u.ultAmp||1); }
 function defOf(u){ const cx=codexAmp(u); let d=(u.c.st[2])*1.8*u.sc*bm(u,"def")*(cx?1+cx.def:1); if(u.c.id==="isabu"&&u.taunt>0) d*=1.25; return d; }
 function spdOf(u){ const cx=codexAmp(u); let s=(u.c.st[4]+u.addSok)*bm(u,"spd")+(cx?cx.spd:0); if(u.c.id==="sadaham"&&B.round===1) s+=999; return s; }
 
@@ -1528,10 +1688,10 @@ function basicAttack(u, tgt){
 /* 기본 스킬 실행 엔진 */
 function useBasic(u, idx, tgt){
   const sk=BASICS[u.c.id][idx];
-  u.cds[idx]=sk.cd;
+  u.cds[idx]=bondCd(u,idx,sk.cd);
   log(nameOf(u)+" — <b>["+sk.nm+"]</b>","sys");
   fxLunge(u, sk.aoe?null:tgt);
-  const pm=u.c.s===5?1:u.c.s===4?0.95:0.90;
+  const pm=(u.c.s===5?1:u.c.s===4?0.95:0.90)*bondBasicMul(u,idx);
   const A=alliesOf(u), E=livingEnemiesOf(u);
   if(sk.kind==="dmg"){
     const base=(sk.stat==="ji"?intOf(u):atkOf(u))*sk.pow*pm;
@@ -1570,6 +1730,7 @@ function ultExec(u, tgt){
   if(!B||B.over) return;
   const A=alliesOf(u), E=livingEnemiesOf(u);
   const id=u.c.id;
+  u.ultAmp=bondUltMul(u);            // 연격 5단계 — switch가 끝나면 반드시 다시 1로 되돌린다
   fxLunge(u, tgt);
   switch(id){
     case "gwang": E.forEach(x=>dealDamage(u,x,atkOf(u)*1.8,{noCounter:true})); break;
@@ -1616,8 +1777,9 @@ function ultExec(u, tgt){
     case "yuhwa": A.forEach(x=>{heal(x,intOf(u)*1.3); x.buffs.push({k:"regen",v:Math.round(intOf(u)*0.4),t:2});}); break;
     case "geumwa": A.forEach(x=>{x.buffs.push({k:"def",v:.2,t:2}); heal(x,intOf(u)*0.8);}); log("금와왕 [동부여의 관용] — 아군 전체 방어 +20%(2턴) + 회복","note"); break;
     case "daemusin": dealDamage(u,tgt,atkOf(u)*2.7,{pierce:.15}); break;
-    default: basicAttack(u,tgt||E[0]);
+    default: u.ultAmp=1; basicAttack(u,tgt||E[0]);   // 평타 대체는 궁극기 증폭 대상이 아니다
   }
+  u.ultAmp=1;
   renderField();
   BTO(stepTurn,D(420));
 }
@@ -1655,6 +1817,36 @@ function showActions(u){
   $("act-hint").textContent="기본 스킬=쿨다운 · 궁극기=기력 100 소모 (개전 50 시작, 행동 +30, 피격 +10"+(u.awk?", 각성 +"+(25*u.awk):"")+")";
   $("act-attack").onclick=()=>{ pending={u,mode:"attack"}; askTarget(u,"공격 대상을 선택"); };
   $("act-guard").onclick=()=>{ hideActions(); u.guard=true; gainG(u,20); log(nameOf(u)+" 방어 태세 (받는 피해 50%↓)","note"); renderField(); BTO(stepTurn,D(250)); };
+  renderSkillDesc(u,bs);
+}
+/* 스킬 설명판 — 누르기 전에 무엇을 하는 스킬인지 행동바 밑에 그대로 보인다.
+   예전에는 title 툴팁뿐이라 터치 환경에서는 설명을 볼 방법이 없었다 */
+function skillDescRows(u,bs){
+  const rows=[];
+  rows.push({b:"act-attack", cls:"", k:"공격", cd:"기력 +30", t:"단일 대상에게 무력 100% 피해"});
+  bs.forEach((sk,i)=>{
+    const left=u.cds[i]|0;
+    rows.push({b:"act-sk"+i, cls:(left>0?"off":"ready"), k:sk.nm,
+      cd:(left>0?("재사용 "+left+"턴"):("쿨 "+(sk.cd||0)+"턴")),
+      t:sk.d||"—"});
+  });
+  rows.push({b:"act-ult", cls:"ult "+(u.ult>=100?"ready":"off"), k:u.c.skill.nm,
+    cd:(u.ult>=100?"기력 100 · 사용 가능":("기력 "+Math.floor(u.ult)+"/100")),
+    t:u.c.skill.d||"—"});
+  rows.push({b:"act-guard", cls:"", k:"방어", cd:"기력 +20", t:"이번 턴 받는 피해 50%↓"});
+  return rows;
+}
+function renderSkillDesc(u,bs){
+  const box=$("act-desc"); if(!box) return;
+  const rows=skillDescRows(u,bs);
+  box.innerHTML=rows.map((r,i)=>'<div class="skrow '+r.cls+'" data-r="'+i+'">'
+    +'<span class="k">'+r.k+'</span><span class="cd">'+r.cd+'</span><span class="t">'+r.t+'</span></div>').join("");
+  rows.forEach((r,i)=>{
+    const btn=$(r.b), row=box.querySelector('.skrow[data-r="'+i+'"]');
+    if(!btn||!row) return;
+    const on=()=>row.classList.add("on"), off=()=>row.classList.remove("on");
+    btn.onmouseenter=on; btn.onmouseleave=off; btn.onfocus=on; btn.onblur=off;
+  });
 }
 function hideActions(){ $("actionbar").style.visibility="hidden"; clearTargets(); }
 function askTarget(u,hint){
@@ -3837,7 +4029,9 @@ function showParty(){
     }
     const bs=BASICS[c.id]||[];
     const wcnt=wearOf(c.id).filter(x=>x!==null&&x!==undefined).length;
-    d.innerHTML='<span class="badge">'+pface(c,awk)+'</span><div class="info"><div class="nm">'+c.n+(c.king?" 👑":"")+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(es)+'</span>'+(awk?'<span style="color:var(--accent);font-size:.7rem">'+"✦".repeat(awk)+'</span>':"")+'</div><div class="meta">'+c.f+" · "+c.role+'</div><div class="st">무'+c.st[0]+" 지"+c.st[1]+" 방"+c.st[2]+" 체"+c.st[3]+" 속"+c.st[4]+'</div><div class="meta">스킬: '+bs.map(s=>s.nm).join(" · ")+'</div><div class="meta">[궁극기 '+c.skill.nm+"] "+c.skill.d+'</div>'+promoBtn+' <button class="gearb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px">장비 '+wcnt+'/3</button></div>';
+    const bdLv=bondOf(c.id), tk=tokOf(c.id);
+    d.innerHTML='<span class="badge">'+pface(c,awk)+'</span><div class="info"><div class="nm">'+c.n+(c.king?" 👑":"")+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(es)+'</span>'+(awk?'<span style="color:var(--accent);font-size:.7rem">'+"✦".repeat(awk)+'</span>':"")+'</div><div class="meta">'+c.f+" · "+c.role+'</div><div class="st">무'+c.st[0]+" 지"+c.st[1]+" 방"+c.st[2]+" 체"+c.st[3]+" 속"+c.st[4]+'</div><div class="meta">스킬: '+bs.map(s=>s.nm).join(" · ")+'</div><div class="meta">[궁극기 '+c.skill.nm+"] "+c.skill.d+'</div>'+promoBtn+' <button class="gearb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px">장비 '+wcnt+'/3</button>'
+      +' <button class="bondb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px'+(bdLv>0?';border-color:var(--silla)':"")+(tk>0&&bdLv<BOND_MAX&&tk>=bondCostOf(c.id)?';border-color:var(--gold)':"")+'">연격 '+bdLv+'/'+BOND_MAX+(tk?' · 부절 '+tk:"")+'</button></div>';
     const toggle=()=>{
       if(mode==="party"){
         if(sel.includes(c.id)) sel=sel.filter(x=>x!==c.id);
@@ -3862,6 +4056,8 @@ function showParty(){
     };
     const gb=d.querySelector(".gearb");
     if(gb) gb.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; save.support=sup; showEquip(c.id); };
+    const bb=d.querySelector(".bondb");
+    if(bb) bb.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; save.support=sup; showBond(c.id); };
     const bd=d.querySelector(".badge");
     if(bd){ bd.style.cursor="pointer"; bd.title="장비창 열기"; bd.onclick=(e)=>{ e.stopPropagation(); if(sel.length===4) save.party=sel; save.support=sup; showEquip(c.id); }; }
     const ab=d.querySelector(".awakenb");
@@ -3886,6 +4082,63 @@ function showParty(){
   $("btn-party-cancel").onclick=showMap;
 }
 function alertMsg(t){ showModal("<h2>알림</h2><p>"+t+"</p><button class='primary' id='m-ok'>확인</button>", closeModal); }
+/* ---- 연격(緣格) 모달 — 모은 부절을 쓰는 세 가지 길 ----
+   ① 연격을 올려 그 인물만의 고유 강화를 받는다
+   ② 이야기 조각으로 바꿔 후일담을 열는다 — 출전시키지 않는 영웅은 이 길밖에 없다
+   ③ 공훈으로 돌린다 — 예전 중복 환급과 같은 값이라 손해는 없다 */
+function showBond(id){
+  const c=byId[id];
+  const back=()=>{ closeModal(); showParty(); };
+  const draw=()=>{
+    const tok=tokOf(id), b=bondOf(id), cost=bondCostOf(id);
+    const tbl=(BOND_COST[c.s]||BOND_COST[3]);
+    const rows=BOND_STEP.map((st,i)=>{
+      const done=i<b, next=(i===b);
+      return '<div class="bondrow'+(done?" done":"")+(next?" next":"")+'">'
+        +'<span class="bn">'+(i+1)+'단</span><span class="bt">'+st.n+'</span>'
+        +'<span class="bs">'+(done?"달성":"부절 "+tbl[i]+"장")+'</span></div>';
+    }).join("");
+    const frag=save.fragments[id]||0, fragFull=frag>=FRAGMENT_GOAL;
+    const maxed=b>=BOND_MAX;
+    showModal('<h2 style="font-size:1.05rem">'+c.n+' <span style="color:var(--gold);font-size:.8rem">연격 '+b+'/'+BOND_MAX+'</span></h2>'
+      +'<p class="help" style="margin:6px 0">같은 영웅을 또 모으면 <b>부절</b>이 쌓인다. 부절을 맞춰 연격을 올리면 이 인물만의 강화가 붙는다.</p>'
+      +'<div class="bondtok">보유 부절 <b>'+tok+'장</b>'
+        +'<span class="help">이야기 조각 '+frag+'/'+FRAGMENT_GOAL+(fragFull?" · 후일담 열림":"")+'</span></div>'
+      +'<div class="bondwrap">'+rows+'</div>'
+      +(maxed?'<p class="help" style="color:var(--gold)">연격을 끝까지 쌓았다. 남는 부절은 조각이나 공훈으로 돌릴 수 있다.</p>'
+             :(tok>=cost?'<p class="help" style="color:var(--gold)">부절이 맞았다 — 지금 '+(b+1)+'단을 올릴 수 있다.</p>'
+                        :'<p class="help">다음 단계까지 부절 <b style="color:var(--gold)">'+(cost-tok)+'장</b> 남았다.</p>'))
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'
+        +(maxed?'':'<button class="primary" id="bd-up" '+(tok<cost?"disabled":"")+'>연격 '+(b+1)+'단 (부절 '+cost+')</button>')
+        +'<button id="bd-frag" '+((tok<1||fragFull)?"disabled":"")+'>이야기 조각으로 (부절 1)</button>'
+        +'<button id="bd-merit" '+(tok<1?"disabled":"")+'>공훈으로 (부절 1 → '+TOKEN_REFUND[c.s]+')</button>'
+        +'<button id="bd-close">닫기</button></div>', null);
+    const up=$("bd-up");
+    if(up) up.onclick=()=>{
+      const t2=tokOf(id), b2=bondOf(id), c2=bondCostOf(id);
+      if(b2>=BOND_MAX||c2===null||t2<c2) return;
+      save.tokens[id]=t2-c2; save.bond[id]=b2+1; save.bondCnt=(save.bondCnt||0)+1;
+      persist(); sfx("win"); draw();
+    };
+    const fb=$("bd-frag");
+    if(fb) fb.onclick=()=>{
+      if(tokOf(id)<1||(save.fragments[id]||0)>=FRAGMENT_GOAL) return;
+      save.tokens[id]=tokOf(id)-1;
+      save.fragments[id]=(save.fragments[id]||0)+1;
+      // 조각을 다 채우면 전투에서 모았을 때와 똑같이 후일담이 열려야 한다
+      if(save.fragments[id]>=FRAGMENT_GOAL&&!save.epilogues.includes(id)) save.epilogues.push(id);
+      persist(); sfx("heal"); draw();
+    };
+    const mb=$("bd-merit");
+    if(mb) mb.onclick=()=>{
+      if(tokOf(id)<1) return;
+      save.tokens[id]=tokOf(id)-1; save.merit+=TOKEN_REFUND[c.s];
+      persist(); sfx("heal"); draw();
+    };
+    const cb=$("bd-close"); if(cb) cb.onclick=back;
+  };
+  draw();
+}
 /* 영웅 장비창: 편성소에서 초상/장비 버튼 클릭 → 착용·해제·이전 */
 function itemRank(it){ return it?it.tier*10+(it.eff?0:1):-1; } // 같은 tier면 순수 스탯템을 근소 우선
 function autoEquipBest(id){
@@ -3961,7 +4214,8 @@ $("btn-help").onclick=()=>{
    +"<p><b>진행</b> — 보스를 꺾으면 그 영웅이 동료로 합류. 스테이지를 깰수록 파티 레벨 상승(+1/클리어). 일부 결전 스테이지는 <b>2웨이브</b>: 1진을 섬멸하면 증원이 등장한다(아군 버프·쿨다운은 유지).</p>"
    +"<p><b>재도전 난이도</b> — 이미 클리어한 스테이지를 다시 깨면 <b>도전 Lv</b>가 1씩 올라가며 다음 재도전부터 적이 더 강해지고(레벨·체력 상승) 보상도 그만큼 늘어난다. 시련의 탑처럼 상한이 없어 원하는 만큼 밀어붙일 수 있다. <b>도전 Lv "+REPLAY_HERO_TIER+"</b> 이상부터는 일반 병사 대신 이름 있는 영웅들이 적으로 등장해(기본 스킬·궁극기까지 사용) 훨씬 까다로워진다.</p>"
    +"<p><b>승급</b> — 클리어 보상 <b>공훈</b>으로 편성 화면에서 영웅의 ★을 올린다(최대 ★5, 단계당 기본 능력 +8%). ★3도 끝까지 키울 수 있다.</p>"
-   +"<p><b>모집소</b> — 첫 클리어마다 얻는 <b>소집령</b>으로 영웅을 뽑는다(★5 5%/★4 25%/★3 70%, 10연 시 ★4+ 보장). 중복은 공훈으로 환급. 공훈 100으로 소집령 구매 가능.</p>"
+   +"<p><b>모집소</b> — 첫 클리어마다 얻는 <b>소집령</b>으로 영웅을 뽑는다(★5 5%/★4 25%/★3 70%, 10연 시 ★4+ 보장). 공훈 100으로 소집령 구매 가능.</p>"
+   +"<p><b>부절·연격</b> — 이미 가진 영웅이 또 나오면 <b>그 영웅의 부절</b>이 한 장 쌓인다. 편성 화면의 〈연격〉 버튼에서 부절을 써 <b>연격 5단계</b>를 올린다 — 기본 스킬 1 위력 +15% → 최대 HP +10% → 기본 스킬 2 재사용 −1턴 → 개전 기력 +25 → 궁극기 위력 +25%. 필요 장수는 본래 등급이 낮을수록 많다(★3 2/3/5/7/10 · ★4 1/2/3/4/6 · ★5 1/1/2/3/4). 부절은 <b>이야기 조각</b>이나 공훈(★3 40 / ★4 100 / ★5 250)으로 돌릴 수도 있다 — 출전시키지 않는 영웅의 후일담을 여는 유일한 길이다.</p>"
    +"<p><b>대장간</b> — 클리어 보상 <b>철</b>로 영웅별 무기/갑옷/장신구를 "+FORGE_MAX+"단계까지 강화. 파티에 가야 영웅이 있으면 전투 중 장비 효과 1.3배.</p>"
    +"<p><b>편의</b> — 전투 화면에서 배속(×2)과 자동 전투를, 상단에서 효과음·배경음을 켜고 끌 수 있다. 자동 전투는 전투마다 꺼진 상태로 시작해 버튼을 눌러야 켜진다.</p>"
    +"<p><b>드랍 장비</b> — 스테이지(45%, 보스 60%)·시련의 탑(45%, 영웅층은 국보 확정)·폐광(70%)에서 아이템이 랜덤 드랍된다. 편성소에서 영웅 초상이나 장비 버튼을 눌러 무기/갑옷/장신구를 착용(다른 영웅 착용분은 자동 이전). 대장간 강화와 합산되며, 가야 시너지(장비 효과 1.3배)의 적용도 받는다. 도전 Lv "+REPLAY_HERO_TIER+" 이상 승리 시 낮은 확률로 <b>"+SPECIAL_WEAPON.n+"</b>이 드랍되는데, 공격 시 대상의 치유 효과를 50%(2턴) 낮춰 적 힐러를 상대하기 좋다.</p>"
@@ -4044,17 +4298,41 @@ $("btn-mute").onclick=()=>{ save.mute=!save.mute; persist(); updMute(); };
 updMute();
 
 /* ============ 모집소 (영웅뽑기) ============ */
-const DUP_REFUND={3:40,4:100,5:250};
+/* 중복은 공훈이 아니라 **그 영웅의 부절**로 쌓인다. 공훈으로 돌리고 싶으면
+   연격 모달에서 직접 바꾸면 되며, 환급액은 예전과 같다(TOKEN_REFUND). */
 function showGacha(keepResults){
   ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-forge","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-gacha").classList.remove("hidden");
-  $("gacha-res").textContent="보유: 소집령 "+save.scrolls+" · 공훈 "+save.merit+" · 영웅 "+save.unlocked.length+"/"+CHARS.length;
+  $("gacha-res").textContent="영웅 도감 "+save.unlocked.length+"/"+CHARS.length+"명 · 누적 모집 "+num(save.pulls||0)+"회";
+  renderGachaWallet();
   $("btn-pull1").disabled=save.scrolls<1;
   $("btn-pull10").disabled=save.scrolls<10;
   $("btn-buy-scroll").disabled=save.merit<100;
   $("btn-pull10").textContent=save.firstTenDone?"10연 모집 (소집령 10)":"개국 10연 모집 — ★5 보장!";
   if(!save.firstTenDone) $("gacha-note").innerHTML="<b style='color:var(--gold)'>개국 기념 소집령 10장 지급!</b> 첫 10연은 ★5 영웅 1명이 보장된다. 이후 확률: ★5 5% · ★4 25% · ★3 70%, 10연 시 ★4+ 보장. 중복은 공훈 환급(★3 40 / ★4 100 / ★5 250).";
   if(!keepResults) $("gacha-results").innerHTML="";
+}
+/* 재화 칩 — 모집 버튼 옆에 소집령·공훈을 따로 세워 보이고, 쓰거나 늘어난 만큼을 그 자리에 띄운다 */
+let GW_LAST=null;
+function renderGachaWallet(){
+  const el=$("gacha-wallet"); if(!el) return;
+  const chips=[{k:"scrolls", i:"\uD83D\uDCDC", l:"소집령", lack:save.scrolls<1},
+               {k:"merit",   i:"\uD83C\uDF96\uFE0F", l:"공훈",   lack:save.merit<100}];
+  el.innerHTML=chips.map(c=>'<div class="wchip'+(c.lack?" lack":"")+'" data-k="'+c.k+'">'
+    +'<span class="wi" aria-hidden="true">'+c.i+'</span>'
+    +'<span class="wl">'+c.l+'</span><span class="wv">'+num(save[c.k])+'</span>'
+    +'<span class="wd"></span></div>').join("");
+  if(GW_LAST){
+    chips.forEach(c=>{
+      const diff=(save[c.k]|0)-(GW_LAST[c.k]|0); if(!diff) return;
+      const box=el.querySelector('.wchip[data-k="'+c.k+'"]'); if(!box) return;
+      const d=box.querySelector(".wd");
+      d.textContent=(diff>0?"+":"−")+num(Math.abs(diff));
+      d.className="wd "+(diff>0?"up":"dn")+" show";
+      box.classList.add("bump");
+    });
+  }
+  GW_LAST={scrolls:save.scrolls, merit:save.merit};
 }
 function rollChar(minStar){
   const r=Math.random();
@@ -4064,7 +4342,7 @@ function rollChar(minStar){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function doGacha(n){
-  if(save.scrolls<n) return;
+  if(save.scrolls<n||SM) return;
   save.scrolls-=n; save.pulls+=n;
   dailyBump("gacha", n);
   const results=[];
@@ -4075,18 +4353,250 @@ function doGacha(n){
     save.firstTenDone=true;
   }
   if(n===10 && !results.some(c=>c.s>=4)) results[9]=rollChar(4);
-  const g=$("gacha-results"); g.innerHTML="";
-  results.forEach(c=>{
+  // 공개 순서는 ★이 낮은 것부터 — 마지막에 가장 높은 등급이 나오게 하는 뽑기류의 관례다.
+  // 뽑힌 결과 자체는 순서와 무관하므로 확률에 영향이 없다.
+  results.sort((a,b)=>a.s-b.s);
+  let tokenCnt=0, newCnt=0;
+  const rolls=results.map(c=>{
     const isNew=!save.unlocked.includes(c.id);
-    if(isNew) save.unlocked.push(c.id);
-    else save.merit+=DUP_REFUND[c.s];
+    if(isNew){ save.unlocked.push(c.id); newCnt++; }
+    else { save.tokens[c.id]=tokOf(c.id)+1; tokenCnt++; }
+    return {c, isNew};
+  });
+  renderGachaResults(rolls);
+  persist();
+  showGacha(true);
+  playSummon(rolls, {newCnt, tokenCnt}, ()=>showGacha(true));
+}
+function renderGachaResults(rolls){
+  const g=$("gacha-results"); g.innerHTML="";
+  rolls.slice().reverse().forEach(r=>{
+    const c=r.c;
     const d=document.createElement("div");
-    d.className="pick"+(isNew?" sel":"");
-    d.innerHTML=badge(c)+'<div class="info"><div class="nm">'+c.n+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(c.s)+'</span></div><div class="meta">'+c.f+" · "+c.role+'</div><div class="meta" style="color:'+(isNew?"var(--good)":"var(--ink-soft)")+'">'+(isNew?"새 영웅 합류!":"중복 — 공훈 +"+DUP_REFUND[c.s])+'</div></div>';
+    d.className="pick"+(r.isNew?" sel":"");
+    d.innerHTML=badge(c)+'<div class="info"><div class="nm">'+c.n+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(c.s)+'</span></div><div class="meta">'+c.f+" · "+c.role+'</div><div class="meta" style="color:'+(r.isNew?"var(--good)":"var(--silla)")+'">'+(r.isNew?"새 영웅 합류!":"부절 +1 — 보유 "+tokOf(c.id)+"장 · 연격 "+bondOf(c.id)+"/"+BOND_MAX)+'</div></div>';
     g.appendChild(d);
   });
-  persist(); sfx("gacha");
-  showGacha(true);
+}
+
+/* ============ 소환 연출 ============
+   뽑기류 게임의 통상 순서를 따른다: 기운이 모이는 충전 → 등급 예고(빛깜) →
+   섬광 → 카드를 한 장씩 뒤집어 공개 → 결과 요약. 어느 단계에서든 화면을 누르면 건너뛴다.
+   연출은 이미 정해진 결과를 보여 줄 뿐이라 확률에는 손대지 않는다. */
+/* 충전 단계는 **항상 같은 중립색**이다 — 소환진 색이 등급을 따라가면
+   카드를 열기도 전에 결과가 들통난다. 등급 예고는 `smOmenBar`가 공개 막바지,
+   ★이 낮은 카드를 다 열고 그날 최고 등급이 나오기 직전에만 뜸다. */
+const SM_NEUTRAL="#7f8b9b";
+const SM_TIER={4:{c:"var(--silla)", t:"기연 奇緣", sub:"범상치 않은 이가 오고 있다", hold:900},
+               5:{c:"var(--gold)",  t:"천명 天命", sub:"하늘이 부른 이가 오고 있다", hold:1500}};
+let SM=null; // {el, rolls, meta, done, best, idx, stage, timers}
+
+function smT(fn,ms){ const t=setTimeout(fn,ms); if(SM) SM.timers.push(t); return t; }
+function smClear(){ if(!SM) return; SM.timers.forEach(clearTimeout); SM.timers=[]; }
+
+function smCircleSVG(col){
+  let g='<svg viewBox="-100 -100 200 200" aria-hidden="true">';
+  g+='<circle class="sm-ring sm-spin" r="88" fill="none" stroke="'+col+'" stroke-opacity=".26" stroke-width="1" stroke-dasharray="6 12"/>';
+  g+='<circle class="sm-ring sm-spin-r" r="71" fill="none" stroke="'+col+'" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="36 20"/>';
+  g+='<circle class="sm-ring" r="55" fill="none" stroke="'+col+'" stroke-opacity=".20" stroke-width="1"/>';
+  // 사방(四方) 표식 — 네 나라를 뜻한다
+  let sp='';
+  for(let i=0;i<4;i++) sp+='<path transform="rotate('+(i*90)+')" d="M0,-80 L7.5,-65 L0,-58.5 L-7.5,-65 Z" fill="'+col+'" fill-opacity=".55"/>';
+  for(let i=0;i<12;i++) sp+='<rect transform="rotate('+(i*30+15)+')" x="-1" y="-74" width="2" height="9" fill="'+col+'" fill-opacity=".32"/>';
+  g+='<g class="sm-ring">'+sp+'</g>';
+  g+='<g class="sm-ring sm-spin"><path d="M0,-54 L46.8,27 L-46.8,27 Z" fill="none" stroke="'+col+'" stroke-opacity=".34" stroke-width="1.2"/>'
+    +'<path d="M0,54 L46.8,-27 L-46.8,-27 Z" fill="none" stroke="'+col+'" stroke-opacity=".20" stroke-width="1.2"/></g>';
+  g+='</svg>';
+  return g;
+}
+function smBackSVG(){
+  return '<svg viewBox="0 0 60 85" preserveAspectRatio="none" aria-hidden="true">'
+    +'<rect x="0" y="0" width="60" height="85" fill="#191d24"/>'
+    +'<rect x="4.5" y="4.5" width="51" height="76" fill="none" stroke="#3a4250" stroke-width="1"/>'
+    +'<circle cx="30" cy="42.5" r="15" fill="none" stroke="#6f5d36" stroke-width="1.2"/>'
+    +'<circle cx="30" cy="42.5" r="9" fill="none" stroke="#6f5d36" stroke-width=".8" stroke-opacity=".7"/>'
+    +'<path d="M30,27 L34,42.5 L30,58 L26,42.5 Z" fill="#6f5d36" fill-opacity=".6"/>'
+    +'<path d="M15,42.5 L30,38.5 L45,42.5 L30,46.5 Z" fill="#6f5d36" fill-opacity=".38"/>'
+    +'</svg>';
+}
+function smRiser(best){
+  if(save.mute) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const now=AC.currentTime, dur=1.45, top=(best===5?680:best===4?450:360);
+    const o=AC.createOscillator(), g=AC.createGain(), lp=AC.createBiquadFilter();
+    lp.type="lowpass"; lp.frequency.setValueAtTime(650,now); lp.frequency.exponentialRampToValueAtTime(4200,now+dur);
+    o.type="sawtooth"; o.frequency.setValueAtTime(105,now); o.frequency.exponentialRampToValueAtTime(top,now+dur);
+    o.connect(lp); lp.connect(g); g.connect(AC.destination);
+    g.gain.setValueAtTime(0.0004,now);
+    g.gain.exponentialRampToValueAtTime(0.05,now+dur*0.88);
+    g.gain.exponentialRampToValueAtTime(0.0005,now+dur+0.35);
+    o.start(now); o.stop(now+dur+0.4);
+  }catch(e){}
+}
+function smBlip(star){
+  if(save.mute) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const now=AC.currentTime, f=(star===5?880:star===4?659:494);
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type="triangle"; o.frequency.setValueAtTime(f,now); o.frequency.exponentialRampToValueAtTime(f*1.5,now+0.11);
+    o.connect(g); g.connect(AC.destination);
+    g.gain.setValueAtTime(0.033,now); g.gain.exponentialRampToValueAtTime(0.0008,now+0.22);
+    o.start(now); o.stop(now+0.25);
+  }catch(e){}
+}
+function smFlash(col,soft){
+  if(REDUCED||!SM) return;
+  const f=document.createElement("div");
+  f.className="sm-flash"+(soft?" soft":""); f.style.setProperty("--sc",col);
+  SM.el.appendChild(f);
+  setTimeout(()=>f.remove(),620);
+}
+function playSummon(rolls, meta, done){
+  const best=rolls.reduce((m,r)=>Math.max(m,r.c.s),3);
+  const el=document.createElement("div");
+  el.className="summon"; el.setAttribute("role","dialog"); el.setAttribute("aria-label","영웅 소환");
+  document.body.appendChild(el);
+  SM={el, rolls, meta:meta||{}, done, best, idx:0, stage:"charge", timers:[]};
+  el.addEventListener("click", e=>{ if(e.target.closest("button")) return; smAdvance(); });
+  SM.keyHandler=e=>{ if(e.key==="Escape"||e.key===" "||e.key==="Enter"){ e.preventDefault(); smAdvance(); } };
+  document.addEventListener("keydown", SM.keyHandler);
+  if(REDUCED){ smReveal(); smSkipAll(); return; }
+  smCharge();
+}
+function smCharge(){
+  const col=SM_NEUTRAL, n=SM.rolls.length;
+  let motes='';
+  for(let i=0;i<12;i++){
+    const a=(i/12)*Math.PI*2+Math.random()*0.4, r=90+Math.random()*70;
+    motes+='<span class="sm-mote" style="--mx:'+(Math.cos(a)*r).toFixed(1)+'px;--my:'+(Math.sin(a)*r).toFixed(1)+'px;animation-delay:'+(i*0.11).toFixed(2)+'s"></span>';
+  }
+  SM.el.innerHTML='<button class="sm-skip" id="sm-skip">건너뛰기</button>'
+    +'<div class="sm-charge" style="--sc:'+col+'">'+smCircleSVG(col)+motes+'<div class="sm-core"></div></div>'
+    +'<div class="sm-title">소집령 '+n+'장을 사른다</div>';
+  const sk=$("sm-skip"); if(sk) sk.onclick=()=>smSkipNow();
+  smRiser(0);
+  smT(()=>{ smFlash(col); smT(smReveal, 170); }, 1450);
+}
+/* 등급 예고 막 — 그날 최고 등급 카드가 뒤집힐 바로 앞에 한 번만 뜸다 */
+function smOmenBar(star){
+  const t=SM_TIER[star]; if(!t||!SM) return 0;
+  if(REDUCED) return 0;
+  const b=document.createElement("div");
+  b.className="sm-omenbar";
+  b.innerHTML='<b style="color:'+t.c+'">'+t.t+'</b><i>'+t.sub+'</i>';
+  SM.el.appendChild(b);
+  setTimeout(()=>b.remove(), 1600);
+  smFlash(t.c, true);
+  if(star===5) smRiser(5);
+  return t.hold;
+}
+function smCardHTML(r,i){
+  const c=r.c;
+  return '<div class="sm-card s'+c.s+'" data-i="'+i+'" style="animation-delay:'+(i*0.05).toFixed(2)+'s">'
+    +'<div class="sm-inner">'
+      +'<div class="sm-face sm-back">'+smBackSVG()+'</div>'
+      +'<div class="sm-face sm-front">'
+        +'<span class="badge">'+pface(c,awkOf(c.id))+'</span>'
+        +'<div class="sm-star">'+"★".repeat(c.s)+'</div>'
+        +'<div class="sm-nm">'+c.n+'</div>'
+        +'<div class="sm-f" style="color:'+(FCOLOR[c.f]||"var(--ink-soft)")+'">'+c.f+'</div>'
+        +(r.isNew?'<div class="sm-tag new">NEW</div>':'<div class="sm-tag dup">부절 +1</div>')
+      +'</div>'
+    +'</div></div>';
+}
+function smReveal(){
+  if(!SM) return;
+  SM.stage="reveal"; SM.idx=0;
+  const many=SM.rolls.length>1;
+  SM.el.innerHTML='<div class="sm-count" id="sm-count"></div>'
+    +'<button class="sm-skip" id="sm-skip">전부 공개</button>'
+    +'<div class="sm-cards'+(many?"":" one")+'" id="sm-cards">'+SM.rolls.map(smCardHTML).join("")+'</div>'
+    +'<div class="sm-foot" id="sm-foot"></div>';
+  const sk=$("sm-skip"); if(sk) sk.onclick=()=>smSkipNow();
+  smCount();
+  if(REDUCED) return;
+  smT(smStep, 620);
+}
+function smCount(){
+  const el=$("sm-count"); if(!el) return;
+  el.textContent="공개 "+Math.min(SM.idx,SM.rolls.length)+" / "+SM.rolls.length;
+}
+function smFlipCard(i){
+  const r=SM.rolls[i];
+  const card=SM.el.querySelector('.sm-card[data-i="'+i+'"]');
+  if(card){ card.classList.add("flip"); }
+  return r;
+}
+function smStep(){
+  if(!SM) return;
+  if(SM.idx>=SM.rolls.length){ smFinish(); return; }
+  const i=SM.idx;
+  // 오름차순이므로 최고 등급은 끝에 몰려 있다. 그 첫 장 앞에서 한 번만 예고한다.
+  // 단채(1회)는 예고하면 곰바로 답이므로 건너뛴다 — 카드 그 자체가 연출이다.
+  if(!SM.omenDone && SM.rolls.length>1 && SM.best>=4 && SM.rolls[i].c.s===SM.best){
+    SM.omenDone=true;
+    const hold=smOmenBar(SM.best);
+    if(hold){ smT(smStep, hold); return; }
+  }
+  SM.idx++;
+  const r=smFlipCard(i);
+  smCount();
+  if(r.c.s===5){ smFlash("var(--gold)"); playAwakenSting(r.c.f); }
+  else smBlip(r.c.s);
+  smT(smStep, r.c.s===5?1100:(SM.rolls.length>1?300:620));
+}
+function smSkipAll(){
+  if(!SM) return;
+  smClear();
+  SM.omenDone=true;
+  SM.el.querySelectorAll(".sm-omenbar").forEach(b=>b.remove());
+  let five=false;
+  for(let i=SM.idx;i<SM.rolls.length;i++){ if(SM.rolls[i].c.s===5) five=true; smFlipCard(i); }
+  SM.idx=SM.rolls.length;
+  smCount();
+  if(!REDUCED){ if(five){ smFlash("var(--gold)"); smBlip(5); } else smBlip(4); }
+  smFinish();
+}
+function smFinish(){
+  if(!SM) return;
+  SM.stage="done";
+  const f=$("sm-foot"); if(!f) return;
+  const m=SM.meta;
+  const parts=[];
+  parts.push(m.newCnt?('새 영웅 <b>'+m.newCnt+'명</b> 합류'):'새 영웅 없음');
+  if(m.tokenCnt) parts.push('부절 <b>'+m.tokenCnt+'장</b>');
+  parts.push('남은 소집령 <b>'+num(save.scrolls)+'</b>');
+  f.innerHTML='<span class="sm-sum">'+parts.join(" · ")+'</span>'
+    +'<button class="primary" id="sm-ok">확인</button>'
+    +(save.scrolls>=10?'<button id="sm-again">10연 또 뽑기</button>':(save.scrolls>=1?'<button id="sm-again1">1회 또 뽑기</button>':''));
+  const sk=$("sm-skip"); if(sk) sk.style.display="none";
+  const ok=$("sm-ok"); if(ok) ok.onclick=()=>smClose();
+  const ag=$("sm-again"); if(ag) ag.onclick=()=>{ smClose(); doGacha(10); };
+  const a1=$("sm-again1"); if(a1) a1.onclick=()=>{ smClose(); doGacha(1); };
+}
+/* 화면을 누르면 한 단계씩 건너뛴다 — 충전 중이면 공개로, 공개 중이면 전부 공개로 */
+function smAdvance(){
+  if(!SM) return;
+  if(SM.stage==="charge"){ smClear(); smReveal(); }
+  else if(SM.stage==="reveal"){ smSkipAll(); }
+  else smClose();
+}
+/* 건너뛰기 버튼 — 어느 단계에서든 결과까지 한 번에 */
+function smSkipNow(){
+  if(!SM) return;
+  if(SM.stage==="charge"){ smClear(); smReveal(); }
+  if(SM.stage==="reveal") smSkipAll(); else smClose();
+}
+function smClose(){
+  if(!SM) return;
+  smClear();
+  if(SM.keyHandler) document.removeEventListener("keydown", SM.keyHandler);
+  const el=SM.el, done=SM.done;
+  SM=null;
+  if(el&&el.parentNode) el.parentNode.removeChild(el);
+  if(done) done();
 }
 $("btn-gacha").onclick=()=>showGacha();
 $("btn-gacha-back").onclick=showMap;
@@ -5098,7 +5608,8 @@ function showCodex(){
         +'<div class="st">무'+c.st[0]+" 지"+c.st[1]+" 방"+c.st[2]+" 체"+c.st[3]+" 속"+c.st[4]+'</div>'
         +'<div class="meta">스킬: '+(BASICS[c.id]||[]).map(s=>s.nm).join(" · ")+' / [궁극기 '+c.skill.nm+"] "+c.skill.d+'</div>'
         +'<div class="meta" style="color:var(--ink);margin-top:3px">"'+(LORE[c.id]||"")+'"</div>'
-        +(save.epilogues.includes(c.id)?'<div class="meta" style="color:var(--gold);margin-top:2px">✦ 후일담 열림</div>':'<div class="meta" style="margin-top:2px">이야기 조각 '+(save.fragments[c.id]||0)+'/'+FRAGMENT_GOAL+'</div>')+'</div>';
+        +(save.epilogues.includes(c.id)?'<div class="meta" style="color:var(--gold);margin-top:2px">✦ 후일담 열림</div>':'<div class="meta" style="margin-top:2px">이야기 조각 '+(save.fragments[c.id]||0)+'/'+FRAGMENT_GOAL+'</div>')
+        +((bondOf(c.id)||tokOf(c.id))?'<div class="meta" style="color:var(--silla);margin-top:2px">연격 '+bondOf(c.id)+'/'+BOND_MAX+(tokOf(c.id)?' · 부절 '+tokOf(c.id)+'장':"")+'</div>':"")+'</div>';
     } else {
       d.style.opacity=".75";
       d.innerHTML='<span class="badge" style="filter:grayscale(1) brightness(.45)">'+pface(c)+'</span>'
