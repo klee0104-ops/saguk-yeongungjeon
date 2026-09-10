@@ -26,7 +26,8 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
 .topbar h1{font-size:1.5rem}
 .topbar .lv{color:var(--gold); font-size:.9rem}
 .topbar .sp{flex:1}
-.hudgain{font-size:.82rem; color:var(--good); white-space:nowrap}
+.lvwrap{position:relative; display:inline-block}
+.hudgain{font-size:.78rem; color:var(--good); white-space:nowrap; position:absolute; left:0; top:100%; margin-top:1px; pointer-events:none} /* 재화 숫자 바로 아래에 띄운다 — 흐름 밖이라 상단 버튼 줄이 밀리지 않는다 */
 .chronrow{display:flex; gap:14px; padding:11px 14px; border-left:2px solid var(--line); margin-left:6px; position:relative}
 .chronrow.done{border-left-color:var(--gold)}
 .chronrow::before{content:""; position:absolute; left:-5px; top:17px; width:8px; height:8px; border-radius:50%; background:var(--line)}
@@ -435,13 +436,37 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
   .sm-omenbar{display:none}
   .sm-card{opacity:1} .sm-flash{display:none} .sm-inner{transition:none}
 }
+
+/* 전투 행동 순서 바 — 이번 라운드에 누가 어떤 차례로 움직이는지 */
+.orderbar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:-4px 0 8px; min-height:32px}
+.orderbar .obl{font-size:.7rem; color:var(--ink-soft); margin-right:2px; white-space:nowrap}
+.orderbar .ob{display:flex; align-items:center; gap:5px; font-size:.7rem; color:var(--ink-soft); border:1px solid var(--line); border-radius:999px; padding:2px 8px 2px 2px; background:var(--panel2); opacity:.55; white-space:nowrap; transition:opacity .2s, border-color .2s}
+.orderbar .ob .badge{width:22px; height:22px}
+.orderbar .ob .obm{width:22px; height:22px; border-radius:50%; background:#3a2b2b; color:#e0b4b4; display:flex; align-items:center; justify-content:center; font-size:.68rem; flex:none}
+.orderbar .ob.ally{border-color:rgba(104,179,107,.4)}
+.orderbar .ob.enemy{border-color:rgba(201,96,96,.4)}
+.orderbar .ob.now{opacity:1; border-color:var(--gold); color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset}
+.orderbar .ob.next{opacity:.85}
+.orderbar .ob.done{opacity:.28}
+.orderbar .ob.stun{text-decoration:line-through}
+/* 도감 필터·정렬 */
+.codexbar{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:12px}
+.codexbar .grp{display:flex; gap:4px; align-items:center; flex-wrap:wrap}
+.codexbar .grp .lbl{font-size:.7rem; color:var(--ink-soft); margin-right:2px}
+.codexbar .cnt{font-size:.74rem; color:var(--ink-soft); margin-left:auto}
+/* 지도 난이도 표시 */
+.diffchip{font-size:.68rem; font-family:"Noto Sans KR",sans-serif; border:1px solid var(--line); border-radius:999px; padding:2px 9px; white-space:nowrap; margin-left:6px}
+.diffchip.easy{color:var(--good); border-color:rgba(104,179,107,.5)}
+.diffchip.fair{color:var(--ink)}
+.diffchip.hard{color:var(--gold); border-color:rgba(208,171,85,.5)}
+.diffchip.danger{color:var(--bad); border-color:rgba(201,96,96,.5)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
     <h1>사국영웅전</h1>
-    <span class="lv" id="hud-lv"></span><span class="hudgain" id="hud-gain"></span><span class="sp"></span>
+    <span class="lvwrap"><span class="lv" id="hud-lv"></span><span class="hudgain" id="hud-gain"></span></span><span class="sp"></span>
     <button id="btn-help">전투 규칙</button>
     <button id="btn-mute"></button>
     <button id="btn-bgm">음악 꺼짐</button>
@@ -516,6 +541,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
     <h2 style="font-size:1.1rem">영웅 도감 <span style="font-size:.8rem;color:var(--ink-soft)" id="codex-count"></span></h2>
     <p class="help" style="margin:8px 0">보스를 꺾어 영입하거나 모집소에서 뽑으면 도감이 채워진다.</p>
     <div id="codex-bonuses" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px"></div>
+    <div class="codexbar" id="codexbar"></div>
     <div class="pickgrid" id="codexgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))"></div>
     <button id="btn-codex-back">돌아가기</button>
   </div>
@@ -567,6 +593,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="modeb on" id="mode-party">출전 4인</button>
         <button class="modeb" id="mode-support">원군 3인</button>
+        <button id="btn-party-auto" title="보유 영웅 중 등급·각성·결속·역할 균형을 따져 출전 4인과 원군을 골라 준다">추천 편성</button>
         <span class="help" id="mode-hint" style="flex:1;min-width:180px"></span>
       </div>
       <div class="slotrow" id="party-slots"></div>
@@ -604,6 +631,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
       <button id="btn-auto">자동 꺼짐</button>
       <button id="btn-flee">퇴각</button>
     </div>
+    <div class="orderbar" id="orderbar" aria-label="행동 순서"></div>
     <div class="field">
       <div class="battlestage" id="battlestage">
         <div class="stagebg" id="stagebg"></div>
@@ -1551,6 +1579,7 @@ function nextRound(){
   $("roundtag").textContent="라운드 "+B.round;
   B.order=[...B.allies,...B.enemies].filter(u=>u.alive).sort((a,b)=>spdOf(b)-spdOf(a)||b.c.s-a.c.s);
   B.idx=0;
+  renderOrderBar();
   log("― 라운드 "+B.round+" ―","note");
   stepTurn();
 }
@@ -1561,6 +1590,7 @@ function stepTurn(){
   const u=B.order[B.idx++];
   if(!u.alive){ stepTurn(); return; }
   u.guard=false;
+  renderOrderBar();
   if(u.stun>0){ u.stun--; log(nameOf(u)+"은(는) 움직일 수 없다!","note"); renderField(); BTO(stepTurn,D(350)); return; }
   renderField(u);
   if(u.side==="ally") showActions(u);
@@ -2333,7 +2363,23 @@ function pface(c, awk){
  return s+"</svg>";
 }
 function badge(c){ return '<span class="badge">'+pface(c, awkOf(c.id))+'</span>'; }
+/* 행동 순서 바 — B.order를 그대로 보여 준다. B.idx는 "다음에 꺼낼 자리"이므로 idx-1이 지금 움직이는 유닛.
+   죽은 유닛은 뺀다(stepTurn도 건너뛴다). 2웨이브 증원은 다음 라운드부터 순서에 들어오므로 여기에도 그때 나타난다. */
+function renderOrderBar(){
+  const box=$("orderbar"); if(!box) return;
+  if(!B||!B.order||!B.order.length){ box.innerHTML=""; return; }
+  const cur=B.idx-1;
+  let html='<span class="obl">행동 순서</span>';
+  B.order.forEach((u,i)=>{
+    if(!u.alive) return;
+    const cls=["ob", u.side==="ally"?"ally":"enemy", i<cur?"done":i===cur?"now":i===cur+1?"next":"", u.stun>0?"stun":""].filter(Boolean).join(" ");
+    const face=byId[u.c.id]?'<span class="badge">'+pface(u.c,u.awk||0)+'</span>':'<span class="obm">'+u.c.n.slice(0,1)+'</span>';
+    html+='<span class="'+cls+'" title="'+u.c.n+' · 속도 '+Math.round(spdOf(u))+(u.stun>0?" · 행동 불가":"")+'">'+face+u.c.n+'</span>';
+  });
+  box.innerHTML=html;
+}
 function renderField(activeU){
+  renderOrderBar();
   pSync(activeU);
   if(!activeU) hideActions();
 }
@@ -3817,6 +3863,12 @@ function hmDefaultChapter(){
 /* 장의 진척도 — 탭에 표시 */
 function hmChapterDone(ci){ return CHAPTERS[ci].stages.filter(st=>save.cleared.includes(st.id)).length; }
 function hmChapterOpen(ci){ const s=hmStates(); return CHAPTERS[ci].stages.some(st=>s[st.id].open||s[st.id].cleared); }
+/* 파티 Lv 대비 난이도 — "권장 Lv"만 보고는 지금 내 파티로 되는지 알 수 없다는 점을 푼다 */
+function diffChipHTML(needLv){
+  const d=needLv-partyLv();
+  const [cls,txt]=d<=0?["easy","여유"]:d<=2?["fair","적정"]:d<=4?["hard","버거움"]:["danger","위험"];
+  return '<span class="diffchip '+cls+'" title="파티 Lv '+partyLv()+' · 권장 Lv '+needLv+'">파티 Lv '+partyLv()+' · '+txt+'</span>';
+}
 function renderStageInfo(stStates){
   const box=$("hm-info"); if(!box) return;
   const st=hmSel?ALL_STAGES.find(x=>x.id===hmSel):null;
@@ -3833,7 +3885,7 @@ function renderStageInfo(stStates){
     +'<div class="help" style="margin-bottom:6px">'+g.p+' · '+g.y+'</div>'
     +'<div style="font-size:.82rem;margin-bottom:6px">권장 Lv '+st.lv+(st.e2?" · 2웨이브":"")
       +(st.rec?' · <span style="color:var(--gold)">영입: '+byId[st.rec].n+'</span>':"")
-      +(s.cleared&&tier?" · 도전 Lv "+tier:"")+'</div>'
+      +(s.cleared&&tier?" · 도전 Lv "+tier:"")+diffChipHTML(st.lv+(s.cleared?tier:0))+'</div>'
     +(efTag?'<div style="margin-bottom:8px">'+efTag+'</div>':"")
     +'<button class="primary" id="hm-go"'+(s.open?"":" disabled")+'>'+(s.open?(s.cleared?"다시 출전":"출전"):"아직 열리지 않았다")+'</button>';
   const go=$("hm-go");
@@ -4073,6 +4125,13 @@ function showParty(){
   });
   order.forEach(c=>paint(c.id));
   renderSlots();
+  $("btn-party-auto").onclick=()=>{
+    const r=recommendParty();
+    if(!r){ alertMsg("보유 영웅이 없다."); return; }
+    sel=r.party; sup=r.support;
+    order.forEach(x=>paint(x.id)); renderSlots();
+    $("mode-hint").innerHTML='<span style="color:var(--gold)">추천 편성 적용</span> — '+r.reason+' · 마음에 들면 「편성 완료」';
+  };
   $("btn-party-done").onclick=()=>{
     if(sel.length!==4){ alertMsg("출전 4명을 선택해 주세요."); return; }
     save.party=sel;
@@ -4080,6 +4139,59 @@ function showParty(){
     persist(); showMap();
   };
   $("btn-party-cancel").onclick=showMap;
+}
+/* 추천 편성 — 보유 영웅 중 점수 상위 10인의 4인 조합(최대 210가지)을 전부 재 본다.
+   점수 = 개인 전력(★·각성·연격·장비·스탯) + 편성 보너스(세력 결속·인연·회맹·역할 균형).
+   "제일 센 4명"이 아니라 결속이 걸리는 4명이 뽑히도록 보너스를 개인 점수 차이보다 크게 둔다. */
+function heroPower(id){
+  const c=byId[id];
+  return starOf(id)*100 + awkOf(id)*40 + bondOf(id)*10 + wearOf(id).filter(x=>x!==null&&x!==undefined).length*8 + (c.st.reduce((a,b)=>a+b,0)-350)/2;
+}
+function partyBonus(ids){
+  const cs=ids.map(id=>byId[id]);
+  const fc={}; cs.forEach(c=>fc[c.f]=(fc[c.f]||0)+1);
+  const rc={}; cs.forEach(c=>rc[c.role]=(rc[c.role]||0)+1);
+  const has=id=>ids.includes(id);
+  const need=has("chunchu")?2:3;           // 합종연횡: 결속 조건 −1명
+  let b=0; const why=[];
+  ["고구려","백제","신라"].forEach(f=>{ if((fc[f]||0)>=need){ b+=120; why.push(f+" 결속"); } });
+  if(fc["가야"]) { b+=15; }
+  [["ondal","pyeong","평강과 온달"],["suro","heo","수로와 허황옥"],["muwang","seonhwa","서동과 선화"],["gwang","jangsu","부자유친"],["ureuk","wangsanak","두 악성"]]
+    .forEach(([a,c,n])=>{ if(has(a)&&has(c)){ b+=60; why.push(n); } });
+  if(has("suro")&&has("ijinasi")&&has("jeonggyeon")){ b+=40; why.push("삼모자의 정"); }
+  const kingF=new Set(cs.filter(c=>c.king).map(c=>c.f));
+  if(kingF.size===4){ b+=150; why.push("사왕회맹"); }
+  const dmg=(rc["딜러"]||0)+(rc["지략딜러"]||0);
+  if(dmg===0) b-=150;                       // 때릴 사람이 없는 편성은 걸러 낸다
+  if(rc["탱커"]) { b+=50; } else b-=40;
+  if(rc["힐러"]||rc["서포터"]) b+=35;
+  if((rc["힐러"]||0)>=2){ b+=20; why.push("회복진"); }
+  if((rc["탱커"]||0)>=2){ b+=20; why.push("철벽 전선"); }
+  if(dmg>=3){ b+=20; why.push("속전속결"); }
+  return {b, why};
+}
+function recommendParty(){
+  const owned=CHARS.map(c=>c.id).filter(id=>save.unlocked.includes(id));
+  if(!owned.length) return null;
+  const ranked=[...owned].sort((a,b)=>heroPower(b)-heroPower(a));
+  if(owned.length<=4){
+    return {party:ranked, support:[], reason:"보유 영웅 "+owned.length+"명 전원 출전"};
+  }
+  const pool=ranked.slice(0,10);
+  let best=null;
+  for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++) for(let k=j+1;k<pool.length;k++) for(let l=k+1;l<pool.length;l++){
+    const ids=[pool[i],pool[j],pool[k],pool[l]];
+    const pb=partyBonus(ids);
+    const score=ids.reduce((a,id)=>a+heroPower(id),0)+pb.b;
+    if(!best||score>best.score) best={ids, score, why:pb.why};
+  }
+  // 원군 — 출전 파티에서 가장 많은 세력을 먼저, 그 다음 전력 순
+  const fc={}; best.ids.forEach(id=>fc[byId[id].f]=(fc[byId[id].f]||0)+1);
+  const rest=ranked.filter(id=>!best.ids.includes(id))
+    .sort((a,b)=>((fc[byId[b].f]||0)-(fc[byId[a].f]||0))||(heroPower(b)-heroPower(a)));
+  const support=rest.slice(0,SUPPORT_SLOTS);
+  const reason=(best.why.length?best.why.join(" · "):"결속 없이 전력 순")+(support.length?" · 원군 "+support.length+"명":"");
+  return {party:best.ids, support, reason};
 }
 function alertMsg(t){ showModal("<h2>알림</h2><p>"+t+"</p><button class='primary' id='m-ok'>확인</button>", closeModal); }
 /* ---- 연격(緣格) 모달 — 모은 부절을 쓰는 세 가지 길 ----
@@ -4291,7 +4403,10 @@ $("btn-reset").onclick=()=>{
 $("btn-party").onclick=showParty;
 $("btn-flee").onclick=()=>{ if(B){B.over=true;} clearBT(); showMap(); };
 $("btn-speed").onclick=()=>{ SPEED=SPEED===1?2:1; $("btn-speed").textContent="배속 ×"+SPEED; };
-$("btn-auto").onclick=()=>{ AUTO=!AUTO; $("btn-auto").textContent=AUTO?"자동 켜짐":"자동 꺼짐";
+$("btn-auto").onclick=()=>{
+  // 렌더러가 없으면 대상을 클릭할 수 없어 수동 전투가 진행되지 않는다 — 자동을 끄지 못하게 막는다
+  if(AUTO&&!phaserReady()&&B&&!B.over){ log("전투 화면 렌더러가 없어 자동 전투를 끌 수 없다.","note"); return; }
+  AUTO=!AUTO; $("btn-auto").textContent=AUTO?"자동 켜짐":"자동 꺼짐";
   if(AUTO&&B&&!B.over&&$("actionbar").style.visibility!=="hidden"){ const cur=B.order[B.idx-1]; if(cur&&cur.alive&&cur.side==="ally"){ hideActions(); BTO(()=>aiAct(cur),D(200)); } } };
 function updMute(){ $("btn-mute").textContent=save.mute?"소리 꺼짐":"소리 켜짐"; }
 $("btn-mute").onclick=()=>{ save.mute=!save.mute; persist(); updMute(); };
@@ -5584,6 +5699,7 @@ function close3DViewer(){
 }
 $("viewer3d-close").onclick=close3DViewer;
 
+const CODEX_VIEW={f:"전체", own:"전체", sort:"기본"};   // 도감 필터·정렬 상태 (세이브 밖)
 function showCodex(){
   ["screen-map","screen-battle","screen-chron","screen-daily","screen-party","screen-gacha","screen-forge","screen-ach","screen-syn","screen-mine","screen-defense","screen-exchange"].forEach(id=>$(id).classList.add("hidden"));
   $("screen-codex").classList.remove("hidden");
@@ -5594,8 +5710,19 @@ function showCodex(){
       +'<div style="font-family:\'Song Myung\',serif; color:'+(active?"var(--gold)":"var(--ink)")+'">'+(active?"✦ ":"")+cb.n+' <span class="help" style="font-family:inherit">'+have+'/'+cb.need.length+'</span></div>'
       +'<div class="help" style="font-size:.76rem; margin-top:3px">'+cb.d+'</div></div>';
   }).join("");
+  // 필터·정렬 바 — 44인을 한 줄로 훑기 어렵다는 점을 푼다. 상태는 세이브에 넣지 않는다(화면 편의일 뿐)
+  const bar=$("codexbar");
+  const grp=(lbl,key,opts)=>'<span class="grp"><span class="lbl">'+lbl+'</span>'+opts.map(o=>'<button class="eratab'+(CODEX_VIEW[key]===o?" on":"")+'" data-k="'+key+'" data-v="'+o+'">'+o+'</button>').join("")+'</span>';
+  bar.innerHTML=grp("세력","f",["전체","고구려","백제","신라","가야"])+grp("보유","own",["전체","보유","미보유"])+grp("정렬","sort",["기본","★ 높은 순","이름순"])+'<span class="cnt" id="codex-shown"></span>';
+  bar.querySelectorAll("button").forEach(b=>{ b.onclick=()=>{ CODEX_VIEW[b.dataset.k]=b.dataset.v; showCodex(); }; });
+  let list=CHARS.filter(c=>(CODEX_VIEW.f==="전체"||c.f===CODEX_VIEW.f)
+    &&(CODEX_VIEW.own==="전체"||(CODEX_VIEW.own==="보유")===save.unlocked.includes(c.id)));
+  if(CODEX_VIEW.sort==="★ 높은 순") list=[...list].sort((a,b)=>(save.unlocked.includes(b.id)?starOf(b.id):b.s)-(save.unlocked.includes(a.id)?starOf(a.id):a.s)||CHARS.indexOf(a)-CHARS.indexOf(b));
+  else if(CODEX_VIEW.sort==="이름순") list=[...list].sort((a,b)=>{ const oa=save.unlocked.includes(a.id), ob=save.unlocked.includes(b.id); if(oa!==ob) return oa?-1:1; return oa?a.n.localeCompare(b.n,"ko"):CHARS.indexOf(a)-CHARS.indexOf(b); });   // 미보유(???)는 이름을 드러내지 않도록 기본 순서로 뒤에
+  $("codex-shown").textContent=list.length+"명 표시"+(list.length!==CHARS.length?" / "+CHARS.length:"");
   const g=$("codexgrid"); g.innerHTML="";
-  CHARS.forEach(c=>{
+  if(!list.length) g.innerHTML='<p class="help">조건에 맞는 영웅이 없다.</p>';
+  list.forEach(c=>{
     const own=save.unlocked.includes(c.id);
     const d=document.createElement("div");
     d.className="pick"; d.style.cursor="default";
