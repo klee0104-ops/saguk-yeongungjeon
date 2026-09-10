@@ -594,6 +594,7 @@ button.primary{background:var(--accent); border-color:var(--accent); color:#1b12
         <button class="modeb on" id="mode-party">출전 4인</button>
         <button class="modeb" id="mode-support">원군 3인</button>
         <button id="btn-party-auto" title="보유 영웅 중 등급·각성·결속·역할 균형을 따져 출전 4인과 원군을 골라 준다">추천 편성</button>
+        <button id="btn-inventory" title="보유 장비 전체를 보고 분해한다">장비 창고</button>
         <span class="help" id="mode-hint" style="flex:1;min-width:180px"></span>
       </div>
       <div class="slotrow" id="party-slots"></div>
@@ -1040,7 +1041,12 @@ function normalizeSave(s){
   s.items.forEach(it=>{
     if(it&&it.eff==="healrecv") it.noStat=true;
     if(it&&it.tier>=4&&!it.eff&&TREASURE_EFF[it.n]) it.eff=TREASURE_EFF[it.n];
+    if(it&&!it.base) it.base=it.n;   // v2.1: 접두어가 붙기 전 이름
   });
+  // v2.1: 부위가 4개(군장)로 늘었다 — 착용 배열을 4칸으로 맞춘다
+  Object.keys(s.wear).forEach(id=>{ const w=s.wear[id]||[]; while(w.length<4) w.push(null); s.wear[id]=w; });
+  s.uniqGiven=s.uniqGiven||{};
+  grantUniqWeapons(s);   // 이미 열린 후일담의 ★5 전용 무기를 소급 지급
   // 원군에 파티원이 섞여 있으면 제거 (구버전 세이브 방어)
   s.support=s.support.filter(id=>byId[id]&&!s.party.includes(id)&&s.unlocked.includes(id)).slice(0,SUPPORT_SLOTS);
   // 연격 단계는 0~BOND_MAX 안에 있어야 한다
@@ -1071,9 +1077,62 @@ function eqOf(id){ return save.equip[id]||[0,0,0]; }
 function awkOf(id){ return (save.awaken&&save.awaken[id])||0; }
 const AWK_COST=[{m:400,i:250},{m:800,i:500}];
 /* ---- 드랍 아이템 (대장간 강화와 별개로 착용하는 장비) ---- */
-const ITEM_NAMES=[["무쇠 검","강철 환도","명장의 환두대도","칠지도"],["가죽 갑옷","철제 찰갑","명광개","가야 판갑옷"],["옥 노리개","은 장신구","금관 장식","신라 금관"]];
-const SLOT_NAMES=["무기","갑옷","장신구"];
-const W_ATK=[.08,.12,.18,.25], A_HP=[.08,.12,.18,.25], T_SPD=[5,8,12,16];
+const ITEM_NAMES=[["무쇠 검","강철 환도","명장의 환두대도","칠지도","용봉문 환두대도"],["가죽 갑옷","철제 찰갑","명광개","가야 판갑옷","개마무사 갑주"],["옥 노리개","은 장신구","금관 장식","신라 금관","금제 관식"]];
+const SLOT_NAMES=["무기","갑옷","장신구","군장"];
+const W_ATK=[.08,.12,.18,.25,.32], A_HP=[.08,.12,.18,.25,.32], T_SPD=[5,8,12,16,20];
+/* ---- 장비 효과 공통 어휘(mods) ----
+   장비 하나가 {atkp:.05, crit:.06} 같은 물건을 들고 있으면 wearMods()가 영웅 단위로 합산하고,
+   전투 계산은 u.wearM 한 곳만 본다. 새 효과를 만들 때는 여기에 이름·설명을 넣고 계산 지점 한 곳만 고치면 된다. */
+const MOD_DESC={
+ atkp:v=>"공격 +"+Math.round(v*100)+"%", hpp:v=>"HP +"+Math.round(v*100)+"%", spd:v=>"속도 +"+v,
+ dmgred:v=>"받는 피해 −"+Math.round(v*100)+"%", crit:v=>"치명타율 +"+Math.round(v*100)+"%", critdmg:v=>"치명타 피해 +"+Math.round(v*100)+"%",
+ lifesteal:v=>"피해의 "+Math.round(v*100)+"% 회복", healp:v=>"회복량 +"+Math.round(v*100)+"%",
+ startg:v=>"개전 기력 +"+v, roundg:v=>"라운드마다 기력 +"+v, roundheal:v=>"라운드 끝에 HP "+Math.round(v*100)+"% 회복",
+ ultamp:v=>"궁극기 위력 +"+Math.round(v*100)+"%", shieldstart:v=>"개전 보호막 HP "+Math.round(v*100)+"%",
+ factionatk:v=>"같은 세력 아군 1인당 공격 +"+Math.round(v*100)+"%", onkillg:v=>"처치 시 기력 +"+v,
+};
+function modsDesc(m){ return Object.keys(m||{}).map(k=>MOD_DESC[k]?MOD_DESC[k](m[k]):k).join(" · "); }
+/* 5티어 전설 — 무령왕릉 용봉문환두대도 · 고구려 개마무사 · 백제 금제관식에서 이름을 가져왔다 */
+const LEGEND_EFF={"용봉문 환두대도":"yongbong", "개마무사 갑주":"gaema", "금제 관식":"gwansik"};
+const LEGEND_MODS={yongbong:{critdmg:.40, crit:.05}, gaema:{dmgred:.12, shieldstart:.10}, gwansik:{startg:40, healp:.10}};
+/* 세력 장비 세트 — 그 나라 영웅이 입어야 세트 효과가 산다(다른 나라 영웅은 수치만). 부위 순서 = 무기·갑옷·장신구, 수치는 3티어 */
+const SET_ITEMS={
+ "고구려":{n:"철기", pieces:["철기 장창","개마 찰갑","삼족오 패식"], b2:{atkp:.06}, b3:{ultamp:.12}},
+ "백제":  {n:"해상", pieces:["사비 환도","웅진 찰갑","봉황 노리개"], b2:{spd:6},   b3:{startg:20}},
+ "신라":  {n:"화랑", pieces:["화랑 장검","화랑 갑주","천마 패식"],   b2:{dmgred:.05}, b3:{crit:.10}},
+ "가야":  {n:"야철", pieces:["가야 환두대도","종장판갑","수레바퀴 장식"], b2:{hpp:.08}, b3:{roundheal:.04}},
+};
+/* 4번째 부위 「군장」 — 역할 전용. 그 역할이 아니면 낄 수 없다. 1~3티어만 있다 */
+const ROLE_ITEMS={
+ "탱커":  {names:["나무 방패","철 방패","대장군의 군기"],   k:"dmgred", v:[.04,.07,.10]},
+ "딜러":  {names:["무예집","전술서","대장군 병법서"],       k:"crit",   v:[.05,.08,.12]},
+ "지략딜러":{names:["천문도","역법서","첨성의 비서"],       k:"ultamp", v:[.05,.08,.12]},
+ "힐러":  {names:["약초 주머니","의방서","향약 비방"],      k:"healp",  v:[.08,.12,.18]},
+ "서포터":{names:["부대 깃발","군단 군기","왕의 깃발"],     k:"startg", v:[10,15,20]},
+};
+/* 랜덤 접두어 — 드랍 때 확률로 1~2개가 붙는다. 이름은 「예리한 강철 환도」처럼 앞에 붙는다 */
+const PREFIX=[
+ {n:"예리한", k:"atkp", v:.05}, {n:"굳센", k:"hpp", v:.06}, {n:"날랜", k:"spd", v:4}, {n:"견고한", k:"dmgred", v:.04},
+ {n:"날카로운", k:"crit", v:.06}, {n:"흡혈의", k:"lifesteal", v:.08}, {n:"명의의", k:"healp", v:.10}, {n:"기백의", k:"startg", v:10}, {n:"집중의", k:"ultamp", v:.06},
+];
+const PREFIX_CHANCE=[.15,.30,.50,.70,1.0];   // 티어별 접두어 확률, 4티어부터 30%로 두 번째
+/* ★5 13인 전용 무기 — 그 인물의 후일담(이야기 조각 10개)이 열리면 확정 지급. 본인이 들면 고유 효과, 남이 들면 4티어 무기 수치만 */
+const UNIQ_WEAPONS={
+ gwang:    {n:"영락검",         mods:{factionatk:.04, startg:10},  lore:"'영락' 연호를 새긴 정복군주의 검. 고구려의 창끝이 모일수록 날이 선다."},
+ eulji:    {n:"살수의 장창",     mods:{ultamp:.15, crit:.05},       lore:"살수의 물길을 가르던 지장의 창. 결정적인 한 수에 힘을 싣는다."},
+ geun:     {n:"마한 평정검",     mods:{crit:.08, critdmg:.20},      lore:"마한을 평정하고 평양성까지 밀고 간 정복왕의 검."},
+ gyebaek:  {n:"결사의 검",       mods:{lifesteal:.10, atkp:.08},    lore:"황산벌로 향하며 뒤를 끊은 자의 검. 베는 만큼 버틴다."},
+ yusin:    {n:"천관검",         mods:{critdmg:.40, onkillg:20},    lore:"천관녀의 집 앞에서 애마의 목을 베던 그 검. 결심은 되돌리지 않는다."},
+ seondeok: {n:"첨성의 지팡이",   mods:{healp:.20, roundg:8},        lore:"별을 읽던 여왕의 지팡이. 하늘의 뜻을 아군에게 나눈다."},
+ suro:     {n:"구지봉의 금창",   mods:{dmgred:.10, hpp:.10},        lore:"황금알에서 난 왕의 창. 철의 나라의 왕은 쉽게 무너지지 않는다."},
+ jangsu:   {n:"평양성의 대극",   mods:{dmgred:.08, roundheal:.03},  lore:"평양으로 도읍을 옮긴 장수왕의 긴 창. 성벽처럼 오래 버틴다."},
+ seong:    {n:"사비의 검",       mods:{ultamp:.12, startg:15},      lore:"사비에서 백제를 다시 세운 왕의 검. 중흥의 기세를 앞당긴다."},
+ munmu:    {n:"호국룡검",       mods:{shieldstart:.15, atkp:.06},  lore:"죽어 동해의 용이 되겠다던 왕의 검. 개전부터 나라를 감싼다."},
+ gyeonhwon:{n:"완산주의 대도",   mods:{atkp:.12, crit:.06},         lore:"완산주에서 후백제를 세운 장수의 큰 칼. 원한만큼 무겁다."},
+ wanggeon: {n:"삼한일통검",     mods:{startg:20, roundg:5},        lore:"세 나라를 하나로 묶은 왕의 검. 아군의 기세를 꾸준히 모은다."},
+ daemusin: {n:"부여 정벌의 창",  mods:{critdmg:.25, lifesteal:.06}, lore:"동부여를 친 대무신왕의 창. 적을 꿰뚫고 제 힘으로 삼는다."},
+};
+const DISMANTLE_IRON=[10,25,60,150,400];   // 티어별 분해 철. 국보·전설·전용 무기는 분해할 수 없다
 const SPECIAL_WEAPON={n:"피안개의 검", slot:0, tier:2, eff:"healrecv", noStat:true};
 /* 외전 1(대륙)·외전 2(왜) 전투에서 얻는 특산물 — 교환상점에서 철로 바꿀 수 있다 */
 const MATERIALS={
@@ -1086,28 +1145,82 @@ const TREASURE_DESC={
  panga:"받는 피해 8%↓",
  geumgwan:"개전 기력 +30 · 라운드마다 +5",
 };
+function itemName(it){ return it.n; }
 function itemDesc(it){
   if(it.eff==="healrecv") return "공격 시 대상 치유 효과 50%↓(2턴)";
-  const base=it.slot===0?"공격 +"+Math.round(W_ATK[it.tier-1]*100)+"%" : it.slot===1?"HP +"+Math.round(A_HP[it.tier-1]*100)+"%" : "속도 +"+T_SPD[it.tier-1];
-  if(it.tier>=4) return base+" · "+(TREASURE_DESC[it.eff]||"")+" (국보)";
-  return base;
+  const parts=[];
+  if(!it.noStat){
+    if(it.slot===0) parts.push("공격 +"+Math.round(W_ATK[it.tier-1]*100)+"%");
+    else if(it.slot===1) parts.push("HP +"+Math.round(A_HP[it.tier-1]*100)+"%");
+    else if(it.slot===2) parts.push("속도 +"+T_SPD[it.tier-1]);
+  }
+  if(it.slot===3) parts.push(it.role+" 전용 · "+modsDesc(it.mods));
+  else if(it.uniq) parts.push("<b style='color:var(--gold)'>"+(byId[it.uniq]?byId[it.uniq].n:it.uniq)+" 전용</b>: "+modsDesc(it.mods));
+  else if(it.tier>=5&&it.mods) parts.push(modsDesc(it.mods)+" (전설)");
+  else if(it.tier>=4&&it.eff) parts.push((TREASURE_DESC[it.eff]||"")+" (국보)");
+  if(it.set){ const S=SET_ITEMS[it.set]; if(S) parts.push(it.set+" 「"+S.n+"」 세트 — 2부위 "+modsDesc(S.b2)+" · 3부위 "+modsDesc(S.b3)); }
+  if(it.pre&&it.pre.length) parts.push(it.pre.map(i=>PREFIX[i]?MOD_DESC[PREFIX[i].k](PREFIX[i].v):"").join(" · "));
+  return parts.join(" · ");
 }
-/* 등급을 지정해 장비를 만들어 준다 (tier 4 = 국보) */
-function makeItem(tier, slot){
+/* 접두어 붙이기 — 이름 앞에 형용사가 붙고, 효과는 it.pre(색인 배열)로 남는다 */
+function rollPrefix(it){
+  if(it.uniq||it.eff==="healrecv") return it;
+  const ch=PREFIX_CHANCE[Math.min(it.tier,5)-1]||0;
+  const picks=[];
+  if(Math.random()<ch){
+    picks.push(Math.floor(Math.random()*PREFIX.length));
+    if(it.tier>=4&&Math.random()<0.3){ let j=Math.floor(Math.random()*PREFIX.length); if(j===picks[0]) j=(j+1)%PREFIX.length; picks.push(j); }
+  }
+  if(picks.length){ it.pre=picks; it.n=picks.map(i=>PREFIX[i].n).join(" ")+" "+it.base; }
+  return it;
+}
+/* 등급을 지정해 장비를 만들어 준다 (tier 4 = 국보, tier 5 = 전설).
+   opt.set="고구려" 이면 그 나라 세트 부위(수치는 3티어), slot 3이면 역할 군장(opt.role 지정 가능, 1~3티어) */
+function makeItem(tier, slot, opt){
+  opt=opt||{};
   if(slot===undefined) slot=Math.floor(Math.random()*3);
-  const n=ITEM_NAMES[slot][tier-1];
-  const it={n, slot, tier};
-  if(TREASURE_EFF[n]) it.eff=TREASURE_EFF[n];   // 국보는 수치와 고유 효과를 함께 가진다
+  let it;
+  if(slot===3){
+    const roles=Object.keys(ROLE_ITEMS);
+    const role=opt.role&&ROLE_ITEMS[opt.role]?opt.role:roles[Math.floor(Math.random()*roles.length)];
+    const t=Math.min(3,Math.max(1,tier)), R=ROLE_ITEMS[role];
+    it={n:R.names[t-1], base:R.names[t-1], slot:3, tier:t, role, mods:{[R.k]:R.v[t-1]}};
+  } else if(opt.set&&SET_ITEMS[opt.set]){
+    const S=SET_ITEMS[opt.set], n=S.pieces[slot];
+    it={n, base:n, slot, tier:3, set:opt.set};
+  } else {
+    tier=Math.min(5,Math.max(1,tier));
+    const n=ITEM_NAMES[slot][tier-1];
+    it={n, base:n, slot, tier};
+    if(TREASURE_EFF[n]) it.eff=TREASURE_EFF[n];   // 국보는 수치와 고유 효과를 함께 가진다
+    if(LEGEND_EFF[n]){ it.eff=LEGEND_EFF[n]; it.mods={...LEGEND_MODS[it.eff]}; }
+  }
+  rollPrefix(it);
   save.items.push(it);
   return it;
 }
-function rollDrop(lv, chance){
+/* 전투 드랍. ef = 그 스테이지의 적 세력 — 있으면 일부가 그 나라의 세트 부위로 떨어진다 */
+function rollDrop(lv, chance, ef){
   if(Math.random()>chance) return null;
   let tier=1; const r=Math.random();
-  if(lv>=30&&r<0.08) tier=4; else if(lv>=19&&r<0.4) tier=3; else if(lv>=9&&r<0.65) tier=2;
+  if(lv>=30&&r<0.02) tier=5; else if(lv>=30&&r<0.10) tier=4; else if(lv>=19&&r<0.4) tier=3; else if(lv>=9&&r<0.65) tier=2;
+  const k=Math.random();
+  if(k<0.22) return makeItem(tier, 3);                                   // 군장(역할 장비)
+  if(ef&&SET_ITEMS[ef]&&tier>=2&&tier<=3&&k<0.47) return makeItem(3, undefined, {set:ef});   // 세력 세트
   return makeItem(tier);
 }
-function wearOf(id){ return save.wear[id]||[null,null,null]; }
+/* 후일담이 열린 ★5 영웅에게 전용 무기를 한 번만 지급한다. s를 받는 것은 normalizeSave(로드 중)에서도 쓰기 때문 */
+function grantUniqWeapons(s){
+  s=s||save; s.uniqGiven=s.uniqGiven||{};
+  const got=[];
+  (s.epilogues||[]).forEach(id=>{
+    const U=UNIQ_WEAPONS[id]; if(!U||s.uniqGiven[id]) return;
+    s.items.push({n:U.n, base:U.n, slot:0, tier:4, uniq:id, mods:{...U.mods}});
+    s.uniqGiven[id]=1; got.push(U.n+" ("+byId[id].n+")");
+  });
+  return got;
+}
+function wearOf(id){ const w=save.wear[id]||[null,null,null,null]; while(w.length<4) w.push(null); return w; }
 function wornBy(idx){ for(const id in save.wear){ if(save.wear[id]&&save.wear[id].includes(idx)) return id; } return null; }
 function wearBonus(id){
   const w=wearOf(id); const b={atkP:0,hpP:0,spd:0};
@@ -1121,8 +1234,27 @@ function wearBonus(id){
 }
 function wearEffects(id){
   const w=wearOf(id); const effs=[];
-  w.forEach(ix=>{ if(ix===null||ix===undefined) return; const it=save.items[ix]; if(it&&it.eff) effs.push(it.eff); });
+  w.forEach(ix=>{ if(ix===null||ix===undefined) return; const it=save.items[ix]; if(it&&it.eff&&!it.mods) effs.push(it.eff); });
   return effs;
+}
+/* 영웅이 낀 장비의 효과(mods)를 전부 합친다 — 접두어, 군장, 전설, 전용 무기(본인일 때만), 세력 세트(같은 나라일 때만) */
+function wearMods(id){
+  const m={}; const add=o=>{ for(const k in o) m[k]=(m[k]||0)+o[k]; };
+  const hero=byId[id]; const setCnt={};
+  wearOf(id).forEach(ix=>{
+    if(ix===null||ix===undefined) return; const it=save.items[ix]; if(!it) return;
+    if(it.mods&&(!it.uniq||it.uniq===id)) add(it.mods);
+    if(it.pre) it.pre.forEach(pi=>{ const p=PREFIX[pi]; if(p) add({[p.k]:p.v}); });
+    if(it.set&&hero&&hero.f===it.set) setCnt[it.set]=(setCnt[it.set]||0)+1;
+  });
+  for(const f in setCnt){ const S=SET_ITEMS[f]; if(!S) continue; if(setCnt[f]>=2) add(S.b2); if(setCnt[f]>=3) add(S.b3); }
+  return m;
+}
+/* 낀 세트의 활성 부위 수 — 장비창 표시용 */
+function wearSetInfo(id){
+  const hero=byId[id]; const cnt={};
+  wearOf(id).forEach(ix=>{ const it=(ix!==null&&ix!==undefined)?save.items[ix]:null; if(it&&it.set) cnt[it.set]=(cnt[it.set]||0)+1; });
+  return Object.keys(cnt).map(f=>({f, n:cnt[f], own:hero&&hero.f===f}));
 }
 function promoOf(id){ return save.promo[id]||0; }
 function starOf(id){ return byId[id].s+promoOf(id); }
@@ -1190,11 +1322,13 @@ function mkUnit(c, side, lv, isMob){
     cds:[0,0], ult:(side==="ally"&&!isMob)?Math.min(100,50+awk*25):(isMob?0:25),
     buffs:[], addMu:0, addJi:0, addSok:0, flags:{}, eq:(side==="ally"&&!isMob)?eqOf(c.id):[0,0,0],
     wearB:(side==="ally"&&!isMob)?wearBonus(c.id):{atkP:0,hpP:0,spd:0},
-    wearEff:(side==="ally"&&!isMob)?wearEffects(c.id):[]};
+    wearEff:(side==="ally"&&!isMob)?wearEffects(c.id):[],
+    wearM:(side==="ally"&&!isMob)?wearMods(c.id):{}};
   const cx=(side==="ally"&&!isMob)?codexMult():null;
   u.maxhp=Math.round((c.st[3]*32+800)*sc*(isMob?0.48:(side==="enemy"?0.68:1))*(cx?1+cx.hp:1)*(bond>=2?1.10:1)); u.hp=u.maxhp;
   if(bond>=4) u.ult=Math.min(100,u.ult+25);                                     // 연격 4단계
   if(u.wearEff.includes("geumgwan")&&u.c.skill) u.ult=Math.min(100,u.ult+30);   // 신라 금관
+  if(u.wearM.startg&&u.c.skill) u.ult=Math.min(100,u.ult+u.wearM.startg);          // 장비 개전 기력
   return u;
 }
 function addShield(u,amt){ if(u.side==="enemy") amt*=0.6; u.shield+=Math.round(amt); }
@@ -1217,10 +1351,12 @@ function codexAmp(u){ return (u.side==="ally"&&!u.isMob)?codexMult():null; }
 /* `u.ultAmp`는 ultExec 안에서만 1이 아니다(연격 5단계). 궁극기의 계수가 case마다
    하드코딩되어 있어, 공식을 다 고치는 대신 그 동안의 공격력·지력을 높여 피해·회복·보호막을
    한꺼번에 같은 비율로 올린다. 방어·속도는 손대지 않는다. */
-function atkOf(u){ const cx=codexAmp(u); return ((u.c.st[0]+u.addMu)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*(cx?1+cx.atk:1)*(u.ultAmp||1); }
-function intOf(u){ const cx=codexAmp(u); return ((u.c.st[1]+u.addJi)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*(cx?1+cx.atk:1)*(u.ultAmp||1); }
+/* 장비 효과의 공격 배수 — 접두어·세트·전용 무기의 atkp와, 같은 세력 아군 수에 비례하는 factionatk */
+function wearAtkMul(u){ const m=u.wearM||{}; let x=1+(m.atkp||0); if(m.factionatk&&B) x+=m.factionatk*alliesOf(u).filter(x=>x!==u&&x.c.f===u.c.f).length; return x; }
+function atkOf(u){ const cx=codexAmp(u); return ((u.c.st[0]+u.addMu)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*wearAtkMul(u)*(cx?1+cx.atk:1)*(u.ultAmp||1); }
+function intOf(u){ const cx=codexAmp(u); return ((u.c.st[1]+u.addJi)*2.2+60)*u.sc*bm(u,"atk")*(1+(0.06*u.eq[0]+u.wearB.atkP)*eqAmp())*wearAtkMul(u)*(cx?1+cx.atk:1)*(u.ultAmp||1); }
 function defOf(u){ const cx=codexAmp(u); let d=(u.c.st[2])*1.8*u.sc*bm(u,"def")*(cx?1+cx.def:1); if(u.c.id==="isabu"&&u.taunt>0) d*=1.25; return d; }
-function spdOf(u){ const cx=codexAmp(u); let s=(u.c.st[4]+u.addSok)*bm(u,"spd")+(cx?cx.spd:0); if(u.c.id==="sadaham"&&B.round===1) s+=999; return s; }
+function spdOf(u){ const cx=codexAmp(u); let s=(u.c.st[4]+u.addSok)*bm(u,"spd")+(cx?cx.spd:0)+((u.wearM&&u.wearM.spd)||0); if(u.c.id==="sadaham"&&B.round===1) s+=999; return s; }
 
 /* ============ 전투 상태 ============ */
 let B=null; // battle state
@@ -1539,7 +1675,7 @@ function applyStartEffects(){
   fxSynergy(syn);
   // 장비 적용 (갑옷·장신구는 개전 시 확정, 무기는 공격 시 계산) — 대장간 강화 + 착용 아이템 합산
   A.forEach(u=>{ const [w,a,t]=u.eq;
-    const hpP=0.06*a+u.wearB.hpP, spdF=4*t+u.wearB.spd;
+    const hpP=0.06*a+u.wearB.hpP+((u.wearM&&u.wearM.hpp)||0), spdF=4*t+u.wearB.spd;
     if(hpP>0){ u.maxhp=Math.round(u.maxhp*(1+hpP*B.eqAmp)); u.hp=u.maxhp; }
     if(spdF>0){ u.addSok+=Math.round(spdF*B.eqAmp); }
   });
@@ -1568,6 +1704,8 @@ function applyStartEffects(){
     A.forEach(x=>{ if(x.c.id==="suro"||x.c.id==="ijinasi"||x.c.id==="jeonggyeon"){ x.buffs.push({k:"atk",v:.10,t:99}); x.buffs.push({k:"def",v:.10,t:99}); } });
     log("[삼모자의 정] 정견모주의 두 아들이 함께 — 세 사람 공격·방어 +10%","note");
   }
+  // 장비: 개전 보호막 (개마무사 갑주·호국룡검)
+  A.forEach(u=>{ if(u.wearM&&u.wearM.shieldstart){ addShield(u, u.maxhp*u.wearM.shieldstart); log(nameOf(u)+" — 장비의 가호로 보호막 "+Math.round(u.maxhp*u.wearM.shieldstart),"note"); } });
 }
 
 function livingEnemiesOf(u){ return (u.side==="ally"?B.enemies:B.allies).filter(x=>x.alive); }
@@ -1590,6 +1728,7 @@ function stepTurn(){
   const u=B.order[B.idx++];
   if(!u.alive){ stepTurn(); return; }
   u.guard=false;
+  B.actor=u;   // 회복량 장비 효과가 시전자를 알 수 있게
   renderOrderBar();
   if(u.stun>0){ u.stun--; log(nameOf(u)+"은(는) 움직일 수 없다!","note"); renderField(); BTO(stepTurn,D(350)); return; }
   renderField(u);
@@ -1597,8 +1736,11 @@ function stepTurn(){
   else BTO(()=>{aiAct(u);},D(480));
 }
 function endRound(){
+  B.actor=null;
   [...B.allies,...B.enemies].forEach(u=>{
     if(!u.alive) return;
+    if(u.wearM&&u.wearM.roundg) gainG(u,u.wearM.roundg);                                             // 장비: 라운드 기력
+    if(u.wearM&&u.wearM.roundheal&&u.hp<u.maxhp) heal(u, u.maxhp*u.wearM.roundheal, "장비");          // 장비: 라운드 회복
     u.buffs=u.buffs.filter(b=>{ if(b.t<99) b.t--; return b.t>0; });
     if(u.taunt>0)u.taunt--;
     u.cds=u.cds.map(x=>x>0?x-1:0);
@@ -1637,9 +1779,10 @@ function dealDamage(src, tgt, raw, opts){
   let def=defOf(tgt)*(opts.pierce?(1-opts.pierce):1);
   let dmg=raw*170/(170+def);
   dmg*=0.9+Math.random()*0.2;
-  let critCh=0.10+(src.c.id==="heukchi"&&B.round===1?0.20:0)+(src.c.id==="jumong"?0.15:0);
+  let critCh=0.10+(src.c.id==="heukchi"&&B.round===1?0.20:0)+(src.c.id==="jumong"?0.15:0)+((src.wearM&&src.wearM.crit)||0);
   let crit=Math.random()<critCh;
-  if(crit) dmg*=1.5+(src.c.id==="yusin"?0.30:0);
+  if(crit) dmg*=1.5+(src.c.id==="yusin"?0.30:0)+((src.wearM&&src.wearM.critdmg)||0);
+  if(tgt.wearM&&tgt.wearM.dmgred) dmg*=(1-Math.min(0.5,tgt.wearM.dmgred));   // 장비: 받는 피해 감소 (합산 상한 50%)
   if(tgt.guard) dmg*=0.5;
   let red=1; for(const b of tgt.buffs) if(b.k==="dmgred") red*=(1-b.v); dmg*=red;
   if(tgt.wearEff&&tgt.wearEff.includes("panga")) dmg*=0.92;   // 가야 판갑옷
@@ -1656,6 +1799,7 @@ function dealDamage(src, tgt, raw, opts){
   let left=dmg;
   if(tgt.shield>0){ const ab=Math.min(tgt.shield,left); tgt.shield-=ab; left-=ab; }
   tgt.hp-=left;
+  if(src.wearM&&src.wearM.lifesteal&&src.alive&&src.hp<src.maxhp){ const h=Math.round(dmg*src.wearM.lifesteal); if(h>0){ src.hp=Math.min(src.maxhp,src.hp+h); popup(src,"+"+h,"heal"); } }   // 장비: 흡혈 (로그 없이 조용히)
   if(src.wearEff&&src.wearEff.includes("healrecv")) tgt.buffs.push({k:"healrecv",v:-.5,t:2});
   gainG(tgt,10);
   sfx(crit?"crit":"hit"); popup(tgt, "-"+dmg, crit?"crit":""); fxHit(tgt,crit);
@@ -1688,6 +1832,7 @@ function die(u, killer){
   if(u.side==="ally"&&u.c.id==="bakjesang"){ B.allies.forEach(x=>{ if(x.alive) x.buffs.push({k:"atk",v:.20,t:2}); }); log("박제상 [순국] — 충절이 아군을 일으킨다! 공격 +20%(2턴)","sys"); }
   if(u.side==="ally"&&u.c.id==="munmu"){ B.allies.forEach(x=>{ if(x.alive) addShield(x,intOf(u)*0.6); }); log("문무왕 [대왕암] — 죽어서도 나라를 지키는 용이 되어 아군에게 보호막을 남긴다","sys"); }
   if(killer&&killer.alive){
+    if(killer.wearM&&killer.wearM.onkillg) gainG(killer, killer.wearM.onkillg);   // 장비: 처치 시 기력
     if(killer.c.id==="yeongae"&&!killer.flags.extraUsed){ killer.flags.extraUsed=true; log("연개소문 [오도] — 다시 움직인다!","sys"); B.order.splice(B.idx,0,killer); }
     if(killer.c.id==="yusin"&&killer.side==="ally"&&killer.flags.skillKill){ B.allies.forEach(x=>x.buffs.push({k:"atk",v:.15,t:2})); log("김유신 — 아군의 사기가 오른다! 공격 +15%(2턴)","sys"); killer.flags.skillKill=false; }
   }
@@ -1696,6 +1841,7 @@ function heal(u, amt, label){
   if(!u.alive) return;
   if(u.side==="enemy") amt*=0.6; // 적측 회복 보정 (회복벽 방지)
   else amt*=(B&&B.healAmp)||1;
+  if(B&&B.actor&&B.actor.side==="ally"&&B.actor.wearM&&B.actor.wearM.healp&&B.actor.alive) amt*=1+B.actor.wearM.healp;   // 장비: 시전자의 회복량 증가
   amt*=bm(u,"healrecv");
   amt=Math.round(amt);
   const before=u.hp; u.hp=Math.min(u.maxhp,u.hp+amt);
@@ -1760,7 +1906,7 @@ function ultExec(u, tgt){
   if(!B||B.over) return;
   const A=alliesOf(u), E=livingEnemiesOf(u);
   const id=u.c.id;
-  u.ultAmp=bondUltMul(u);            // 연격 5단계 — switch가 끝나면 반드시 다시 1로 되돌린다
+  u.ultAmp=bondUltMul(u)*(1+((u.wearM&&u.wearM.ultamp)||0));   // 연격 5단계 × 장비 궁극기 위력 — switch가 끝나면 반드시 다시 1로 되돌린다
   fxLunge(u, tgt);
   switch(id){
     case "gwang": E.forEach(x=>dealDamage(u,x,atkOf(u)*1.8,{noCounter:true})); break;
@@ -1960,7 +2106,9 @@ function gainFragments(lv){
 function epilogueNotice(ids){
   if(!ids||!ids.length) return "";
   playEpilogueSting(byId[ids[0]].f);
+  const uw=grantUniqWeapons(); if(uw.length) persist();
   return ids.map(id=>"<p class='big' style='color:var(--gold)'>✦ "+byId[id].n+"의 이야기 조각을 모두 모았다.</p>"
+    +(UNIQ_WEAPONS[id]?"<p style='color:var(--gold)'>⚔ 전용 무기 <b>"+UNIQ_WEAPONS[id].n+"</b>을(를) 얻었다 — "+modsDesc(UNIQ_WEAPONS[id].mods)+"</p>":"")
     +"<p><button class='primary' data-epi='"+id+"'>▶ 후일담 감상</button> <span class='help'>도감에서도 다시 볼 수 있다.</span></p>").join("");
 }
 function win(){
@@ -1982,7 +2130,7 @@ function win(){
   else { save.stageTier[st.id]=tier+1; rew+=" (재도전 · 도전 Lv "+(tier+1)+" 돌파!)"; }
   const chron=chronCheck(st.id);
   const newEpilogue=gainFragments(st.lv);
-  const drop=rollDrop(st.lv, st.rec?0.6:0.45);
+  const drop=rollDrop(st.lv, st.rec?0.6:0.45, stageEnemyFaction(st));
   if(drop) rew+=" · <b style='color:var(--gold)'>"+drop.n+"</b> 드랍!";
   if(tier>=REPLAY_HERO_TIER&&Math.random()<0.12){ save.items.push({...SPECIAL_WEAPON}); rew+=" · <b style='color:var(--gold)'>"+SPECIAL_WEAPON.n+"</b> 드랍!"; }
   const matKey=materialDropChance(st.id);
@@ -4082,7 +4230,7 @@ function showParty(){
     const bs=BASICS[c.id]||[];
     const wcnt=wearOf(c.id).filter(x=>x!==null&&x!==undefined).length;
     const bdLv=bondOf(c.id), tk=tokOf(c.id);
-    d.innerHTML='<span class="badge">'+pface(c,awk)+'</span><div class="info"><div class="nm">'+c.n+(c.king?" 👑":"")+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(es)+'</span>'+(awk?'<span style="color:var(--accent);font-size:.7rem">'+"✦".repeat(awk)+'</span>':"")+'</div><div class="meta">'+c.f+" · "+c.role+'</div><div class="st">무'+c.st[0]+" 지"+c.st[1]+" 방"+c.st[2]+" 체"+c.st[3]+" 속"+c.st[4]+'</div><div class="meta">스킬: '+bs.map(s=>s.nm).join(" · ")+'</div><div class="meta">[궁극기 '+c.skill.nm+"] "+c.skill.d+'</div>'+promoBtn+' <button class="gearb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px">장비 '+wcnt+'/3</button>'
+    d.innerHTML='<span class="badge">'+pface(c,awk)+'</span><div class="info"><div class="nm">'+c.n+(c.king?" 👑":"")+' <span style="color:var(--gold);font-size:.7rem">'+"★".repeat(es)+'</span>'+(awk?'<span style="color:var(--accent);font-size:.7rem">'+"✦".repeat(awk)+'</span>':"")+'</div><div class="meta">'+c.f+" · "+c.role+'</div><div class="st">무'+c.st[0]+" 지"+c.st[1]+" 방"+c.st[2]+" 체"+c.st[3]+" 속"+c.st[4]+'</div><div class="meta">스킬: '+bs.map(s=>s.nm).join(" · ")+'</div><div class="meta">[궁극기 '+c.skill.nm+"] "+c.skill.d+'</div>'+promoBtn+' <button class="gearb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px">장비 '+wcnt+'/4</button>'
       +' <button class="bondb" data-id="'+c.id+'" style="margin-top:4px;font-size:.72rem;padding:3px 8px'+(bdLv>0?';border-color:var(--silla)':"")+(tk>0&&bdLv<BOND_MAX&&tk>=bondCostOf(c.id)?';border-color:var(--gold)':"")+'">연격 '+bdLv+'/'+BOND_MAX+(tk?' · 부절 '+tk:"")+'</button></div>';
     const toggle=()=>{
       if(mode==="party"){
@@ -4125,6 +4273,7 @@ function showParty(){
   });
   order.forEach(c=>paint(c.id));
   renderSlots();
+  $("btn-inventory").onclick=()=>{ if(sel.length===4) save.party=sel; save.support=sup; showInventory(); };
   $("btn-party-auto").onclick=()=>{
     const r=recommendParty();
     if(!r){ alertMsg("보유 영웅이 없다."); return; }
@@ -4193,6 +4342,53 @@ function recommendParty(){
   const reason=(best.why.length?best.why.join(" · "):"결속 없이 전력 순")+(support.length?" · 원군 "+support.length+"명":"");
   return {party:best.ids, support, reason};
 }
+/* ---- 장비 창고: 전체 목록 · 분해(→철) · 일괄 정리 ----
+   아이템은 배열 색인으로 참조되므로(save.wear), 지우면 색인이 밀린다. removeItems가 착용 배열을 함께 다시 매긴다. */
+function dismantleValue(it){ if(!it||it.uniq||it.tier>=4) return 0; return DISMANTLE_IRON[Math.min(it.tier,5)-1]||0; }
+function removeItems(ixSet){
+  const map={}; const kept=[];
+  save.items.forEach((it,ix)=>{ if(ixSet.has(ix)) return; map[ix]=kept.length; kept.push(it); });
+  Object.keys(save.wear).forEach(id=>{ save.wear[id]=(save.wear[id]||[]).map(ix=>(ix===null||ix===undefined)?null:(map[ix]===undefined?null:map[ix])); });
+  save.items=kept;
+}
+let INV_SLOT=null;   // 창고 필터(부위)
+function showInventory(){
+  const back=()=>{ closeModal(); showParty(); };
+  const rows=save.items.map((it,ix)=>({it,ix,by:wornBy(ix)})).filter(x=>INV_SLOT===null||x.it.slot===INV_SLOT)
+    .sort((a,b)=>(b.it.tier-a.it.tier)||(a.it.slot-b.it.slot)||a.it.n.localeCompare(b.it.n,"ko"));
+  const junk=save.items.map((it,ix)=>({it,ix})).filter(({it,ix})=>wornBy(ix)===null&&it.tier<=2&&!it.uniq&&!it.set&&!it.pre);
+  const junkIron=junk.reduce((a,{it})=>a+dismantleValue(it),0);
+  const tabs=['<button class="eratab'+(INV_SLOT===null?" on":"")+'" data-inv="all">전체</button>'].concat(SLOT_NAMES.map((nm,i)=>'<button class="eratab'+(INV_SLOT===i?" on":"")+'" data-inv="'+i+'">'+nm+'</button>')).join("");
+  let list="";
+  if(!rows.length) list='<p class="help">장비가 없다.</p>';
+  rows.forEach(({it,ix,by})=>{
+    const v=dismantleValue(it);
+    list+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;'+(by?'':'')+'"><span style="font-size:.82rem;min-width:190px">'+(it.tier>=4?'<b style="color:var(--gold)">':'')+it.n+(it.tier>=4?'</b>':'')
+      +' <span class="help">'+SLOT_NAMES[it.slot]+' T'+it.tier+' · '+itemDesc(it)+'</span></span>'
+      +(by?'<span class="help" style="color:var(--silla)">'+byId[by].n+' 착용 중</span>':(v?'<button data-dis="'+ix+'" style="font-size:.7rem;padding:2px 8px">분해 (철 '+v+')</button>':'<span class="help">분해 불가</span>'))+'</div>';
+  });
+  showModal('<h2>장비 창고 <span class="help" style="font-size:.8rem">'+save.items.length+'개 · 보유 철 '+num(save.iron)+'</span></h2>'
+    +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tabs+'</div>'
+    +'<p class="help">착용 중이 아닌 장비를 철로 분해한다(T1 '+DISMANTLE_IRON[0]+' · T2 '+DISMANTLE_IRON[1]+' · T3 '+DISMANTLE_IRON[2]+'). 국보·전설·전용 무기는 분해할 수 없다.</p>'
+    +'<div style="max-height:300px;overflow-y:auto">'+list+'</div>'
+    +'<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+    +'<button data-junk '+(junk.length?'':'disabled')+' style="font-size:.74rem">일괄 정리 — 미착용 T1·T2 '+junk.length+'개 → 철 '+junkIron+'</button>'
+    +'<span class="help">접두어·세트·착용 중인 것은 남긴다</span></div>'
+    +'<button class="primary" id="m-ok" style="margin-top:8px">닫기</button>', back);
+  $("modal-box").querySelectorAll("[data-inv]").forEach(b=>b.onclick=()=>{ INV_SLOT=b.dataset.inv==="all"?null:+b.dataset.inv; showInventory(); });
+  $("modal-box").querySelectorAll("[data-dis]").forEach(b=>b.onclick=()=>{
+    const ix=+b.dataset.dis; const it=save.items[ix]; const v=dismantleValue(it); if(!it||!v||wornBy(ix)!==null) return;
+    removeItems(new Set([ix])); save.iron+=v; persist(); sfx("heal"); showInventory();
+  });
+  const jb=$("modal-box").querySelector("[data-junk]"); if(jb) jb.onclick=()=>{
+    if(!junk.length) return;
+    showModal('<h2>일괄 정리</h2><p>미착용 T1·T2 장비 <b>'+junk.length+'개</b>를 분해해 철 <b>'+junkIron+'</b>을 얻는다. 되돌릴 수 없다.</p>'
+      +'<button class="primary" id="m-ok">분해한다</button> <button id="m-cancel">취소</button>', ()=>{
+        removeItems(new Set(junk.map(x=>x.ix))); save.iron+=junkIron; persist(); sfx("heal"); closeModal(); showInventory();
+      });
+    const c=$("m-cancel"); if(c) c.onclick=()=>{ closeModal(); showInventory(); };
+  };
+}
 function alertMsg(t){ showModal("<h2>알림</h2><p>"+t+"</p><button class='primary' id='m-ok'>확인</button>", closeModal); }
 /* ---- 연격(緣格) 모달 — 모은 부절을 쓰는 세 가지 길 ----
    ① 연격을 올려 그 인물만의 고유 강화를 받는다
@@ -4252,43 +4448,56 @@ function showBond(id){
   draw();
 }
 /* 영웅 장비창: 편성소에서 초상/장비 버튼 클릭 → 착용·해제·이전 */
-function itemRank(it){ return it?it.tier*10+(it.eff?0:1):-1; } // 같은 tier면 순수 스탯템을 근소 우선
+/* 이 영웅이 이 장비를 낄 수 있는가 — 군장은 역할이 맞아야 한다. 전용 무기는 남도 낄 수 있다(수치만) */
+function canWear(id, it){ if(!it) return false; if(it.slot===3) return it.role===byId[id].role; return true; }
+function itemRank(it, id){
+  if(!it) return -1;
+  let r=it.tier*10+(it.eff?0:1);
+  if(it.uniq) r+=it.uniq===id?40:-5;                       // 전용 무기는 주인에게 최우선, 남에게는 국보보다 뒤
+  if(it.pre) r+=it.pre.length*2;
+  if(it.set&&byId[id]&&byId[id].f===it.set) r+=3;          // 세트는 같은 나라 영웅에게 조금 더
+  return r;
+}
 function autoEquipBest(id){
   const ww=wearOf(id);
-  for(let slot=0; slot<3; slot++){
+  for(let slot=0; slot<4; slot++){
     const curIx=ww[slot], curIt=(curIx!==null&&curIx!==undefined)?save.items[curIx]:null;
-    const free=save.items.map((it,ix)=>({it,ix})).filter(({it,ix})=>it.slot===slot&&wornBy(ix)===null);
+    const free=save.items.map((it,ix)=>({it,ix})).filter(({it,ix})=>it.slot===slot&&wornBy(ix)===null&&canWear(id,it));
     let best=curIt?{it:curIt,ix:curIx}:null;
-    free.forEach(cand=>{ if(itemRank(cand.it)>itemRank(best?best.it:null)) best=cand; });
+    free.forEach(cand=>{ if(itemRank(cand.it,id)>itemRank(best?best.it:null,id)) best=cand; });
     if(best&&best.ix!==curIx) ww[slot]=best.ix;
   }
   save.wear[id]=ww; persist();
 }
-function autoUnequip(id){ save.wear[id]=[null,null,null]; persist(); }
+function autoUnequip(id){ save.wear[id]=[null,null,null,null]; persist(); }
 function showEquip(id, filter){
   if(filter===undefined) filter=null; // null=전체, 0/1/2=무기·갑옷·장신구만
   const c=byId[id];
   const w=wearOf(id);
   let slots="";
-  for(let i=0;i<3;i++){
+  for(let i=0;i<4;i++){
     const ix=w[i], it=(ix!==null&&ix!==undefined)?save.items[ix]:null;
     const active=filter===i;
     slots+='<div data-slotfilter="'+i+'" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 6px;border-radius:6px;cursor:pointer;border:1px solid '+(active?"var(--gold)":"transparent")+'; background:'+(active?"rgba(208,171,85,.12)":"transparent")+'">'
       +'<span class="meta" style="min-width:52px">'+SLOT_NAMES[i]+'</span>'
-      +(it?('<b style="font-size:.85rem">'+it.n+'</b> <span class="help">'+itemDesc(it)+'</span> <button data-un="'+i+'" style="font-size:.7rem;padding:2px 8px">해제</button>')
-          :'<span class="help">비어 있음 — 눌러서 '+SLOT_NAMES[i]+' 목록 보기</span>')+'</div>';
+      +(it?('<b style="font-size:.85rem;white-space:nowrap">'+it.n+'</b> <span class="help">'+itemDesc(it)+'</span> <button data-un="'+i+'" style="font-size:.7rem;padding:2px 8px;white-space:nowrap">해제</button>')
+          :'<span class="help">비어 있음 — 눌러서 '+SLOT_NAMES[i]+' 목록 보기'+(i===3?' ('+c.role+' 전용 군장만)':'')+'</span>')+'</div>';
   }
   // 다른 영웅이 이미 착용 중인 아이템은 목록에서 숨긴다 (해당 영웅의 장비창에서 먼저 해제해야 보인다)
-  const pool=save.items.map((it,ix)=>({it,ix})).filter(({it,ix})=>wornBy(ix)===null&&(filter===null||it.slot===filter));
+  const pool=save.items.map((it,ix)=>({it,ix})).filter(({it,ix})=>wornBy(ix)===null&&(filter===null||it.slot===filter)&&(filter!==3||canWear(id,it)));
+  const setInfo=wearSetInfo(id);
+  const setLine=setInfo.length?'<div class="help" style="margin:4px 0 6px">'+setInfo.map(x=>{ const S=SET_ITEMS[x.f]; return (x.own?'<b style="color:var(--gold)">':'<span>')+x.f+' 「'+S.n+'」 '+x.n+'/3'+(x.own?(x.n>=3?' — 3부위 발동':x.n>=2?' — 2부위 발동':' — 2부위부터 발동'):' (다른 나라 영웅이라 세트 효과 없음)')+(x.own?'</b>':'</span>'); }).join(" · ")+'</div>':"";
+  const modsNow=wearMods(id); const modsLine=Object.keys(modsNow).length?'<div class="help" style="margin-bottom:6px;color:var(--ink)">장비 효과 합계: '+modsDesc(modsNow)+'</div>':"";
   let list="";
   if(!save.items.length) list='<p class="help">보유 아이템이 없다 — 스테이지·시련의 탑·폐광에서 랜덤 드랍된다.</p>';
   else if(!pool.length) list='<p class="help">'+(filter===null?"착용 가능한 아이템이 없다.":SLOT_NAMES[filter]+" 종류의 아이템이 없다.")+' (다른 영웅이 착용 중인 아이템은 표시되지 않는다)</p>';
   else pool.forEach(({it,ix})=>{
-    list+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap"><span style="font-size:.82rem;min-width:170px">'+it.n+' <span class="help">'+SLOT_NAMES[it.slot]+" · "+itemDesc(it)+'</span></span>'
-      +'<button data-eq="'+ix+'" style="font-size:.7rem;padding:2px 8px">착용</button></div>';
+    const ok=canWear(id,it);
+    list+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap'+(ok?'':';opacity:.55')+'"><span style="font-size:.82rem;min-width:170px">'+it.n+' <span class="help">'+SLOT_NAMES[it.slot]+" · "+itemDesc(it)+'</span></span>'
+      +(ok?'<button data-eq="'+ix+'" style="font-size:.7rem;padding:2px 8px">착용</button>':'<span class="help">'+it.role+' 전용</span>')+'</div>';
   });
   const filterLabel=filter===null?"전체":SLOT_NAMES[filter];
-  showModal('<h2>'+c.n+'의 장비</h2><p class="help">위에서 무기·갑옷·장신구를 누르면 그 종류만 골라볼 수 있다. 다른 영웅이 착용 중인 아이템은 목록에 뜨지 않는다.</p>'+slots
+  showModal('<h2>'+c.n+'의 장비</h2><p class="help">위에서 부위를 누르면 그 종류만 골라볼 수 있다. 다른 영웅이 착용 중인 아이템은 목록에 뜨지 않는다. 군장은 역할이 맞아야 낄 수 있다.</p>'+slots+setLine+modsLine
     +'<div style="display:flex;gap:6px;margin:6px 0 2px"><button data-autoeq style="font-size:.72rem;padding:3px 10px">⚡ 최고 능력치 자동 장착</button><button data-autoun style="font-size:.72rem;padding:3px 10px">전체 해제</button></div>'
     +'<div style="border-top:1px solid var(--line);margin:10px 0 0;padding-top:8px">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span class="help">'+filterLabel+' 목록</span>'
@@ -4301,6 +4510,7 @@ function showEquip(id, filter){
   });
   $("modal-box").querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>{
     const ix=+b.dataset.eq; const it=save.items[ix]; if(!it) return;
+    if(!canWear(id,it)){ alertMsg(it.n+"은(는) "+it.role+" 전용 군장이다."); return; }
     const prev=wornBy(ix);
     if(prev){ const pw=wearOf(prev); pw[pw.indexOf(ix)]=null; save.wear[prev]=pw; }
     const ww=wearOf(id); ww[it.slot]=ix; save.wear[id]=ww; persist(); sfx("heal"); showEquip(id,filter);
@@ -4332,6 +4542,7 @@ $("btn-help").onclick=()=>{
    +"<p><b>편의</b> — 전투 화면에서 배속(×2)과 자동 전투를, 상단에서 효과음·배경음을 켜고 끌 수 있다. 자동 전투는 전투마다 꺼진 상태로 시작해 버튼을 눌러야 켜진다.</p>"
    +"<p><b>드랍 장비</b> — 스테이지(45%, 보스 60%)·시련의 탑(45%, 영웅층은 국보 확정)·폐광(70%)에서 아이템이 랜덤 드랍된다. 편성소에서 영웅 초상이나 장비 버튼을 눌러 무기/갑옷/장신구를 착용(다른 영웅 착용분은 자동 이전). 대장간 강화와 합산되며, 가야 시너지(장비 효과 1.3배)의 적용도 받는다. 도전 Lv "+REPLAY_HERO_TIER+" 이상 승리 시 낮은 확률로 <b>"+SPECIAL_WEAPON.n+"</b>이 드랍되는데, 공격 시 대상의 치유 효과를 50%(2턴) 낮춰 적 힐러를 상대하기 좋다.</p>"
    +"<p><b>원군</b> — 출전 4인 외에 <b>원군 3인</b>을 앉힐 수 있다. 원군은 전투에 나오지 않지만 <b>같은 세력 아군의 공격·방어</b>를 등급·각성에 비례해 올리고(★4 +8%), 역할에 따라 파티 전체를 돕는다(탱커 받는 피해 −3% · 딜러 공격 +3% · 힐러 회복량 +8% · 서포터 개전 기력 +8). 편성 화면에서 「원군 3인」을 눌러 고른다.</p>"
+   +"<p><b>장비 확장 (v2.1)</b> — 부위가 <b>군장</b>까지 4개다. 군장은 역할 전용(탱커 방패·딜러 병서·지략딜러 천문·힐러 약낭·서포터 군기)이고 1~3티어만 있다. 드랍 장비에는 확률로 <b>접두어</b>(예리한·굳센·날랜·견고한·날카로운·흡혈의·명의의·기백의·집중의)가 1~2개 붙는다. 각 나라의 장에서는 그 나라의 <b>세력 세트</b>(철기·해상·화랑·야철)가 떨어지며, <b>같은 나라 영웅</b>이 2부위·3부위를 맞추면 세트 효과가 산다. 국보 위에 <b>전설(5티어)</b> 세 가지 — 용봉문 환두대도·개마무사 갑주·금제 관식 — 가 있고 Lv 30 이상 스테이지(2%)와 시련의 탑 30층 이상 영웅층에서 나온다. <b>★5 영웅 13인</b>은 후일담이 열리면 <b>전용 무기</b>를 받는다(본인이 들어야 고유 효과). 편성 화면의 〈장비 창고〉에서 남는 장비를 철로 분해할 수 있다(국보·전설·전용 무기 제외).</p>"
    +"<p><b>국보</b> — 최고 등급(tier 4) 장비 세 가지는 수치에 더해 고유 효과를 갖는다. <b>칠지도</b>는 공격이 다른 적 1명에게 30% 여파를 남기고, <b>가야 판갑옷</b>은 받는 피해를 8% 줄이며, <b>신라 금관</b>은 개전 기력 +30과 라운드마다 기력 +5를 준다. 시련의 탑 영웅층에서 확정으로 얻을 수 있다.</p>"
    +"<p><b>도감·업적</b> — 도감은 수집한 영웅의 일대기와 능력을 모아 본다. 업적은 달성 시 직접 보상을 수령해야 한다.</p>"
    +"<p><b>이야기 조각·후일담</b> — 전투에서 승리하면 파티원 중 한 명에게 확률로 <b>이야기 조각</b>이 쌓인다. 확률은 스테이지 권장 Lv이 높을수록 올라간다(Lv1 약 35% → 고레벨 스테이지 최대 65%). 한 영웅의 조각을 "+FRAGMENT_GOAL+"개 모으면 그 영웅의 <b>후일담</b>이 열린다 — 세 장면으로 이어지는 짧은 상영물이며, 브라우저가 지원하면 <b>음성 해설</b>이 함께 나온다(도감에서 다시 볼 수 있다).</p>"
@@ -5890,6 +6101,9 @@ const ACH=[
  {id:"codexKings", n:"왕가의 인장", d:"도감의 왕 전원 수집 (도감 효과 발동)", rew:{iron:400}, chk:()=>codexBonusActive(CODEX_BONUSES.find(cb=>cb.id==="kings"))},
  {id:"eliteWin", n:"정예를 넘어서", d:"도전 Lv "+REPLAY_HERO_TIER+" 이상 돌파 (정예 영웅 격파)", rew:{iron:300}, chk:()=>Object.values(save.stageTier||{}).some(t=>t>=REPLAY_HERO_TIER)},
  {id:"treasure", n:"국보 수집가", d:"국보 등급 장비 획득", rew:{merit:200}, chk:()=>(save.items||[]).some(it=>it.tier>=4)},
+ {id:"legend", n:"전설을 손에", d:"전설(5티어) 장비 획득", rew:{iron:400}, chk:()=>(save.items||[]).some(it=>it.tier>=5&&!it.uniq)},
+ {id:"uniqw", n:"주인을 찾은 검", d:"★5 영웅의 전용 무기 획득", rew:{merit:300}, chk:()=>(save.items||[]).some(it=>it.uniq)},
+ {id:"set3", n:"한 벌의 갑주", d:"세력 세트 3부위를 같은 나라 영웅에게 착용", rew:{iron:300}, chk:()=>Object.keys(save.wear||{}).some(id=>byId[id]&&wearSetInfo(id).some(x=>x.own&&x.n>=3))},
  {id:"epilogue3", n:"여운을 모으다", d:"후일담 3편 이상 열람", rew:{scrolls:3}, chk:()=>(save.epilogues||[]).length>=3},
 ];
 function rewText(r){ const p=[]; if(r.merit)p.push("공훈 "+r.merit); if(r.iron)p.push("철 "+r.iron); if(r.scrolls)p.push("소집령 "+r.scrolls); return p.join(" · "); }
@@ -5992,7 +6206,7 @@ function towerWin(){
     const R=towerHeroReward(fl);
     save.scrolls+=R.scrolls; parts.push("소집령 +"+R.scrolls);
     const got=[];
-    for(let i=0;i<R.treasures;i++) got.push(makeItem(4).n);
+    for(let i=0;i<R.treasures;i++) got.push(makeItem(fl>=30&&i===0?5:4).n);   // 30층부터 첫 국보 자리는 전설
     parts.push("<b style='color:var(--gold)'>국보 "+got.join(" · ")+"</b>");
     opened=grantFragments(R.fragments);
     parts.push("이야기 조각 +"+R.fragments);
@@ -6295,7 +6509,7 @@ function doSweep(st, n){
     const r=sweepReward(st);
     save.merit+=r.merit; save.iron+=r.iron;
     out.merit+=r.merit; out.iron+=r.iron;
-    const drop=rollDrop(st.lv, st.rec?0.6:0.45);
+    const drop=rollDrop(st.lv, st.rec?0.6:0.45, stageEnemyFaction(st));
     if(drop) out.drops.push(drop.n);
     const ep=gainFragments(st.lv);
     if(ep) out.opened.push(ep);
